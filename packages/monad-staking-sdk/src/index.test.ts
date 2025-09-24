@@ -95,14 +95,16 @@ describe('MonadStakingSdk', () => {
     });
 
     expect(hash).toBe('0xhash');
-    expect(writeContract).toHaveBeenCalledWith({
-      address: network.precompileAddress,
-      abi: expect.any(Array),
-      functionName: 'delegate',
-      args: [3n],
-      value: 5_000_000_000_000_000_000n,
-      account: '0x0000000000000000000000000000000000000002',
-    });
+    expect(writeContract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: network.precompileAddress,
+        abi: expect.any(Array),
+        functionName: 'delegate',
+        args: [3n],
+        value: 5_000_000_000_000_000_000n,
+        account: '0x0000000000000000000000000000000000000002',
+      }),
+    );
   });
 });
 

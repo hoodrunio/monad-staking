@@ -37,14 +37,21 @@ function assertSameChain(
   }
 }
 
-function toSafeNumber(value: bigint, fieldName: string): number {
-  if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
-    throw new Error(`${fieldName} exceeds MAX_SAFE_INTEGER.`);
+function toSafeNumber(value: bigint | number, fieldName: string): number {
+  if (typeof value === 'bigint') {
+    if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
+      throw new Error(`${fieldName} exceeds MAX_SAFE_INTEGER.`);
+    }
+    if (value < 0) {
+      throw new Error(`${fieldName} cannot be negative.`);
+    }
+    return Number(value);
   }
-  if (value < 0) {
-    throw new Error(`${fieldName} cannot be negative.`);
+
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new Error(`${fieldName} must be a non-negative safe integer.`);
   }
-  return Number(value);
+  return value;
 }
 
 function assertPositiveAmount(amount: bigint, label: string) {
@@ -164,22 +171,35 @@ export class MonadStakingSdk<TTransport extends Transport> {
   }
 
   async getEpoch(): Promise<EpochInfo> {
-    const result = await this.options.publicClient.readContract({
+    const result = (await this.options.publicClient.readContract({
       address: this.address,
       abi: stakingAbi,
       functionName: 'getEpoch',
-    });
+    })) as [bigint, boolean];
     const [epoch, inEpochDelayPeriod] = result;
     return { epoch, inEpochDelayPeriod };
   }
 
   async getValidator(validatorId: bigint): Promise<ValidatorInfo> {
-    const result = await this.options.publicClient.readContract({
+    const result = (await this.options.publicClient.readContract({
       address: this.address,
       abi: stakingAbi,
       functionName: 'getValidator',
       args: [validatorId],
-    });
+    })) as [
+      Address,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      `0x${string}`,
+      `0x${string}`,
+    ];
 
     const [
       authAddress,
@@ -216,12 +236,12 @@ export class MonadStakingSdk<TTransport extends Transport> {
     validatorId: bigint,
     delegator: Address,
   ): Promise<DelegatorInfo> {
-    const result = await this.options.publicClient.readContract({
+    const result = (await this.options.publicClient.readContract({
       address: this.address,
       abi: stakingAbi,
       functionName: 'getDelegator',
       args: [validatorId, delegator],
-    });
+    })) as [bigint, bigint, bigint, bigint, bigint, bigint, bigint];
 
     const [
       stake,
@@ -250,12 +270,12 @@ export class MonadStakingSdk<TTransport extends Transport> {
     withdrawalId: number,
   ): Promise<WithdrawalRequestInfo> {
     assertWithdrawalId(withdrawalId);
-    const result = await this.options.publicClient.readContract({
+    const result = (await this.options.publicClient.readContract({
       address: this.address,
       abi: stakingAbi,
       functionName: 'getWithdrawalRequest',
-      args: [validatorId, delegator, BigInt(withdrawalId)],
-    });
+      args: [validatorId, delegator, Number(withdrawalId)],
+    })) as [bigint, bigint, bigint];
 
     const [withdrawalAmount, accRewardPerToken, withdrawEpoch] = result;
     return { withdrawalAmount, accRewardPerToken, withdrawEpoch };
@@ -283,12 +303,12 @@ export class MonadStakingSdk<TTransport extends Transport> {
     delegator: Address,
     startValId: bigint,
   ): Promise<PaginatedDelegations> {
-    const result = await this.options.publicClient.readContract({
+    const result = (await this.options.publicClient.readContract({
       address: this.address,
       abi: stakingAbi,
       functionName: 'getDelegations',
       args: [delegator, startValId],
-    });
+    })) as [boolean, bigint, readonly bigint[]];
 
     const [isDone, nextValId, valIds] = result;
     return {
@@ -302,12 +322,12 @@ export class MonadStakingSdk<TTransport extends Transport> {
     validatorId: bigint,
     startDelegator: Address,
   ): Promise<PaginatedDelegators> {
-    const result = await this.options.publicClient.readContract({
+    const result = (await this.options.publicClient.readContract({
       address: this.address,
       abi: stakingAbi,
       functionName: 'getDelegators',
       args: [validatorId, startDelegator],
-    });
+    })) as [boolean, Address, readonly Address[]];
 
     const [isDone, nextDelegator, delegators] = result;
     return {
@@ -325,12 +345,12 @@ export class MonadStakingSdk<TTransport extends Transport> {
       throw new Error('startIndex must be non-negative.');
     }
 
-    const result = await this.options.publicClient.readContract({
+    const result = (await this.options.publicClient.readContract({
       address: this.address,
       abi: stakingAbi,
       functionName,
-      args: [BigInt(startIndex)],
-    });
+      args: [startIndex],
+    })) as [boolean, number, readonly bigint[]];
 
     const [isDone, nextIndex, valIds] = result;
     return {
@@ -354,6 +374,7 @@ export class MonadStakingSdk<TTransport extends Transport> {
       args: [args.validatorId],
       value: args.amount,
       account: args.account,
+      chain: walletClient.chain ?? undefined,
     });
   }
 
@@ -370,8 +391,9 @@ export class MonadStakingSdk<TTransport extends Transport> {
       address: this.address,
       abi: stakingAbi,
       functionName: 'undelegate',
-      args: [args.validatorId, args.amount, BigInt(args.withdrawalId)],
+      args: [args.validatorId, args.amount, Number(args.withdrawalId)],
       account: args.account,
+      chain: walletClient.chain ?? undefined,
     });
   }
 
@@ -386,8 +408,9 @@ export class MonadStakingSdk<TTransport extends Transport> {
       address: this.address,
       abi: stakingAbi,
       functionName: 'withdraw',
-      args: [args.validatorId, BigInt(args.withdrawalId)],
+      args: [args.validatorId, Number(args.withdrawalId)],
       account: args.account,
+      chain: walletClient.chain ?? undefined,
     });
   }
 
@@ -402,6 +425,7 @@ export class MonadStakingSdk<TTransport extends Transport> {
       functionName: 'compound',
       args: [args.validatorId],
       account: args.account,
+      chain: walletClient.chain ?? undefined,
     });
   }
 
@@ -416,6 +440,7 @@ export class MonadStakingSdk<TTransport extends Transport> {
       functionName: 'claimRewards',
       args: [args.validatorId],
       account: args.account,
+      chain: walletClient.chain ?? undefined,
     });
   }
 
@@ -432,6 +457,7 @@ export class MonadStakingSdk<TTransport extends Transport> {
       functionName: 'changeCommission',
       args: [args.validatorId, args.newCommission],
       account: args.account,
+      chain: walletClient.chain ?? undefined,
     });
   }
 
@@ -449,6 +475,7 @@ export class MonadStakingSdk<TTransport extends Transport> {
       args: [args.validatorId],
       value: args.amount,
       account: args.account,
+      chain: walletClient.chain ?? undefined,
     });
   }
 
