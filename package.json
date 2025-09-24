@@ -1,0 +1,25 @@
+{
+  "name": "monad-staking",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Monad staking dApp monorepo",
+  "engines": {
+    "node": ">=18.18",
+    "pnpm": ">=8.9"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "test": "pnpm -r run test",
+    "typecheck": "pnpm -r run typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^7.6.0",
+    "@typescript-eslint/parser": "^7.6.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5"
+  }
+}
