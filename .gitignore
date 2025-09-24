@@ -5,5 +5,5 @@ dist
 out
 .next
 .env.local
-.env.*
+.env
 coverage
