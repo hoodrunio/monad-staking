@@ -27,7 +27,7 @@ describe('MonadStakingSdk', () => {
   it('reads epoch information via the public client', async () => {
     const readContract = vi
       .fn()
-      .mockResolvedValue<[bigint, boolean]>([12n, false]);
+      .mockResolvedValue([12n, false] as [bigint, boolean]);
 
     const publicClient = {
       chain: { id: network.chainId },
