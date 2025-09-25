@@ -50,19 +50,19 @@ withdrawalsRoutes.get('/', async (c) => {
     for (let wid = startId; wid <= 255; wid++) {
       if (count >= limit || misses >= stopAfterMisses) break;
       try {
-        const [amount, acc, epoch] = await sdk.getWithdrawalRequest(
+        const req = await sdk.getWithdrawalRequest(
           valId,
           address as `0x${string}`,
           wid,
         );
-        const has = amount > 0n;
+        const has = req.withdrawalAmount > 0n;
         if (has) {
           items.push({
             validatorId: valId.toString(),
             withdrawalId: wid,
-            amount: amount.toString(),
-            accRewardPerToken: acc.toString(),
-            withdrawEpoch: epoch.toString(),
+            amount: req.withdrawalAmount.toString(),
+            accRewardPerToken: req.accRewardPerToken.toString(),
+            withdrawEpoch: req.withdrawEpoch.toString(),
           });
           count++;
           misses = 0;

@@ -16,7 +16,9 @@ async function pollNetwork(network: 'monad-mainnet' | 'monad-testnet-1' | 'monad
   try {
     const state = await col.findOne({ _id: network });
     if (state) lastEpoch = state.epoch;
-  } catch {}
+  } catch (err) {
+    console.warn(`[worker] failed to read epoch state for ${network}`, err);
+  }
 
   // eslint-disable-next-line no-constant-condition
   while (true) {

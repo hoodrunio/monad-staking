@@ -71,8 +71,12 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
           { $set: doc },
           { upsert: true },
         );
-      } catch {
+      } catch (err) {
+        // Count as miss, log occasionally
         misses++;
+        if (misses % 5 === 0) {
+          console.warn(`[ingest] ${networkKey} validator ${current.toString()} scan error`, err);
+        }
       }
     }));
     if (batch.length >= 64) {
@@ -90,21 +94,53 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
       if (!f.downloadUrl) continue;
       try {
         const json = await downloadValidatorJson(f.downloadUrl);
-        const any = json as any;
-        const secp: string | undefined = any?.secpPubkey || any?.secp_pubkey || any?.secpPublicKey;
+        const metaObj = json as unknown;
+        const secp = extractString(metaObj, ['secpPubkey', 'secp_pubkey', 'secpPublicKey']);
         if (!secp) continue;
+        const name = extractString(metaObj, ['name']);
+        const website = extractString(metaObj, ['website']);
+        const description = extractString(metaObj, ['description']);
+        const logo = extractString(metaObj, ['logo']);
+        const contacts = extractRecord(metaObj, ['contacts']);
         // Attempt match by secp key
         await col.updateMany(
           { network: networkKey, 'keys.secpPubkey': secp },
-          { $set: { meta: { name: any?.name, website: any?.website, description: any?.description, logoUrl: any?.logo, contacts: any?.contacts, githubPath: f.path, githubSha: f.sha } } },
+          { $set: { meta: { name, website, description, logoUrl: logo, contacts, githubPath: f.path, githubSha: f.sha } } },
         );
-      } catch {
-        // continue
+      } catch (err) {
+        console.warn(`[ingest] enrich file failed ${f.path}`, err);
       }
     }
-  } catch {
-    // optional enrichment; ignore failure
+  } catch (err) {
+    console.warn(`[ingest] enrichment skipped or failed for ${networkKey}`, err);
   }
+}
+
+function extractString(source: unknown, keys: readonly string[]): string | undefined {
+  if (typeof source !== 'object' || source === null) return undefined;
+  const obj = source as Record<string, unknown>;
+  for (const k of keys) {
+    const v = obj[k];
+    if (typeof v === 'string') return v;
+  }
+  return undefined;
+}
+
+function extractRecord(source: unknown, keys: readonly string[]): Record<string, string> | undefined {
+  if (typeof source !== 'object' || source === null) return undefined;
+  const obj = source as Record<string, unknown>;
+  for (const k of keys) {
+    const v = obj[k];
+    if (typeof v === 'object' && v !== null) {
+      const rec = v as Record<string, unknown>;
+      const out: Record<string, string> = {};
+      for (const [rk, rv] of Object.entries(rec)) {
+        if (typeof rv === 'string') out[rk] = rv;
+      }
+      return out;
+    }
+  }
+  return undefined;
 }
 
 
