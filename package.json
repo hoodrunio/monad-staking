@@ -24,5 +24,8 @@
     "globals": "^16.4.0",
     "prettier": "^3.2.5",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "viem": "^2.37.8"
   }
 }
