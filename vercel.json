@@ -1,11 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "apps/staking-web/package.json",
-      "use": "@vercel/next"
-    }
-  ],
+  "buildCommand": "pnpm --filter '@monad-staking/config' build && pnpm --filter '@monad-staking/sdk' build && pnpm --filter '@monad-staking/staking-web' build",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm --filter '@monad-staking/config' build && pnpm --filter '@monad-staking/sdk' build"
+  "outputDirectory": "apps/staking-web/.next"
 }
