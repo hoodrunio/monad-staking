@@ -14,7 +14,6 @@ const listQuery = z.object({
 
 const detailQuery = z.object({
   network: z.enum(['monad-mainnet', 'monad-testnet-1', 'monad-testnet-2']),
-  id: z.coerce.bigint().refine((v) => v >= 0n, 'id must be non-negative'),
 });
 
 type ValidatorListItem = {
@@ -65,6 +64,12 @@ function formatMon(value: bigint): string {
 const listCache = new TtlCache<ValidatorListResponse>(30_000);
 const detailCache = new TtlCache<ValidatorDetailResponse>(120_000);
 
+function normalizeHexNo0x(input: string): string | null {
+  const trimmed = input.trim();
+  const no0x = trimmed.startsWith('0x') || trimmed.startsWith('0X') ? trimmed.slice(2) : trimmed;
+  return /^[0-9a-fA-F]+$/.test(no0x) ? no0x.toLowerCase() : null;
+}
+
 validatorRoutes.get('/', async (c) => {
   const parsed = listQuery.safeParse(Object.fromEntries(new URL(c.req.url).searchParams));
   if (!parsed.success) return c.json({ error: 'Invalid query', details: parsed.error.flatten() }, 400);
@@ -97,6 +102,7 @@ validatorRoutes.get('/', async (c) => {
         },
         unclaimedRewards: formatMon(BigInt(d.unclaimedRewards)),
         flagsRaw: d.flagsRaw,
+        keys: { secpPubkey: d.keys?.secpPubkey ?? '', blsPubkey: d.keys?.blsPubkey ?? '' },
         meta: d.meta
           ? { name: d.meta.name, website: d.meta.website, logoUrl: d.meta.logoUrl }
           : undefined,
@@ -120,19 +126,42 @@ validatorRoutes.get('/', async (c) => {
 validatorRoutes.get('/:id', async (c) => {
   const url = new URL(c.req.url);
   const network = url.searchParams.get('network') ?? '';
-  const idStr = c.req.param('id');
-  const parsed = detailQuery.safeParse({ network, id: BigInt(idStr) });
-  if (!parsed.success) return c.json({ error: 'Invalid params', details: parsed.error.flatten() }, 400);
+  const idParam = c.req.param('id');
+  const parsed = detailQuery.safeParse({ network });
+  if (!parsed.success) return c.json({ error: { code: 'BAD_REQUEST', message: 'Invalid params', details: parsed.error.flatten() } }, 400);
 
-  const { network: net, id } = parsed.data;
-  const cacheKey = `detail:${net}:${id.toString()}`;
+  const net = parsed.data.network;
+  // Determine selector by param type and optional query selectors
+  let idBig: bigint | null = null;
+  let secp: string | null = null;
+  let auth: string | null = null;
+  try {
+    const n = BigInt(idParam);
+    if (n < 0n) throw new Error('negative');
+    idBig = n;
+  } catch {
+    // Not a numeric id; allow searching by secp or auth via query
+    const secpParam = url.searchParams.get('secp');
+    const authParam = url.searchParams.get('auth');
+    secp = secpParam ? normalizeHexNo0x(secpParam) : normalizeHexNo0x(idParam);
+    auth = authParam ? normalizeHexNo0x(authParam) : null;
+    if (!secp && !auth) {
+      return c.json({ error: { code: 'BAD_REQUEST', message: 'Provide a numeric validator id, or a valid secp/auth address (hex) via path or query: ?secp=... or ?auth=...' } }, 400);
+    }
+  }
+
+  const cacheKey = `detail:${net}:${idBig !== null ? idBig.toString() : `secp:${secp}`}`;
   const cached = detailCache.get(cacheKey);
   if (cached) return c.json(cached);
 
   try {
     // Try DB first
     const col = await validatorsCol();
-    const doc = await col.findOne({ _id: `${net}:${id.toString()}` });
+    const doc = idBig !== null
+      ? await col.findOne({ _id: `${net}:${idBig.toString()}` })
+      : secp
+      ? await col.findOne({ network: net as 'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2', 'keys.secpPubkey': secp })
+      : await col.findOne({ network: net as 'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2', authAddress: `0x${auth}` });
     if (doc) {
       const commissionBig = BigInt(doc.commission);
       const scaled = (commissionBig * 10000n) / (10n ** 18n);
@@ -167,13 +196,16 @@ validatorRoutes.get('/:id', async (c) => {
       return c.json(payload);
     }
 
-    // Fallback to chain read and upsert
+    // Fallback to chain read and upsert (only for numeric id)
+    if (idBig === null) {
+      return c.json({ error: { code: 'NOT_FOUND', message: 'Validator not found for provided secp key' } }, 404);
+    }
     const resolved = getResolvedNetworks()[net];
-    if (!resolved) return c.json({ error: 'Network not configured' }, 400);
+    if (!resolved) return c.json({ error: { code: 'BAD_REQUEST', message: 'Network not configured' } }, 400);
     const sdk = getSdk(resolved);
-    const v = await sdk.getValidator(id);
+    const v = await sdk.getValidator(idBig);
     const payload: ValidatorDetailResponse = {
-      validatorId: id.toString(),
+      validatorId: idBig.toString(),
       authAddress: v.authAddress,
       commissionRaw: v.commission.toString(),
       commission: (() => {
@@ -194,12 +226,12 @@ validatorRoutes.get('/:id', async (c) => {
     detailCache.set(cacheKey, payload);
     try {
       await (await validatorsCol()).updateOne(
-        { _id: `${net}:${id.toString()}` },
+        { _id: `${net}:${idBig.toString()}` },
         {
           $set: {
-            _id: `${net}:${id.toString()}`,
+            _id: `${net}:${idBig.toString()}`,
             network: net,
-            validatorId: id.toString(),
+            validatorId: idBig.toString(),
             authAddress: v.authAddress,
             commission: v.commission.toString(),
             stake: {
@@ -216,12 +248,12 @@ validatorRoutes.get('/:id', async (c) => {
         { upsert: true },
       );
     } catch (err) {
-      console.error(`[validators] failed to upsert validator ${id.toString()}`, err);
+      console.error(`[validators] failed to upsert validator ${idBig.toString()}`, err);
     }
     return c.json(payload);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to fetch validator';
-    return c.json({ error: message }, 500);
+    return c.json({ error: { code: 'INTERNAL_ERROR', message } }, 500);
   }
 });
 

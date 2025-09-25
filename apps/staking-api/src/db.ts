@@ -67,6 +67,7 @@ export async function validatorsCol(db?: Db): Promise<Collection<ValidatorDoc>> 
   const col = database.collection<ValidatorDoc>('validators');
   await col.createIndex({ network: 1, validatorId: 1 }, { unique: true });
   await col.createIndex({ network: 1, 'keys.secpPubkey': 1 });
+  await col.createIndex({ network: 1, authAddress: 1 });
   return col;
 }
 

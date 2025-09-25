@@ -8,6 +8,12 @@ import { getResolvedNetworks } from './clients';
 
 const app = new Hono();
 
+app.onError((err, c) => {
+  const message = err instanceof Error ? err.message : 'Unexpected error';
+  const status = 500;
+  return c.json({ error: { code: 'INTERNAL_ERROR', message } }, status);
+});
+
 app.get('/health', (c) => c.json({ ok: true }));
 
 app.route('/api/epoch', epochRoutes);
