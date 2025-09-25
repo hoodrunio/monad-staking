@@ -1,6 +1,6 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { http } from 'wagmi';
-import { defineChain } from 'viem';
+import { defineChain, type Chain } from 'viem';
 import {
   MONAD_NETWORK_KEYS,
   loadMonadNetworkConfig,
@@ -71,11 +71,27 @@ const transports = resolvedNetworks.reduce(
   {} as Record<number, ReturnType<typeof http>>,
 );
 
+/**
+ * Type-safe function to ensure at least one chain is configured
+ * Required for wagmi's getDefaultConfig which expects readonly [Chain, ...Chain[]]
+ */
+function ensureAtLeastOneChain<T extends Chain>(
+  chains: T[]
+): readonly [T, ...T[]] {
+  if (chains.length === 0) {
+    throw new Error(
+      'At least one chain must be configured for wallet connectivity. ' +
+      'Ensure network configuration includes valid RPC URLs and chain IDs.'
+    );
+  }
+  // TypeScript assertion is safe here because we've validated length > 0
+  return chains as unknown as readonly [T, ...T[]];
+}
+
 export const wagmiConfig = getDefaultConfig({
   appName: 'Monad Staking dApp',
   projectId,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  chains: chains as any,
+  chains: ensureAtLeastOneChain(chains),
   transports,
   ssr: true,
 });
