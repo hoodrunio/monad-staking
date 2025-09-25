@@ -13,6 +13,12 @@ const nextConfig = {
       '@react-native-async-storage/async-storage': false,
     };
 
+    // Silence optional dependency resolution for pino-pretty (browser build doesn't need it)
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      'pino-pretty': false,
+    };
+
     // Ignore React Native specific modules
     config.externals = config.externals || [];
     if (isServer) {

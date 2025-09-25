@@ -1,5 +1,5 @@
 {
   "buildCommand": "pnpm --filter '@monad-staking/config' build && pnpm --filter '@monad-staking/sdk' build && pnpm --filter '@monad-staking/staking-web' build",
   "installCommand": "pnpm install --frozen-lockfile",
-  "outputDirectory": "apps/staking-web/.next"
+  "outputDirectory": ".next"
 }

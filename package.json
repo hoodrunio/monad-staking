@@ -28,5 +28,14 @@
   },
   "dependencies": {
     "viem": "^2.30.0"
+  },
+  "pnpm": {
+    "allowedBuiltDependencies": [
+      "bufferutil",
+      "esbuild",
+      "keccak",
+      "unrs-resolver",
+      "utf-8-validate"
+    ]
   }
 }
