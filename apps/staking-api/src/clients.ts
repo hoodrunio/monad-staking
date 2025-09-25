@@ -1,5 +1,4 @@
-import { cache } from 'react';
-import { createPublicClient, defineChain, http } from 'viem';
+import { createPublicClient, defineChain, http, type PublicClient, type Transport, type Chain } from 'viem';
 import type { ResolvedMonadNetworkConfig } from '@monad-staking/config';
 import {
   loadMonadNetworkConfig,
@@ -34,14 +33,30 @@ const createChain = (config: ResolvedMonadNetworkConfig) =>
     },
   });
 
-export const getPublicClient = cache((config: ResolvedMonadNetworkConfig) => {
-  const chain = createChain(config);
-  return createPublicClient({ chain, transport: http(config.rpcUrl) });
-});
+const publicClientCache = new Map<number, PublicClient<Transport, Chain, undefined>>();
+const sdkCache = new Map<number, ReturnType<typeof createMonadStakingSdk>>();
 
-export const getSdk = cache((config: ResolvedMonadNetworkConfig) => {
+export function getPublicClient(config: ResolvedMonadNetworkConfig) {
+  const key = config.chainId;
+  const existing = publicClientCache.get(key);
+  if (existing) return existing;
+  const chain = createChain(config);
+  const client = createPublicClient<Transport, Chain, undefined>({
+    chain,
+    transport: http(config.rpcUrl),
+  });
+  publicClientCache.set(key, client);
+  return client;
+}
+
+export function getSdk(config: ResolvedMonadNetworkConfig) {
+  const key = config.chainId;
+  const existing = sdkCache.get(key);
+  if (existing) return existing;
   const publicClient = getPublicClient(config);
-  return createMonadStakingSdk({ network: config, publicClient });
-});
+  const sdk = createMonadStakingSdk({ network: config, publicClient });
+  sdkCache.set(key, sdk);
+  return sdk;
+}
 
 

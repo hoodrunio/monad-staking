@@ -56,7 +56,7 @@ delegationsRoutes.get('/', async (c) => {
       page.validatorIds.map((id) => sdk.getDelegator(id, address as `0x${string}`)),
     );
 
-    const items: DelegationItem[] = page.validatorIds.map((id, i) => {
+    const items: DelegationItem[] = page.validatorIds.map((id: bigint, i: number) => {
       const d = details[i];
       return {
         validatorId: id.toString(),

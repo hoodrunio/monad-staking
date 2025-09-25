@@ -33,6 +33,17 @@ type ValidatorListResponse = {
   isDone: boolean;
 };
 
+type ValidatorDetailResponse = {
+  validatorId: string;
+  authAddress: string;
+  commissionRaw: string;
+  commission: string;
+  stake: { execution: string; consensus: string; snapshot: string };
+  unclaimedRewards: string;
+  flagsRaw: string;
+  keys: { secpPubkey: `${string}`; blsPubkey: `${string}` };
+};
+
 function formatMon(value: bigint): string {
   const decimals = 18n;
   const sign = value < 0n ? '-' : '';
@@ -43,7 +54,7 @@ function formatMon(value: bigint): string {
 }
 
 const listCache = new TtlCache<ValidatorListResponse>(30_000);
-const detailCache = new TtlCache<any>(120_000);
+const detailCache = new TtlCache<ValidatorDetailResponse>(120_000);
 
 validatorRoutes.get('/', async (c) => {
   const parsed = listQuery.safeParse(Object.fromEntries(new URL(c.req.url).searchParams));
@@ -71,10 +82,10 @@ validatorRoutes.get('/', async (c) => {
 
     const limiter = pLimit(8);
     const details = await Promise.allSettled(
-      ids.map((id) => limiter(() => sdk.getValidator(id))),
+      ids.map((id: bigint) => limiter(() => sdk.getValidator(id))),
     );
 
-    const items: ValidatorListItem[] = ids.map((id, i) => {
+    const items: ValidatorListItem[] = ids.map((id: bigint, i: number) => {
       const d = details[i];
       if (d.status !== 'fulfilled') {
         return {
