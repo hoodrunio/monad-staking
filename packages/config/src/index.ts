@@ -29,33 +29,44 @@ const epochParameters: Record<MonadNetwork, { epochLength: number; epochDelayPer
 const withdrawalDelayEpochs = 1;
 
 const envSchema = z.object({
+  // Server-only envs
   MONAD_MAINNET_CHAIN_ID: z.coerce.number().int().positive().optional(),
-  MONAD_MAINNET_RPC_URL: z
-    .string()
-    .url()
-    .optional(),
-  MONAD_MAINNET_EXPLORER_URL: z
-    .string()
-    .url()
-    .optional(),
+  MONAD_MAINNET_RPC_URL: z.string().url().optional(),
+  MONAD_MAINNET_EXPLORER_URL: z.string().url().optional(),
   MONAD_TESTNET_1_CHAIN_ID: z.coerce.number().int().positive().optional(),
-  MONAD_TESTNET_1_RPC_URL: z
-    .string()
-    .url()
-    .optional(),
-  MONAD_TESTNET_1_EXPLORER_URL: z
-    .string()
-    .url()
-    .optional(),
+  MONAD_TESTNET_1_RPC_URL: z.string().url().optional(),
+  MONAD_TESTNET_1_EXPLORER_URL: z.string().url().optional(),
   MONAD_TESTNET_2_CHAIN_ID: z.coerce.number().int().positive().optional(),
-  MONAD_TESTNET_2_RPC_URL: z
-    .string()
-    .url()
+  MONAD_TESTNET_2_RPC_URL: z.string().url().optional(),
+  MONAD_TESTNET_2_EXPLORER_URL: z.string().url().optional(),
+
+  // Public (browser-exposed) envs for Next.js client bundles
+  NEXT_PUBLIC_MONAD_MAINNET_CHAIN_ID: z
+    .coerce
+    .number()
+    .int()
+    .positive()
     .optional(),
-  MONAD_TESTNET_2_EXPLORER_URL: z
-    .string()
-    .url()
+  NEXT_PUBLIC_MONAD_MAINNET_RPC_URL: z.string().url().optional(),
+  NEXT_PUBLIC_MONAD_MAINNET_EXPLORER_URL: z.string().url().optional(),
+
+  NEXT_PUBLIC_MONAD_TESTNET_1_CHAIN_ID: z
+    .coerce
+    .number()
+    .int()
+    .positive()
     .optional(),
+  NEXT_PUBLIC_MONAD_TESTNET_1_RPC_URL: z.string().url().optional(),
+  NEXT_PUBLIC_MONAD_TESTNET_1_EXPLORER_URL: z.string().url().optional(),
+
+  NEXT_PUBLIC_MONAD_TESTNET_2_CHAIN_ID: z
+    .coerce
+    .number()
+    .int()
+    .positive()
+    .optional(),
+  NEXT_PUBLIC_MONAD_TESTNET_2_RPC_URL: z.string().url().optional(),
+  NEXT_PUBLIC_MONAD_TESTNET_2_EXPLORER_URL: z.string().url().optional(),
 });
 
 export interface MonadNetworkConfig {
@@ -88,7 +99,35 @@ export type MonadNetworkConfigMap = Record<MonadNetwork, MonadNetworkConfig>;
 export function loadMonadNetworkConfig(
   sourceEnv: NodeJS.ProcessEnv = process.env,
 ): MonadNetworkConfigMap {
-  const env = envSchema.parse(sourceEnv);
+  // Merge server and public envs. Use direct dotted access for NEXT_PUBLIC_* so Next.js
+  // replaces them in the client bundle. sourceEnv is kept for SSR/tests.
+  const mergedEnv = {
+    // Mainnet
+    MONAD_MAINNET_CHAIN_ID:
+      sourceEnv.MONAD_MAINNET_CHAIN_ID ?? process.env.MONAD_MAINNET_CHAIN_ID ?? process.env.NEXT_PUBLIC_MONAD_MAINNET_CHAIN_ID,
+    MONAD_MAINNET_RPC_URL:
+      sourceEnv.MONAD_MAINNET_RPC_URL ?? process.env.MONAD_MAINNET_RPC_URL ?? process.env.NEXT_PUBLIC_MONAD_MAINNET_RPC_URL,
+    MONAD_MAINNET_EXPLORER_URL:
+      sourceEnv.MONAD_MAINNET_EXPLORER_URL ?? process.env.MONAD_MAINNET_EXPLORER_URL ?? process.env.NEXT_PUBLIC_MONAD_MAINNET_EXPLORER_URL,
+
+    // Testnet-1
+    MONAD_TESTNET_1_CHAIN_ID:
+      sourceEnv.MONAD_TESTNET_1_CHAIN_ID ?? process.env.MONAD_TESTNET_1_CHAIN_ID ?? process.env.NEXT_PUBLIC_MONAD_TESTNET_1_CHAIN_ID,
+    MONAD_TESTNET_1_RPC_URL:
+      sourceEnv.MONAD_TESTNET_1_RPC_URL ?? process.env.MONAD_TESTNET_1_RPC_URL ?? process.env.NEXT_PUBLIC_MONAD_TESTNET_1_RPC_URL,
+    MONAD_TESTNET_1_EXPLORER_URL:
+      sourceEnv.MONAD_TESTNET_1_EXPLORER_URL ?? process.env.MONAD_TESTNET_1_EXPLORER_URL ?? process.env.NEXT_PUBLIC_MONAD_TESTNET_1_EXPLORER_URL,
+
+    // Testnet-2
+    MONAD_TESTNET_2_CHAIN_ID:
+      sourceEnv.MONAD_TESTNET_2_CHAIN_ID ?? process.env.MONAD_TESTNET_2_CHAIN_ID ?? process.env.NEXT_PUBLIC_MONAD_TESTNET_2_CHAIN_ID,
+    MONAD_TESTNET_2_RPC_URL:
+      sourceEnv.MONAD_TESTNET_2_RPC_URL ?? process.env.MONAD_TESTNET_2_RPC_URL ?? process.env.NEXT_PUBLIC_MONAD_TESTNET_2_RPC_URL,
+    MONAD_TESTNET_2_EXPLORER_URL:
+      sourceEnv.MONAD_TESTNET_2_EXPLORER_URL ?? process.env.MONAD_TESTNET_2_EXPLORER_URL ?? process.env.NEXT_PUBLIC_MONAD_TESTNET_2_EXPLORER_URL,
+  } as NodeJS.ProcessEnv;
+
+  const env = envSchema.parse(mergedEnv);
 
   const configs = MONAD_NETWORK_KEYS.map((key): MonadNetworkConfig => {
     const label = labels[key];
@@ -96,14 +135,14 @@ export function loadMonadNetworkConfig(
 
     switch (key) {
       case 'monad-mainnet': {
-        const chainId = env.MONAD_MAINNET_CHAIN_ID;
-        const rpcUrl = env.MONAD_MAINNET_RPC_URL;
+        const chainId = env.MONAD_MAINNET_CHAIN_ID ?? env.NEXT_PUBLIC_MONAD_MAINNET_CHAIN_ID;
+        const rpcUrl = env.MONAD_MAINNET_RPC_URL ?? env.NEXT_PUBLIC_MONAD_MAINNET_RPC_URL;
         return {
           key,
           label,
           chainId,
           rpcUrl,
-          explorerBaseUrl: env.MONAD_MAINNET_EXPLORER_URL,
+          explorerBaseUrl: env.MONAD_MAINNET_EXPLORER_URL ?? env.NEXT_PUBLIC_MONAD_MAINNET_EXPLORER_URL,
           epochLength,
           epochDelayPeriod,
           withdrawalDelay: withdrawalDelayEpochs,
@@ -112,14 +151,14 @@ export function loadMonadNetworkConfig(
         };
       }
       case 'monad-testnet-1': {
-        const chainId = env.MONAD_TESTNET_1_CHAIN_ID;
-        const rpcUrl = env.MONAD_TESTNET_1_RPC_URL;
+        const chainId = env.MONAD_TESTNET_1_CHAIN_ID ?? env.NEXT_PUBLIC_MONAD_TESTNET_1_CHAIN_ID;
+        const rpcUrl = env.MONAD_TESTNET_1_RPC_URL ?? env.NEXT_PUBLIC_MONAD_TESTNET_1_RPC_URL;
         return {
           key,
           label,
           chainId,
           rpcUrl,
-          explorerBaseUrl: env.MONAD_TESTNET_1_EXPLORER_URL,
+          explorerBaseUrl: env.MONAD_TESTNET_1_EXPLORER_URL ?? env.NEXT_PUBLIC_MONAD_TESTNET_1_EXPLORER_URL,
           epochLength,
           epochDelayPeriod,
           withdrawalDelay: withdrawalDelayEpochs,
@@ -128,14 +167,14 @@ export function loadMonadNetworkConfig(
         };
       }
       case 'monad-testnet-2': {
-        const chainId = env.MONAD_TESTNET_2_CHAIN_ID;
-        const rpcUrl = env.MONAD_TESTNET_2_RPC_URL;
+        const chainId = env.MONAD_TESTNET_2_CHAIN_ID ?? env.NEXT_PUBLIC_MONAD_TESTNET_2_CHAIN_ID;
+        const rpcUrl = env.MONAD_TESTNET_2_RPC_URL ?? env.NEXT_PUBLIC_MONAD_TESTNET_2_RPC_URL;
         return {
           key,
           label,
           chainId,
           rpcUrl,
-          explorerBaseUrl: env.MONAD_TESTNET_2_EXPLORER_URL,
+          explorerBaseUrl: env.MONAD_TESTNET_2_EXPLORER_URL ?? env.NEXT_PUBLIC_MONAD_TESTNET_2_EXPLORER_URL,
           epochLength,
           epochDelayPeriod,
           withdrawalDelay: withdrawalDelayEpochs,
