@@ -25,6 +25,8 @@ type ValidatorListItem = {
   unclaimedRewards: string;
   flagsRaw: string;
   meta?: { name?: string; website?: string; logoUrl?: string };
+  isActive?: boolean;
+  activeEpoch?: string;
 };
 
 type ValidatorListResponse = {
@@ -51,6 +53,8 @@ type ValidatorDetailResponse = {
     githubPath?: string;
     githubSha?: string;
   };
+  isActive?: boolean;
+  activeEpoch?: string;
 };
 
 function formatMon(value: bigint): string {
@@ -117,6 +121,8 @@ validatorRoutes.get('/', async (c) => {
         meta: d.meta
           ? { name: d.meta.name, website: d.meta.website, logoUrl: d.meta.logoUrl }
           : undefined,
+        isActive: d.isActive,
+        activeEpoch: d.activeEpoch,
       };
     });
 
@@ -205,6 +211,8 @@ validatorRoutes.get('/:id', async (c) => {
               githubSha: doc.meta.githubSha,
             }
           : undefined,
+        isActive: doc.isActive,
+        activeEpoch: doc.activeEpoch,
       } as ValidatorDetailResponse;
       detailCache.set(cacheKey, payload);
       return c.json(payload);
