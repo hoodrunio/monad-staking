@@ -1,5 +1,6 @@
 import toast from 'react-hot-toast';
 import type { MonadStakingSdk } from '@monad-staking/sdk';
+import type { Transport } from 'viem';
 
 export interface StakeFormData {
   validatorId: string;
@@ -33,7 +34,7 @@ export function parseAmountToWei(amountMon: string): bigint {
 }
 
 export function canPerformTransaction(
-  sdk: MonadStakingSdk | null,
+  sdk: MonadStakingSdk<Transport> | null,
   account: `0x${string}` | undefined,
   validatorBig: bigint,
   amountWei: bigint,
@@ -43,15 +44,20 @@ export function canPerformTransaction(
 }
 
 export async function handleDelegate(
-  sdk: MonadStakingSdk,
+  sdk: MonadStakingSdk<Transport>,
   validatorId: bigint,
   amount: bigint,
+  account: `0x${string}`,
   setState: (state: Partial<StakeFormState>) => void
 ): Promise<void> {
   setState({ busy: true, txError: null, txHash: null });
   
   try {
-    const hash = await sdk.delegate(validatorId, { value: amount });
+    const hash = await sdk.delegate({
+      validatorId,
+      amount,
+      account,
+    });
     setState({ txHash: hash, busy: false });
     toast.success('Delegation transaction submitted!');
   } catch (error) {
@@ -62,16 +68,22 @@ export async function handleDelegate(
 }
 
 export async function handleUndelegate(
-  sdk: MonadStakingSdk,
+  sdk: MonadStakingSdk<Transport>,
   validatorId: bigint,
   amount: bigint,
-  withdrawId: number,
+  withdrawalId: number,
+  account: `0x${string}`,
   setState: (state: Partial<StakeFormState>) => void
 ): Promise<void> {
   setState({ busy: true, txError: null, txHash: null });
   
   try {
-    const hash = await sdk.undelegate(validatorId, amount, withdrawId);
+    const hash = await sdk.undelegate({
+      validatorId,
+      amount,
+      withdrawalId,
+      account,
+    });
     setState({ txHash: hash, busy: false });
     toast.success('Undelegation transaction submitted!');
   } catch (error) {
@@ -82,15 +94,20 @@ export async function handleUndelegate(
 }
 
 export async function handleWithdraw(
-  sdk: MonadStakingSdk,
+  sdk: MonadStakingSdk<Transport>,
   validatorId: bigint,
-  withdrawId: number,
+  withdrawalId: number,
+  account: `0x${string}`,
   setState: (state: Partial<StakeFormState>) => void
 ): Promise<void> {
   setState({ busy: true, txError: null, txHash: null });
   
   try {
-    const hash = await sdk.withdraw(validatorId, withdrawId);
+    const hash = await sdk.withdraw({
+      validatorId,
+      withdrawalId,
+      account,
+    });
     setState({ txHash: hash, busy: false });
     toast.success('Withdrawal transaction submitted!');
   } catch (error) {
@@ -101,14 +118,18 @@ export async function handleWithdraw(
 }
 
 export async function handleCompound(
-  sdk: MonadStakingSdk,
+  sdk: MonadStakingSdk<Transport>,
   validatorId: bigint,
+  account: `0x${string}`,
   setState: (state: Partial<StakeFormState>) => void
 ): Promise<void> {
   setState({ busy: true, txError: null, txHash: null });
   
   try {
-    const hash = await sdk.compound(validatorId);
+    const hash = await sdk.compound({
+      validatorId,
+      account,
+    });
     setState({ txHash: hash, busy: false });
     toast.success('Compound transaction submitted!');
   } catch (error) {
@@ -119,14 +140,18 @@ export async function handleCompound(
 }
 
 export async function handleClaimRewards(
-  sdk: MonadStakingSdk,
+  sdk: MonadStakingSdk<Transport>,
   validatorId: bigint,
+  account: `0x${string}`,
   setState: (state: Partial<StakeFormState>) => void
 ): Promise<void> {
   setState({ busy: true, txError: null, txHash: null });
   
   try {
-    const hash = await sdk.claimRewards(validatorId);
+    const hash = await sdk.claimRewards({
+      validatorId,
+      account,
+    });
     setState({ txHash: hash, busy: false });
     toast.success('Claim rewards transaction submitted!');
   } catch (error) {

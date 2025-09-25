@@ -144,7 +144,7 @@ function StakePageContent() {
               />
             )}
             <button
-              onClick={() => handleDelegate(sdk!, validatorBig, amountWei, updateState)}
+              onClick={() => handleDelegate(sdk!, validatorBig, amountWei, account!, updateState)}
               disabled={!canTransact}
               className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -205,7 +205,7 @@ function StakePageContent() {
               />
             )}
             <button
-              onClick={() => handleUndelegate(sdk!, validatorBig, amountWei, formData.withdrawId, updateState)}
+              onClick={() => handleUndelegate(sdk!, validatorBig, amountWei, formData.withdrawId, account!, updateState)}
               disabled={!canTransact}
               className="w-full rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -245,7 +245,7 @@ function StakePageContent() {
               />
             </div>
             <button
-              onClick={() => handleWithdraw(sdk!, validatorBig, formData.withdrawId, updateState)}
+              onClick={() => handleWithdraw(sdk!, validatorBig, formData.withdrawId, account!, updateState)}
               disabled={!sdk || !account || validatorBig <= 0n || state.busy}
               className="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -272,7 +272,7 @@ function StakePageContent() {
               />
             </div>
             <button
-              onClick={() => handleCompound(sdk!, validatorBig, updateState)}
+              onClick={() => handleCompound(sdk!, validatorBig, account!, updateState)}
               disabled={!sdk || !account || validatorBig <= 0n || state.busy}
               className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -285,7 +285,7 @@ function StakePageContent() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-purple-200">Claim Rewards</h2>
             <button
-              onClick={() => handleClaimRewards(sdk!, validatorBig, updateState)}
+              onClick={() => handleClaimRewards(sdk!, validatorBig, account!, updateState)}
               disabled={!sdk || !account || validatorBig <= 0n || state.busy}
               className="w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
