@@ -1,7 +1,7 @@
 import pLimit from 'p-limit';
 import { getResolvedNetworks, getSdk } from './clients';
 import { validatorsCol, type ValidatorDoc } from './db';
-import { listValidatorInfo, downloadValidatorJson, type NetworkFolder } from './github';
+import { listValidatorInfo, fetchValidatorJsonFromApi, type NetworkFolder } from './github';
 
 function formatMonStr(v: bigint): string { return v.toString(); }
 
@@ -89,31 +89,52 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
   await Promise.allSettled(batch);
   console.log(`[ingest] scan complete for ${networkKey}: discovered=${discovered.size} upserts=${upserts}`);
 
-  // Enrich with GitHub metadata by secp key filename prefix when available
+  // Enrich with GitHub metadata by secp key when available (handles JSON and non-JSON files)
   try {
     const folder = mapFolder(networkKey);
     const files = await listValidatorInfo(folder);
-    // naive approach: load gzip-like JSONs and attempt to match via content.secpPubkey or filename
+    // Attempt to read JSON when available; otherwise derive secp key from filename/content
     let enriched = 0;
     for (const f of files) {
-      if (!f.downloadUrl) continue;
       try {
-        const json = await downloadValidatorJson(f.downloadUrl);
-        const metaObj = json as unknown;
-        const secpHex = extractString(metaObj, ['secpPubkey', 'secp_pubkey', 'secpPublicKey']);
-        const secp = secpHex ? normalizeHexNo0x(secpHex) : undefined;
+        let secp: string | undefined;
+        let name: string | undefined;
+        let website: string | undefined;
+        let description: string | undefined;
+        let logo: string | undefined;
+        let contacts: Record<string, string> | undefined;
+
+        // Prefer GitHub Contents API (base64 content) to avoid raw file assumptions
+        const metaObj = await fetchValidatorJsonFromApi(f.url);
+        if (metaObj) {
+          const secpHex = extractString(metaObj, ['secpPubkey', 'secp_pubkey', 'secpPublicKey']);
+          secp = secpHex ? normalizeHexNo0x(secpHex) : undefined;
+          name = extractString(metaObj, ['name']);
+          website = extractString(metaObj, ['website']);
+          description = extractString(metaObj, ['description']);
+          logo = extractString(metaObj, ['logo']);
+          contacts = extractRecord(metaObj, ['contacts']);
+        }
+
+        // Fallbacks when API content isn't JSON or doesn't contain fields
+        if (!secp) {
+          const secpFromName = extractCompressedSecpFromName(f.name);
+          if (secpFromName) secp = secpFromName;
+        }
+        if (!secp && f.downloadUrl) {
+          const res = await fetch(f.downloadUrl);
+          if (res.ok) {
+            const text = await res.text();
+            secp = extractCompressedSecpFromText(text);
+          }
+        }
+
         if (!secp) continue;
-        const name = extractString(metaObj, ['name']);
-        const website = extractString(metaObj, ['website']);
-        const description = extractString(metaObj, ['description']);
-        const logo = extractString(metaObj, ['logo']);
-        const contacts = extractRecord(metaObj, ['contacts']);
-        // Attempt match by secp key
-        const res = await col.updateMany(
+        const upd = await col.updateMany(
           { network: networkKey, 'keys.secpPubkey': secp },
           { $set: { meta: { name, website, description, logoUrl: logo, contacts, githubPath: f.path, githubSha: f.sha } } },
         );
-        if (res.modifiedCount > 0 || res.upsertedCount > 0) enriched += res.modifiedCount + res.upsertedCount;
+        if (upd.modifiedCount > 0 || upd.upsertedCount > 0) enriched += upd.modifiedCount + upd.upsertedCount;
       } catch (err) {
         console.warn(`[ingest] enrich file failed ${f.path}`, err);
       }
@@ -154,6 +175,24 @@ function extractRecord(source: unknown, keys: readonly string[]): Record<string,
 function normalizeHexNo0x(value: string): string {
   if (value.startsWith('0x') || value.startsWith('0X')) return value.slice(2);
   return value;
+}
+
+function isHex(s: string): boolean {
+  return /^[0-9a-fA-F]+$/.test(s);
+}
+
+function extractCompressedSecpFromName(name: string): string | undefined {
+  // Compressed secp pubkey is 33 bytes => 66 hex chars; often filename is the key
+  const base = name.includes('.') ? name.slice(0, name.indexOf('.')) : name;
+  if (base.length === 66 && (base.startsWith('02') || base.startsWith('03')) && isHex(base)) {
+    return base.toLowerCase();
+  }
+  return undefined;
+}
+
+function extractCompressedSecpFromText(text: string): string | undefined {
+  const match = text.match(/\b(02|03)[0-9a-fA-F]{64}\b/);
+  return match ? match[0].toLowerCase() : undefined;
 }
 
 
