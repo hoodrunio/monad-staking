@@ -2,17 +2,8 @@
   "version": 2,
   "builds": [
     {
-      "src": "apps/staking-web/next.config.js",
-      "use": "@vercel/next",
-      "config": {
-        "distDir": ".next"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "apps/staking-web/$1"
+      "src": "apps/staking-web/package.json",
+      "use": "@vercel/next"
     }
   ],
   "installCommand": "pnpm install --frozen-lockfile",
