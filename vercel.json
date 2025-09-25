@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "apps/staking-web/package.json",
+      "src": "apps/staking-web/next.config.js",
       "use": "@vercel/next",
       "config": {
         "distDir": ".next"
