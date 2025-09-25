@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { Toaster } from 'react-hot-toast';
 import { createWagmiConfig } from '@/lib/wallet';
 
 export function Providers({
@@ -32,7 +33,16 @@ export function Providers({
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>{children}</RainbowKitProvider>
+        <RainbowKitProvider>
+          {children}
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              className: 'bg-slate-800 text-slate-100 border border-slate-700',
+              duration: 4000,
+            }}
+          />
+        </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

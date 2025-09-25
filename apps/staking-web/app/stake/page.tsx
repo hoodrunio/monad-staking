@@ -1,182 +1,312 @@
-"use client";
+'use client';
 
 import { useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
+import { useSearchParams } from 'next/navigation';
 import { useStakingSdk } from '@/hooks/useStakingSdk';
+import { useEpochQuery } from '@/lib/queries';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
+import { parseNetworkKey } from '@/lib/validators';
 import { NetworkSelector } from '@/app/components/network-selector';
 import { ClientOnly } from '@/app/components/client-only';
+import { WithdrawIdPicker } from '@/app/components/withdraw-id-picker';
+import { EffectiveEpochsInfo } from '@/app/components/effective-epochs-info';
+import { TransactionResult } from '@/app/components/transaction-result';
+import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import type { MonadNetwork } from '@monad-staking/config';
-import { useSearchParams } from 'next/navigation';
+import {
+  parseValidatorId,
+  parseAmountToWei,
+  canPerformTransaction,
+  handleDelegate,
+  handleUndelegate,
+  handleWithdraw,
+  handleCompound,
+  handleClaimRewards,
+  type StakeFormData,
+  type StakeFormState,
+} from '@/lib/stake-utils';
 
 function StakePageContent() {
   const configMap = useMemo(() => getNetworkConfigMap(), []);
   const enabled = getEnabledNetworkConfigs(configMap);
-  const defaultNetwork = enabled[0]?.key as MonadNetwork | undefined;
   const searchParams = useSearchParams();
+  
   const networkParam = searchParams.get('network') ?? undefined;
-  const networkKey = (enabled.find((n) => n.key === networkParam)?.key ?? defaultNetwork) as MonadNetwork | undefined;
+  const requestedNetwork = parseNetworkKey(networkParam);
+  const selectedNetwork = (requestedNetwork ?? enabled[0]?.key) as MonadNetwork | undefined;
 
-  const resolved = networkKey ? tryResolveNetwork(configMap, networkKey) : null;
+  const resolved = selectedNetwork ? tryResolveNetwork(configMap, selectedNetwork) : null;
   const sdk = useStakingSdk(resolved!);
   const { address } = useAccount();
 
-  const [validatorId, setValidatorId] = useState('');
-  const [amountMon, setAmountMon] = useState('');
-  const [withdrawId, setWithdrawId] = useState(1);
-  const [txError, setTxError] = useState<string | null>(null);
-  const [txHash, setTxHash] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [formData, setFormData] = useState<StakeFormData>({
+    validatorId: '',
+    amountMon: '',
+    withdrawId: 1,
+  });
+
+  const [state, setState] = useState<StakeFormState>({
+    txError: null,
+    txHash: null,
+    busy: false,
+  });
+
+  const { data: epochData, isLoading: epochLoading } = useEpochQuery(selectedNetwork!);
 
   const account = address as `0x${string}` | undefined;
-  const validatorBig = (() => { try { return BigInt(validatorId || '0'); } catch { return 0n; } })();
-  const amountWei = (() => {
-    if (!amountMon) return 0n;
-    const [int, frac = ''] = amountMon.split('.');
-    const fracPadded = (frac + '0'.repeat(18)).slice(0, 18);
-    return BigInt(int || '0') * (10n ** 18n) + BigInt(fracPadded || '0');
-  })();
+  const validatorBig = parseValidatorId(formData.validatorId);
+  const amountWei = parseAmountToWei(formData.amountMon);
+  const canTransact = canPerformTransaction(sdk, account, validatorBig, amountWei, state.busy);
 
-  const canTransact = Boolean(sdk && account && validatorBig > 0n && amountWei > 0n && !busy);
+  const updateFormData = (updates: Partial<StakeFormData>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+  };
+
+  const updateState = (updates: Partial<StakeFormState>) => {
+    setState(prev => ({ ...prev, ...updates }));
+  };
 
   if (!resolved) {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold text-slate-100">Stake</h1>
-        <p className="text-slate-400">Selected network is not fully configured. Please set RPC URL and chain ID.</p>
+        <p className="text-slate-400">Selected network is not fully configured.</p>
       </div>
     );
   }
 
-  async function run<T>(fn: () => Promise<T>) {
-    setTxError(null); setTxHash(null); setBusy(true);
-    try {
-      const res: unknown = await fn();
-      if (typeof res === 'string') setTxHash(res);
-    } catch (e) {
-      setTxError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
-    }
+  if (!selectedNetwork) {
+    return null;
   }
 
   return (
     <div className="space-y-8">
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-100">Stake</h1>
-          <p className="mt-2 text-slate-400">Stake, undelegate, claim, and manage rewards.</p>
+          <h1 className="text-3xl font-bold text-slate-100">Stake Operations</h1>
+          <p className="text-slate-400">
+            Manage your delegations on {resolved.key}
+          </p>
         </div>
-        <div className="w-full max-w-xs">
-          <NetworkSelector
-            networks={enabled}
-            selectedKey={networkKey ?? null}
-          />
-        </div>
+        <NetworkSelector networks={enabled} selectedKey={selectedNetwork} />
       </header>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-6">
-          <h2 className="mb-4 text-lg font-semibold">Parameters</h2>
-          <div className="grid gap-4">
-            <label className="text-sm">
-              <span className="mb-1 block text-slate-300">Validator ID</span>
+      {epochLoading ? (
+        <LoadingSkeleton className="h-16 w-full" />
+      ) : epochData ? (
+        <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+          <h2 className="text-lg font-semibold text-slate-100 mb-2">Current Epoch</h2>
+          <div className="text-sm text-slate-300">
+            <p>Epoch: {epochData.epoch}</p>
+            <p>In delay period: {epochData.inEpochDelayPeriod ? 'Yes' : 'No'}</p>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="grid gap-8 lg:grid-cols-2">
+        {/* Delegate */}
+        <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+          <h2 className="text-xl font-semibold text-emerald-200">Delegate</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Validator ID
+              </label>
               <input
-                value={validatorId}
-                onChange={(e) => setValidatorId(e.target.value.replace(/[^0-9]/g, ''))}
-                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-slate-500"
-                placeholder="e.g. 12"
-                inputMode="numeric"
+                type="text"
+                value={formData.validatorId}
+                onChange={(e) => updateFormData({ validatorId: e.target.value })}
+                disabled={state.busy}
+                placeholder="Enter validator ID"
+                className="block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50"
               />
-            </label>
-            <label className="text-sm">
-              <span className="mb-1 block text-slate-300">Amount (MON)</span>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Amount (MON)
+              </label>
               <input
-                value={amountMon}
-                onChange={(e) => setAmountMon(e.target.value.replace(/[^0-9.]/g, ''))}
-                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-slate-500"
-                placeholder="e.g. 1.25"
-                inputMode="decimal"
+                type="text"
+                value={formData.amountMon}
+                onChange={(e) => updateFormData({ amountMon: e.target.value })}
+                disabled={state.busy}
+                placeholder="0.0"
+                className="block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50"
               />
-            </label>
-            <label className="text-sm">
-              <span className="mb-1 block text-slate-300">Withdraw ID (1–255)</span>
-              <input
-                value={withdrawId}
-                onChange={(e) => setWithdrawId(Math.max(1, Math.min(255, Number(e.target.value || 1))))}
-                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-slate-500"
-                placeholder="1"
-                inputMode="numeric"
-                type="number"
-                min={1}
-                max={255}
+            </div>
+            {epochData && (
+              <EffectiveEpochsInfo
+                currentEpoch={BigInt(epochData.epoch)}
+                inEpochDelayPeriod={epochData.inEpochDelayPeriod}
+                withdrawalDelay={epochData.withdrawalDelay}
+                actionType="delegate"
               />
-            </label>
-            {txError ? (
-              <div className="rounded-md border border-red-900/40 bg-red-950/40 p-2 text-sm text-red-300">{txError}</div>
-            ) : null}
-            {txHash ? (
-              <div className="rounded-md border border-emerald-900/40 bg-emerald-950/40 p-2 text-sm text-emerald-300">Submitted: {txHash}</div>
-            ) : null}
+            )}
+            <button
+              onClick={() => handleDelegate(sdk!, validatorBig, amountWei, updateState)}
+              disabled={!canTransact}
+              className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {state.busy ? 'Processing...' : 'Delegate'}
+            </button>
           </div>
         </section>
 
-        <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-6">
-          <h2 className="mb-4 text-lg font-semibold">Actions</h2>
-          <div className="grid grid-cols-2 gap-3">
+        {/* Undelegate */}
+        <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+          <h2 className="text-xl font-semibold text-amber-200">Undelegate</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Validator ID
+              </label>
+              <input
+                type="text"
+                value={formData.validatorId}
+                onChange={(e) => updateFormData({ validatorId: e.target.value })}
+                disabled={state.busy}
+                placeholder="Enter validator ID"
+                className="block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Amount (MON)
+              </label>
+              <input
+                type="text"
+                value={formData.amountMon}
+                onChange={(e) => updateFormData({ amountMon: e.target.value })}
+                disabled={state.busy}
+                placeholder="0.0"
+                className="block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Withdrawal ID
+              </label>
+              <WithdrawIdPicker
+                network={selectedNetwork}
+                address={address}
+                validatorId={formData.validatorId}
+                value={formData.withdrawId}
+                onChange={(id) => updateFormData({ withdrawId: id })}
+                disabled={state.busy}
+              />
+            </div>
+            {epochData && (
+              <EffectiveEpochsInfo
+                currentEpoch={BigInt(epochData.epoch)}
+                inEpochDelayPeriod={epochData.inEpochDelayPeriod}
+                withdrawalDelay={epochData.withdrawalDelay}
+                actionType="undelegate"
+              />
+            )}
             <button
-              className="rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => handleUndelegate(sdk!, validatorBig, amountWei, formData.withdrawId, updateState)}
               disabled={!canTransact}
-              onClick={() => run(() => sdk!.delegate({ validatorId: validatorBig, amount: amountWei, account: account! }))}
+              className="w-full rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Delegate
-            </button>
-            <button
-              className="rounded-md bg-orange-600 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!canTransact}
-              onClick={() => run(() => sdk!.undelegate({ validatorId: validatorBig, amount: amountWei, withdrawalId: withdrawId, account: account! }))}
-            >
-              Undelegate
-            </button>
-            <button
-              className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!sdk || !account || validatorBig <= 0n}
-              onClick={() => run(() => sdk!.withdraw({ validatorId: validatorBig, withdrawalId: withdrawId, account: account! }))}
-            >
-              Withdraw
-            </button>
-            <button
-              className="rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!sdk || !account || validatorBig <= 0n}
-              onClick={() => run(() => sdk!.claimRewards({ validatorId: validatorBig, account: account! }))}
-            >
-              Claim Rewards
-            </button>
-            <button
-              className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!sdk || !account || validatorBig <= 0n}
-              onClick={() => run(() => sdk!.compound({ validatorId: validatorBig, account: account! }))}
-            >
-              Compound
+              {state.busy ? 'Processing...' : 'Undelegate'}
             </button>
           </div>
-          <p className="mt-4 text-xs text-slate-400">
-            Note: Delegation/undelegation effectiveness depends on the boundary block. Withdrawals are available after the configured withdrawal delay.
-          </p>
+        </section>
+
+        {/* Withdraw */}
+        <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+          <h2 className="text-xl font-semibold text-red-200">Withdraw</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Validator ID
+              </label>
+              <input
+                type="text"
+                value={formData.validatorId}
+                onChange={(e) => updateFormData({ validatorId: e.target.value })}
+                disabled={state.busy}
+                placeholder="Enter validator ID"
+                className="block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Withdrawal ID
+              </label>
+              <WithdrawIdPicker
+                network={selectedNetwork}
+                address={address}
+                validatorId={formData.validatorId}
+                value={formData.withdrawId}
+                onChange={(id) => updateFormData({ withdrawId: id })}
+                disabled={state.busy}
+              />
+            </div>
+            <button
+              onClick={() => handleWithdraw(sdk!, validatorBig, formData.withdrawId, updateState)}
+              disabled={!sdk || !account || validatorBig <= 0n || state.busy}
+              className="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {state.busy ? 'Processing...' : 'Withdraw'}
+            </button>
+          </div>
+        </section>
+
+        {/* Compound & Claim */}
+        <section className="space-y-6 rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-blue-200">Compound</h2>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Validator ID
+              </label>
+              <input
+                type="text"
+                value={formData.validatorId}
+                onChange={(e) => updateFormData({ validatorId: e.target.value })}
+                disabled={state.busy}
+                placeholder="Enter validator ID"
+                className="block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+              />
+            </div>
+            <button
+              onClick={() => handleCompound(sdk!, validatorBig, updateState)}
+              disabled={!sdk || !account || validatorBig <= 0n || state.busy}
+              className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {state.busy ? 'Processing...' : 'Compound Rewards'}
+            </button>
+          </div>
+
+          <hr className="border-slate-700" />
+
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-purple-200">Claim Rewards</h2>
+            <button
+              onClick={() => handleClaimRewards(sdk!, validatorBig, updateState)}
+              disabled={!sdk || !account || validatorBig <= 0n || state.busy}
+              className="w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {state.busy ? 'Processing...' : 'Claim Rewards'}
+            </button>
+          </div>
         </section>
       </div>
+
+      <TransactionResult
+        txHash={state.txHash}
+        txError={state.txError}
+        networkConfig={resolved}
+      />
     </div>
   );
 }
 
 export default function StakePage() {
   return (
-    <ClientOnly fallback={
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-slate-100">Stake</h1>
-        <p className="text-slate-400">Loading...</p>
-      </div>
-    }>
+    <ClientOnly>
       <StakePageContent />
     </ClientOnly>
   );
