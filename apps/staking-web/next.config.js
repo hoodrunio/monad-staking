@@ -4,6 +4,8 @@ const nextConfig = {
   experimental: {
     typedRoutes: true,
   },
+  // Enable transpilation of workspace packages
+  transpilePackages: ['@monad-staking/sdk', '@monad-staking/config'],
   webpack: (config, { isServer }) => {
     // Fix for MetaMask SDK React Native dependencies
     config.resolve.fallback = {

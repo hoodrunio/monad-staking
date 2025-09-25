@@ -8,7 +8,8 @@
     "pnpm": ">=8.9"
   },
   "scripts": {
-    "build": "pnpm -r run build",
+    "build": "pnpm --filter '@monad-staking/config' build && pnpm --filter '@monad-staking/sdk' build && pnpm --filter '@monad-staking/staking-web' build",
+    "build:all": "pnpm -r run build",
     "lint": "pnpm -r run lint",
     "test": "pnpm -r run test",
     "typecheck": "pnpm -r run typecheck"
