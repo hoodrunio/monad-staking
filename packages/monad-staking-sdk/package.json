@@ -11,7 +11,9 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
@@ -21,9 +23,10 @@
   },
   "dependencies": {
     "@monad-staking/config": "workspace:*",
-    "viem": "^2.37.8"
+    "viem": "2.21.0"
   },
   "devDependencies": {
+    "@types/node": "^20.11.30",
     "typescript": "^5.4.5",
     "vitest": "^1.5.0"
   }
