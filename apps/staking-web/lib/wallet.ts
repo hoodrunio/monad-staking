@@ -88,13 +88,26 @@ function ensureAtLeastOneChain<T extends Chain>(
   return chains as unknown as readonly [T, ...T[]];
 }
 
-export const wagmiConfig = getDefaultConfig({
-  appName: 'Monad Staking dApp',
-  projectId,
-  chains: ensureAtLeastOneChain(chains),
-  transports,
-  ssr: true,
-});
+export function createWagmiConfig() {
+  // Ensure we're in a browser environment
+  if (typeof window === 'undefined') {
+    throw new Error('wagmi config can only be created in browser environment');
+  }
+  
+  if (!projectId) {
+    throw new Error(
+      'NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID is required for wallet connectivity.',
+    );
+  }
+  
+  return getDefaultConfig({
+    appName: 'Monad Staking dApp',
+    projectId,
+    chains: ensureAtLeastOneChain(chains),
+    transports,
+    ssr: true,
+  });
+}
 
 export const resolvedNetworkMap = resolvedNetworks.reduce(
   (acc, config) => {

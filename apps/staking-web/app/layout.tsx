@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Providers } from './providers';
 import { WalletConnectButton } from '@/app/components/wallet-connect-button';
+import { ClientOnly } from '@/app/components/client-only';
 import './globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
 
@@ -71,7 +72,15 @@ export default function RootLayout({
                     Stake
                   </Link>
                 </div>
-                <WalletConnectButton />
+                <ClientOnly
+                  fallback={
+                    <div className="rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-400">
+                      Loading...
+                    </div>
+                  }
+                >
+                  <WalletConnectButton />
+                </ClientOnly>
               </div>
             </nav>
           </div>
