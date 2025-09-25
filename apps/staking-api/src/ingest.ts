@@ -16,6 +16,7 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
   if (!resolved) throw new Error(`Network ${networkKey} not configured`);
   const sdk = getSdk(resolved);
   const col = await validatorsCol();
+  console.log(`[ingest] start scan for ${networkKey}`);
 
   // First, walk known validator sets (execution/consensus/snapshot) to seed ids
   const sets = [sdk.getExecutionValidatorSet.bind(sdk), sdk.getConsensusValidatorSet.bind(sdk), sdk.getSnapshotValidatorSet.bind(sdk)];
@@ -36,6 +37,7 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
   let misses = 0;
   const limiter = pLimit(6);
   const batch: Promise<void>[] = [];
+  let upserts = 0;
   while (misses < 5) {
     const current = id;
     id++;
@@ -63,7 +65,7 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
           },
           unclaimedRewards: v.unclaimedRewards.toString(),
           flagsRaw: v.flags.toString(),
-          keys: { secpPubkey: v.secpPubkey, blsPubkey: v.blsPubkey },
+          keys: { secpPubkey: normalizeHexNo0x(v.secpPubkey), blsPubkey: v.blsPubkey },
           updatedAt: new Date().toISOString(),
         };
         await col.updateOne(
@@ -71,6 +73,7 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
           { $set: doc },
           { upsert: true },
         );
+        upserts++;
       } catch (err) {
         // Count as miss, log occasionally
         misses++;
@@ -84,12 +87,14 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
     }
   }
   await Promise.allSettled(batch);
+  console.log(`[ingest] scan complete for ${networkKey}: discovered=${discovered.size} upserts=${upserts}`);
 
   // Enrich with GitHub metadata by secp key filename prefix when available
   try {
     const folder = mapFolder(networkKey);
     const files = await listValidatorInfo(folder);
     // naive approach: load gzip-like JSONs and attempt to match via content.secpPubkey or filename
+    let enriched = 0;
     for (const f of files) {
       if (!f.downloadUrl) continue;
       try {
@@ -104,14 +109,16 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
         const logo = extractString(metaObj, ['logo']);
         const contacts = extractRecord(metaObj, ['contacts']);
         // Attempt match by secp key
-        await col.updateMany(
+        const res = await col.updateMany(
           { network: networkKey, 'keys.secpPubkey': secp },
           { $set: { meta: { name, website, description, logoUrl: logo, contacts, githubPath: f.path, githubSha: f.sha } } },
         );
+        if (res.modifiedCount > 0 || res.upsertedCount > 0) enriched += res.modifiedCount + res.upsertedCount;
       } catch (err) {
         console.warn(`[ingest] enrich file failed ${f.path}`, err);
       }
     }
+    console.log(`[ingest] enrichment complete for ${networkKey}: files=${files.length} enriched=${enriched}`);
   } catch (err) {
     console.warn(`[ingest] enrichment skipped or failed for ${networkKey}`, err);
   }
