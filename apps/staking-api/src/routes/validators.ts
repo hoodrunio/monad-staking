@@ -24,6 +24,7 @@ type ValidatorListItem = {
   stake: { execution: string; consensus: string; snapshot: string };
   unclaimedRewards: string;
   flagsRaw: string;
+  meta?: { name?: string; website?: string; logoUrl?: string };
 };
 
 type ValidatorListResponse = {
@@ -41,6 +42,15 @@ type ValidatorDetailResponse = {
   unclaimedRewards: string;
   flagsRaw: string;
   keys: { secpPubkey: `${string}`; blsPubkey: `${string}` };
+  meta?: {
+    name?: string;
+    website?: string;
+    description?: string;
+    logoUrl?: string;
+    contacts?: Record<string, string>;
+    githubPath?: string;
+    githubSha?: string;
+  };
 };
 
 function formatMon(value: bigint): string {
@@ -87,6 +97,9 @@ validatorRoutes.get('/', async (c) => {
         },
         unclaimedRewards: formatMon(BigInt(d.unclaimedRewards)),
         flagsRaw: d.flagsRaw,
+        meta: d.meta
+          ? { name: d.meta.name, website: d.meta.website, logoUrl: d.meta.logoUrl }
+          : undefined,
       };
     });
 
@@ -138,6 +151,17 @@ validatorRoutes.get('/:id', async (c) => {
         unclaimedRewards: formatMon(BigInt(doc.unclaimedRewards)),
         flagsRaw: doc.flagsRaw,
         keys: { secpPubkey: doc.keys?.secpPubkey ?? '', blsPubkey: doc.keys?.blsPubkey ?? '' },
+        meta: doc.meta
+          ? {
+              name: doc.meta.name,
+              website: doc.meta.website,
+              description: doc.meta.description,
+              logoUrl: doc.meta.logoUrl,
+              contacts: doc.meta.contacts,
+              githubPath: doc.meta.githubPath,
+              githubSha: doc.meta.githubSha,
+            }
+          : undefined,
       } as ValidatorDetailResponse;
       detailCache.set(cacheKey, payload);
       return c.json(payload);
