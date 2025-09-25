@@ -73,7 +73,6 @@ export async function validatorsCol(db?: Db): Promise<Collection<ValidatorDoc>> 
 export async function epochCol(db?: Db): Promise<Collection<EpochStateDoc>> {
   const database = db ?? (await getMongo());
   const col = database.collection<EpochStateDoc>('epoch_state');
-  await col.createIndex({ _id: 1 }, { unique: true });
   return col;
 }
 
