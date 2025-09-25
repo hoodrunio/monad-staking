@@ -1,24 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "apps/staking-web/package.json",
-      "use": "@vercel/next",
-      "config": {
-        "installCommand": "pnpm install --frozen-lockfile",
-        "buildCommand": "pnpm build --filter=@monad-staking/staking-web^..."
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "apps/staking-web/$1"
-    }
-  ],
-  "functions": {
-    "apps/staking-web/app/**/*.tsx": {
-      "includeFiles": "packages/**"
-    }
-  }
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "outputDirectory": "apps/staking-web/.next"
 }
