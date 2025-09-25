@@ -5,13 +5,14 @@ import { delegationsRoutes } from './routes/delegations';
 import { withdrawalsRoutes } from './routes/withdrawals';
 import { ingestAllValidators } from './ingest';
 import { getResolvedNetworks } from './clients';
+import { logger } from './logger';
 
 const app = new Hono();
 
 app.onError((err, c) => {
   const message = err instanceof Error ? err.message : 'Unexpected error';
-  const status = 500;
-  return c.json({ error: { code: 'INTERNAL_ERROR', message } }, status);
+  logger.error('Unhandled error', { message });
+  return c.json({ error: { code: 'INTERNAL_ERROR', message } }, 500);
 });
 
 app.get('/health', (c) => c.json({ ok: true }));
@@ -22,7 +23,7 @@ app.route('/api/delegations', delegationsRoutes);
 app.route('/api/withdrawals', withdrawalsRoutes);
 
 const port = Number(process.env.PORT ?? 8787);
-console.log(`[staking-api] starting on :${port}`);
+logger.info('staking-api starting', { port });
 
 export default {
   port,
@@ -35,10 +36,10 @@ export default {
     const networks = getResolvedNetworks();
     for (const key of Object.keys(networks) as Array<'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2'>) {
       // Run without blocking server start
-      ingestAllValidators(key).catch((e) => console.warn(`[bootstrap] ingest failed for ${key}`, e));
+      ingestAllValidators(key).catch((e) => logger.warn('bootstrap ingest failed', { network: key, error: String(e) }));
     }
   } catch (e) {
-    console.warn('[bootstrap] skipped', e);
+    logger.warn('bootstrap skipped', { error: String(e) });
   }
 })();
 

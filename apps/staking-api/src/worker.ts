@@ -1,5 +1,6 @@
 import { getResolvedNetworks, getSdk } from './clients';
 import { epochCol, validatorsCol } from './db';
+import { logger } from './logger';
 import { ingestAllValidators } from './ingest';
 
 const POLL_MS = Number(process.env.EPOCH_POLL_MS ?? 30_000);
@@ -34,6 +35,7 @@ async function pollNetwork(network: 'monad-mainnet' | 'monad-testnet-1' | 'monad
       if (lastEpoch !== epochStr && !info.inEpochDelayPeriod) {
         // trigger ingestion when entering new epoch (outside delay period)
         lastEpoch = epochStr;
+        logger.info('epoch transition', { network, epoch: epochStr });
         await ingestAllValidators(network);
 
         // Update isActive flags for consensus set snapshot of this epoch
@@ -52,12 +54,13 @@ async function pollNetwork(network: 'monad-mainnet' | 'monad-testnet-1' | 'monad
           if (active.size > 0) {
             await col.updateMany({ network, validatorId: { $in: Array.from(active) } }, { $set: { isActive: true, activeEpoch: epochStr } });
           }
+          logger.info('consensus set updated', { network, epoch: epochStr, activeCount: active.size });
         } catch (e) {
-          console.warn(`[worker] failed to update isActive for ${network}`, e);
+          logger.warn('consensus set update failed', { network, epoch: epochStr, error: String(e) });
         }
       }
     } catch (err) {
-      console.error(`[worker] poll error ${network}`, err);
+      logger.error('worker poll error', { network, error: String(err) });
     }
 
     await new Promise((r) => setTimeout(r, POLL_MS));

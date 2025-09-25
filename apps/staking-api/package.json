@@ -19,6 +19,7 @@
     "p-limit": "^5.0.0",
     "mongodb": "^6.7.0",
     "ioredis": "^5.4.1",
+    "winston": "^3.11.0",
     "@monad-staking/config": "workspace:*",
     "@monad-staking/sdk": "workspace:*"
   },

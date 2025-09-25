@@ -2,6 +2,7 @@ import pLimit from 'p-limit';
 import { getResolvedNetworks, getSdk } from './clients';
 import { validatorsCol, type ValidatorDoc } from './db';
 import { listValidatorInfo, fetchValidatorJsonFromApi, type NetworkFolder } from './github';
+import { logger } from './logger';
 
 function formatMonStr(v: bigint): string { return v.toString(); }
 
@@ -16,7 +17,7 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
   if (!resolved) throw new Error(`Network ${networkKey} not configured`);
   const sdk = getSdk(resolved);
   const col = await validatorsCol();
-  console.log(`[ingest] start scan for ${networkKey}`);
+  logger.info('ingest start scan', { network: networkKey });
 
   // First, walk known validator sets (execution/consensus/snapshot) to seed ids
   const sets = [sdk.getExecutionValidatorSet.bind(sdk), sdk.getConsensusValidatorSet.bind(sdk), sdk.getSnapshotValidatorSet.bind(sdk)];
@@ -96,7 +97,7 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
     }
   }
   await Promise.allSettled(batch);
-  console.log(`[ingest] scan complete for ${networkKey}: discovered=${discovered.size} upserts=${upserts} consensus=${consensusSet.size}`);
+  logger.info('ingest scan complete', { network: networkKey, discovered: discovered.size, upserts, consensus: consensusSet.size });
 
   // Enrich with GitHub metadata by secp key when available (handles JSON and non-JSON files)
   try {
@@ -145,12 +146,12 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
         );
         if (upd.modifiedCount > 0 || upd.upsertedCount > 0) enriched += upd.modifiedCount + upd.upsertedCount;
       } catch (err) {
-        console.warn(`[ingest] enrich file failed ${f.path}`, err);
+        logger.warn('ingest enrich file failed', { path: f.path, error: String(err) });
       }
     }
-    console.log(`[ingest] enrichment complete for ${networkKey}: files=${files.length} enriched=${enriched}`);
+    logger.info('ingest enrichment complete', { network: networkKey, files: files.length, enriched });
   } catch (err) {
-    console.warn(`[ingest] enrichment skipped or failed for ${networkKey}`, err);
+    logger.warn('ingest enrichment skipped/failed', { network: networkKey, error: String(err) });
   }
 }
 
