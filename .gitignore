@@ -9,3 +9,5 @@ out
 coverage
 examples
 .vercel
+bun.lock
+pnpm-lock.yaml

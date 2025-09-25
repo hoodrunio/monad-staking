@@ -241,7 +241,7 @@ export const stakingAbi = [
       { "name": "secpPubkey", "type": "bytes", "internalType": "bytes" },
       { "name": "blsPubkey", "type": "bytes", "internalType": "bytes" }
     ],
-    "stateMutability": "view"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",

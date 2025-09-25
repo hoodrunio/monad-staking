@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.1.0",
   "description": "Monad staking dApp monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "onchain/*"
+  ],
   "engines": {
     "node": ">=18.18",
     "pnpm": ">=8.9"

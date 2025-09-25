@@ -1,0 +1,7 @@
+# Bun configuration for workspace support
+[install]
+# Enable workspace support
+workspace = true
+
+# Optional: Set registry and other install options
+registry = "https://registry.npmjs.org/"

@@ -43,6 +43,24 @@ importers:
         specifier: ^5.4.5
         version: 5.9.2
 
+  apps/staking-api:
+    dependencies:
+      '@monad-staking/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@monad-staking/sdk':
+        specifier: workspace:*
+        version: link:../../packages/monad-staking-sdk
+      hono:
+        specifier: ^4.4.12
+        version: 4.9.8
+      viem:
+        specifier: ^2.19.9
+        version: 2.37.8(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+
   apps/staking-web:
     dependencies:
       '@monad-staking/config':
@@ -2014,6 +2032,10 @@ packages:
   hasown@2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
+
+  hono@4.9.8:
+    resolution: {integrity: sha512-JW8Bb4RFWD9iOKxg5PbUarBYGM99IcxFl2FPBo2gSJO11jjUDqlP1Bmfyqt8Z/dGhIQ63PMA9LdcLefXyIasyg==}
+    engines: {node: '>=16.9.0'}
 
   human-signals@5.0.0:
     resolution: {integrity: sha512-AXcZb6vzzrFAUE61HnN4mpLqd/cSIwNQjtNWR0euPm6y0iqx3G4gOXaIDdtdDwZmhwe82LA6+zinmW4UBWVePQ==}
@@ -6485,6 +6507,8 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
+
+  hono@4.9.8: {}
 
   human-signals@5.0.0: {}
 

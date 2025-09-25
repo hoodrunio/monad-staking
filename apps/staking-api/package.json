@@ -1,0 +1,30 @@
+{
+  "name": "@monad-staking/staking-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Read-only staking API for Monad networks (Bun + Hono)",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "install": "bun install",
+    "build": "bun build src/index.ts --outdir dist",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.4.12",
+    "zod": "^3.23.8",
+    "viem": "^2.19.9",
+    "@monad-staking/config": "workspace:*",
+    "@monad-staking/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.0",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  }
+}
+
+
