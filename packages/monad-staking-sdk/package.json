@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@monad-staking/config": "workspace:*",
-    "viem": "2.21.0"
+    "viem": "^2.30.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",

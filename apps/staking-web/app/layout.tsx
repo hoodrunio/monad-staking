@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Providers from './providers';
+import { Providers } from './providers';
 import { WalletConnectButton } from '@/app/components/wallet-connect-button';
 import './globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
