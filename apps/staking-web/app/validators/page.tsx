@@ -7,12 +7,13 @@ import { NetworkSelector } from '@/app/components/network-selector';
 import { PaginationControls } from '@/app/components/pagination-controls';
 import { ValidatorTable } from '@/app/components/validator-table';
 import { ValidatorTableSkeleton } from '@/app/components/loading-skeleton';
+import { ClientOnly } from '@/app/components/client-only';
 import { useValidatorsQuery } from '@/lib/queries';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';
 import { normalizeCursor } from '@/lib/validators-utils';
 
-export default function ValidatorsPage() {
+function ValidatorsPageContent() {
   const searchParams = useSearchParams();
   const configMap = useMemo(() => getNetworkConfigMap(), []);
   const enabledNetworks = getEnabledNetworkConfigs(configMap);
@@ -108,5 +109,18 @@ export default function ValidatorsPage() {
         </div>
       ) : null}
     </div>
+  );
+}
+
+export default function ValidatorsPage() {
+  return (
+    <ClientOnly fallback={
+      <div className="space-y-6">
+        <h1 className="text-3xl font-semibold">Validator Explorer</h1>
+        <p className="text-slate-400">Loading...</p>
+      </div>
+    }>
+      <ValidatorsPageContent />
+    </ClientOnly>
   );
 }

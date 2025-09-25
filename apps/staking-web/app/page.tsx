@@ -6,10 +6,11 @@ import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from
 import { getSelectedNetwork } from '@/lib/page-utils';
 import { NetworkSelector } from '@/app/components/network-selector';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
+import { ClientOnly } from '@/app/components/client-only';
 import { useEpochQuery } from '@/lib/queries';
 import { MONAD_NETWORK_KEYS } from '@monad-staking/config';
 
-export default function HomePage() {
+function HomePageContent() {
   const searchParams = useSearchParams();
   const configMap = useMemo(() => getNetworkConfigMap(), []);
   const enabledNetworks = getEnabledNetworkConfigs(configMap);
@@ -161,5 +162,18 @@ export default function HomePage() {
         )}
       </section>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <ClientOnly fallback={
+      <div className="space-y-6">
+        <h1 className="text-3xl font-semibold">Monad Staking Dashboard</h1>
+        <p className="text-slate-400">Loading...</p>
+      </div>
+    }>
+      <HomePageContent />
+    </ClientOnly>
   );
 }
