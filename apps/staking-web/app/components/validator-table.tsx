@@ -1,3 +1,5 @@
+'use client';
+
 import type { ValidatorRow } from '@/lib/validators';
 import { formatValidatorRow } from '@/lib/validators';
 
