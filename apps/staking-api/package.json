@@ -9,12 +9,16 @@
     "start": "bun run src/index.ts",
     "install": "bun install",
     "build": "bun build src/index.ts --outdir dist",
+    "worker": "bun run src/worker.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "hono": "^4.4.12",
     "zod": "^3.23.8",
     "viem": "^2.19.9",
+    "p-limit": "^5.0.0",
+    "mongodb": "^6.7.0",
+    "ioredis": "^5.4.1",
     "@monad-staking/config": "workspace:*",
     "@monad-staking/sdk": "workspace:*"
   },
