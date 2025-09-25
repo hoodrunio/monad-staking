@@ -70,6 +70,16 @@ function normalizeHexNo0x(input: string): string | null {
   return /^[0-9a-fA-F]+$/.test(no0x) ? no0x.toLowerCase() : null;
 }
 
+function isDecimalId(input: string): boolean {
+  return /^\d+$/.test(input);
+}
+
+function detectAddressHex(input: string): string | null {
+  const m = input.match(/^0x([0-9a-fA-F]{40})$/);
+  if (m) return m[1].toLowerCase();
+  return null;
+}
+
 validatorRoutes.get('/', async (c) => {
   const parsed = listQuery.safeParse(Object.fromEntries(new URL(c.req.url).searchParams));
   if (!parsed.success) return c.json({ error: 'Invalid query', details: parsed.error.flatten() }, 400);
@@ -135,18 +145,21 @@ validatorRoutes.get('/:id', async (c) => {
   let idBig: bigint | null = null;
   let secp: string | null = null;
   let auth: string | null = null;
-  try {
-    const n = BigInt(idParam);
-    if (n < 0n) throw new Error('negative');
-    idBig = n;
-  } catch {
-    // Not a numeric id; allow searching by secp or auth via query
+  if (isDecimalId(idParam)) {
+    idBig = BigInt(idParam);
+  } else {
     const secpParam = url.searchParams.get('secp');
     const authParam = url.searchParams.get('auth');
-    secp = secpParam ? normalizeHexNo0x(secpParam) : normalizeHexNo0x(idParam);
-    auth = authParam ? normalizeHexNo0x(authParam) : null;
+    // Prefer explicit query, else infer from path param
+    secp = secpParam ? normalizeHexNo0x(secpParam) : null;
+    auth = authParam ? normalizeHexNo0x(authParam) : detectAddressHex(idParam);
     if (!secp && !auth) {
-      return c.json({ error: { code: 'BAD_REQUEST', message: 'Provide a numeric validator id, or a valid secp/auth address (hex) via path or query: ?secp=... or ?auth=...' } }, 400);
+      // If still nothing, as a last attempt treat path as hex (could be secp without 0x)
+      const maybeHex = normalizeHexNo0x(idParam);
+      if (maybeHex && maybeHex.length >= 40) secp = maybeHex;
+    }
+    if (!secp && !auth) {
+      return c.json({ error: { code: 'BAD_REQUEST', message: 'Provide a numeric validator id, or a valid secp/auth address (?secp=... or ?auth=0x...)' } }, 400);
     }
   }
 
@@ -161,7 +174,7 @@ validatorRoutes.get('/:id', async (c) => {
       ? await col.findOne({ _id: `${net}:${idBig.toString()}` })
       : secp
       ? await col.findOne({ network: net as 'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2', 'keys.secpPubkey': secp })
-      : await col.findOne({ network: net as 'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2', authAddress: `0x${auth}` });
+      : await col.findOne({ network: net as 'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2', authAddress: { $regex: new RegExp(`^0x${auth}$`, 'i') } });
     if (doc) {
       const commissionBig = BigInt(doc.commission);
       const scaled = (commissionBig * 10000n) / (10n ** 18n);
