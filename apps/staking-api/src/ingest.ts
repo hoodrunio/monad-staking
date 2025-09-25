@@ -19,22 +19,22 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
   const col = await validatorsCol();
   logger.info('ingest start scan', { network: networkKey });
 
-  // First, walk known validator sets (execution/consensus/snapshot) to seed ids
-  const sets = [sdk.getExecutionValidatorSet.bind(sdk), sdk.getConsensusValidatorSet.bind(sdk), sdk.getSnapshotValidatorSet.bind(sdk)];
+  // First, walk known validator sets (execution/snapshot) to seed ids
   const discovered = new Set<string>();
-  const consensusSet = new Set<string>();
-  for (const method of sets) {
+  {
     let cursor = 0;
-    // cap iterations defensively
     for (let i = 0; i < 1000; i++) {
-      const page = await method(cursor);
-      for (const id of page.validatorIds) {
-        const s = id.toString();
-        discovered.add(s);
-        if (method === sdk.getConsensusValidatorSet.bind(sdk)) {
-          consensusSet.add(s);
-        }
-      }
+      const page = await sdk.getExecutionValidatorSet(cursor);
+      for (const id of page.validatorIds) discovered.add(id.toString());
+      if (page.isDone) break;
+      cursor = page.nextIndex;
+    }
+  }
+  {
+    let cursor = 0;
+    for (let i = 0; i < 1000; i++) {
+      const page = await sdk.getSnapshotValidatorSet(cursor);
+      for (const id of page.validatorIds) discovered.add(id.toString());
       if (page.isDone) break;
       cursor = page.nextIndex;
     }
@@ -74,7 +74,8 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
           unclaimedRewards: v.unclaimedRewards.toString(),
           flagsRaw: v.flags.toString(),
           keys: { secpPubkey: normalizeHexNo0x(v.secpPubkey), blsPubkey: v.blsPubkey },
-          isActive: consensusSet.has(current.toString()),
+          // isActive will be set after we fetch consensus set below
+          isActive: undefined,
           activeEpoch: undefined,
           updatedAt: new Date().toISOString(),
         };
@@ -97,7 +98,28 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
     }
   }
   await Promise.allSettled(batch);
-  logger.info('ingest scan complete', { network: networkKey, discovered: discovered.size, upserts, consensus: consensusSet.size });
+  logger.info('ingest scan complete', { network: networkKey, discovered: discovered.size, upserts });
+
+  // After scan, fetch current consensus set once and update isActive flags immediately (so restart reflects active status)
+  try {
+    let cursor = 0;
+    const activeIds = new Set<string>();
+    for (let i = 0; i < 1000; i++) {
+      const page = await sdk.getConsensusValidatorSet(cursor);
+      for (const id of page.validatorIds) activeIds.add(id.toString());
+      if (page.isDone) break;
+      cursor = page.nextIndex;
+    }
+    const activeList = Array.from(activeIds);
+    const vcol = await validatorsCol();
+    // Do not reset all flags here (worker handles epoch transitions); only set true for current actives
+    if (activeList.length > 0) {
+      await vcol.updateMany({ network: networkKey, validatorId: { $in: activeList } }, { $set: { isActive: true } });
+    }
+    logger.info('ingest consensus flags updated', { network: networkKey, activeCount: activeList.length });
+  } catch (e) {
+    logger.warn('ingest consensus flag update failed', { network: networkKey, error: String(e) });
+  }
 
   // Enrich with GitHub metadata by secp key when available (handles JSON and non-JSON files)
   try {
