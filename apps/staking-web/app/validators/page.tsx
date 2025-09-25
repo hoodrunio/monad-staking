@@ -3,13 +3,7 @@ import { MONAD_NETWORK_KEYS } from '@monad-staking/config';
 import { NetworkSelector } from '@/app/components/network-selector';
 import { PaginationControls } from '@/app/components/pagination-controls';
 import { ValidatorTable } from '@/app/components/validator-table';
-import { ValidatorViewSelector } from '@/app/components/validator-view-selector';
-import {
-  getValidatorSetPage,
-  resolveViewParam,
-  type ValidatorSetView,
-  parseNetworkKey,
-} from '@/lib/validators';
+import { getValidatorSetPage, type ValidatorSetView, parseNetworkKey } from '@/lib/validators';
 import { getNetworkConfigMap, getEnabledNetworkConfigs } from '@/lib/networks';
 
 interface PageProps {
@@ -74,10 +68,7 @@ export default async function ValidatorsPage(props: PageProps) {
     | MonadNetwork
     | undefined;
 
-  const viewParam = searchParams['view'];
-  const selectedView = resolveViewParam(
-    Array.isArray(viewParam) ? viewParam[0] : viewParam,
-  ) as ValidatorSetView;
+  const selectedView = 'execution' as ValidatorSetView;
 
   const cursorParam = searchParams['cursor'];
   const cursor = normalizeCursor(Array.isArray(cursorParam) ? cursorParam[0] : cursorParam);
@@ -114,7 +105,6 @@ export default async function ValidatorsPage(props: PageProps) {
               networks={enabledNetworks}
               selectedKey={selectedNetwork}
             />
-            <ValidatorViewSelector selected={selectedView} />
           </div>
         </div>
       </header>
