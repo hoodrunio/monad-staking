@@ -137,7 +137,7 @@ validatorRoutes.get('/:id', async (c) => {
         },
         unclaimedRewards: formatMon(BigInt(doc.unclaimedRewards)),
         flagsRaw: doc.flagsRaw,
-        keys: { secpPubkey: doc.keys?.secpPubkey ?? '0x', blsPubkey: doc.keys?.blsPubkey ?? '0x' },
+        keys: { secpPubkey: doc.keys?.secpPubkey ?? '', blsPubkey: doc.keys?.blsPubkey ?? '' },
       } as ValidatorDetailResponse;
       detailCache.set(cacheKey, payload);
       return c.json(payload);
@@ -191,7 +191,9 @@ validatorRoutes.get('/:id', async (c) => {
         },
         { upsert: true },
       );
-    } catch {}
+    } catch (err) {
+      console.error(`[validators] failed to upsert validator ${id.toString()}`, err);
+    }
     return c.json(payload);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to fetch validator';

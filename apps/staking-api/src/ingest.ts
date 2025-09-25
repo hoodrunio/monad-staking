@@ -95,7 +95,8 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
       try {
         const json = await downloadValidatorJson(f.downloadUrl);
         const metaObj = json as unknown;
-        const secp = extractString(metaObj, ['secpPubkey', 'secp_pubkey', 'secpPublicKey']);
+        const secpHex = extractString(metaObj, ['secpPubkey', 'secp_pubkey', 'secpPublicKey']);
+        const secp = secpHex ? normalizeHexNo0x(secpHex) : undefined;
         if (!secp) continue;
         const name = extractString(metaObj, ['name']);
         const website = extractString(metaObj, ['website']);
@@ -141,6 +142,11 @@ function extractRecord(source: unknown, keys: readonly string[]): Record<string,
     }
   }
   return undefined;
+}
+
+function normalizeHexNo0x(value: string): string {
+  if (value.startsWith('0x') || value.startsWith('0X')) return value.slice(2);
+  return value;
 }
 
 

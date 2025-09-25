@@ -3,6 +3,8 @@ import { validatorRoutes } from './routes/validators';
 import { epochRoutes } from './routes/epoch';
 import { delegationsRoutes } from './routes/delegations';
 import { withdrawalsRoutes } from './routes/withdrawals';
+import { ingestAllValidators } from './ingest';
+import { getResolvedNetworks } from './clients';
 
 const app = new Hono();
 
@@ -20,5 +22,18 @@ export default {
   port,
   fetch: app.fetch,
 };
+
+// Bootstrap one-time ingestion on startup (fire-and-forget)
+(async () => {
+  try {
+    const networks = getResolvedNetworks();
+    for (const key of Object.keys(networks) as Array<'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2'>) {
+      // Run without blocking server start
+      ingestAllValidators(key).catch((e) => console.warn(`[bootstrap] ingest failed for ${key}`, e));
+    }
+  } catch (e) {
+    console.warn('[bootstrap] skipped', e);
+  }
+})();
 
 
