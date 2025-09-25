@@ -5,8 +5,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 
 interface PaginationControlsProps {
-  readonly prevCursor: number | null;
-  readonly nextCursor: number | null;
+  readonly prevCursor: string | null;
+  readonly nextCursor: string | null;
 }
 
 export function PaginationControls({
@@ -18,12 +18,12 @@ export function PaginationControls({
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const updateCursor = (cursor: number | null) => {
+  const updateCursor = (cursor: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (cursor === null || cursor === 0) {
+    if (cursor === null || cursor === '') {
       params.delete('cursor');
     } else {
-      params.set('cursor', cursor.toString());
+      params.set('cursor', cursor);
     }
 
     const query = params.toString();
@@ -35,9 +35,7 @@ export function PaginationControls({
 
   return (
     <div className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-3 text-sm text-slate-300">
-      <div>
-        {prevCursor !== null ? `Showing from index ${prevCursor}` : 'Beginning'}
-      </div>
+      <div>{prevCursor ? `Cursor ${prevCursor}` : 'Beginning'}</div>
       <div className="flex items-center gap-3">
         <button
           type="button"

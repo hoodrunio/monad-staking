@@ -1,6 +1,5 @@
 import type { MonadNetwork } from '@monad-staking/config';
 import { MONAD_NETWORK_KEYS } from '@monad-staking/config';
-import type { EpochInfo } from '@monad-staking/sdk';
 import { NetworkSelector } from '@/app/components/network-selector';
 import {
   getEnabledNetworkConfigs,
@@ -8,7 +7,7 @@ import {
   parseNetworkKey,
   tryResolveNetwork,
 } from '@/lib/networks';
-import { getStakingSdk } from '@/lib/clients';
+import { apiGet } from '@/lib/api';
 
 interface PageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>> |
@@ -25,24 +24,21 @@ async function resolveSearchParams(
   return searchParams;
 }
 
-async function fetchEpoch(
-  networkKey: MonadNetwork,
-): Promise<{ info: EpochInfo | null; error?: string }> {
+async function fetchEpoch(networkKey: MonadNetwork): Promise<{
+  info: { epoch: string; inEpochDelayPeriod: boolean } | null;
+  error?: string;
+}> {
   const configMap = getNetworkConfigMap();
   const resolved = tryResolveNetwork(configMap, networkKey);
-  if (!resolved) {
-    return { info: null, error: 'Network is not fully configured.' };
-  }
-
+  if (!resolved) return { info: null, error: 'Network is not fully configured.' };
   try {
-    const sdk = getStakingSdk(resolved);
-    const info = await sdk.getEpoch();
-    return { info };
+    const data = await apiGet<{ epoch: string; inEpochDelayPeriod: boolean }>(
+      '/api/epoch',
+      { network: networkKey },
+    );
+    return { info: data };
   } catch (error) {
-    let message = 'Failed to fetch epoch data.';
-    if (error instanceof Error) {
-      message = `${message} ${error.message}`;
-    }
+    const message = error instanceof Error ? error.message : 'Failed to fetch epoch data.';
     return { info: null, error: message };
   }
 }
@@ -127,7 +123,7 @@ export default async function Page(props: PageProps) {
               <div className="flex items-center justify-between">
                 <dt className="text-slate-400">Current Epoch</dt>
                 <dd className="font-mono text-base text-slate-50">
-                  {epochResult.info.epoch.toString()}
+                  {epochResult.info.epoch}
                 </dd>
               </div>
               <div className="flex items-center justify-between">

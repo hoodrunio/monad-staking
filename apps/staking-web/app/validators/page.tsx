@@ -24,10 +24,9 @@ async function resolveSearchParams(
   return searchParams instanceof Promise ? await searchParams : searchParams;
 }
 
-function normalizeCursor(param: string | undefined): number {
-  if (!param) return 0;
-  const parsed = Number.parseInt(param, 10);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+function normalizeCursor(param: string | undefined): string {
+  if (!param) return '';
+  return Array.isArray(param) ? param[0] ?? '' : param;
 }
 
 export default async function ValidatorsPage(props: PageProps) {
@@ -81,9 +80,7 @@ export default async function ValidatorsPage(props: PageProps) {
   ) as ValidatorSetView;
 
   const cursorParam = searchParams['cursor'];
-  const cursor = normalizeCursor(
-    Array.isArray(cursorParam) ? cursorParam[0] : cursorParam,
-  );
+  const cursor = normalizeCursor(Array.isArray(cursorParam) ? cursorParam[0] : cursorParam);
 
   if (!selectedNetwork) {
     return null;
