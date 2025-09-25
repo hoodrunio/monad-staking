@@ -74,7 +74,8 @@ const transports = resolvedNetworks.reduce(
 export const wagmiConfig = getDefaultConfig({
   appName: 'Monad Staking dApp',
   projectId,
-  chains,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  chains: chains as any,
   transports,
   ssr: true,
 });
