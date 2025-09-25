@@ -14,6 +14,15 @@ export default function HomePage() {
   const configMap = useMemo(() => getNetworkConfigMap(), []);
   const enabledNetworks = getEnabledNetworkConfigs(configMap);
 
+  const networkParam = searchParams.get('network');
+  const selectedNetwork = getSelectedNetwork(networkParam, enabledNetworks);
+  const resolved = selectedNetwork ? tryResolveNetwork(configMap, selectedNetwork) : null;
+
+  // Always call hooks at the top level
+  const { data: epochData, isLoading, error } = useEpochQuery(selectedNetwork || 'monad-mainnet', {
+    enabled: !!selectedNetwork && !!resolved
+  });
+
   if (enabledNetworks.length === 0) {
     return (
       <div className="space-y-6">
@@ -44,14 +53,10 @@ export default function HomePage() {
     );
   }
 
-  const networkParam = searchParams.get('network');
-  const selectedNetwork = getSelectedNetwork(networkParam, enabledNetworks);
-
   if (!selectedNetwork) {
     return null;
   }
 
-  const resolved = tryResolveNetwork(configMap, selectedNetwork);
   if (!resolved) {
     return (
       <div className="space-y-6">
@@ -61,15 +66,13 @@ export default function HomePage() {
     );
   }
 
-  const { data: epochData, isLoading, error } = useEpochQuery(selectedNetwork);
-
   return (
     <div className="space-y-8">
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-3xl font-semibold">Monad Staking Dashboard</h1>
           <p className="text-slate-400">
-            Overview of staking information on {resolved.name}
+            Overview of staking information on {resolved.key}
           </p>
         </div>
         <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />

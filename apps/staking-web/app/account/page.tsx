@@ -10,7 +10,6 @@ import { NetworkSelector } from '@/app/components/network-selector';
 import { ClientOnly } from '@/app/components/client-only';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { useDelegationsQuery, useWithdrawalsQuery, useEpochQuery } from '@/lib/queries';
-import type { MonadNetwork } from '@monad-staking/config';
 
 function AccountPageContent() {
   const searchParams = useSearchParams();
@@ -20,6 +19,20 @@ function AccountPageContent() {
 
   const networkParam = searchParams.get('network');
   const selectedNetwork = getSelectedNetwork(networkParam, enabledNetworks);
+  const resolved = selectedNetwork ? tryResolveNetwork(configMap, selectedNetwork) : null;
+
+  // Always call hooks at the top level
+  const { data: epochData } = useEpochQuery(selectedNetwork || 'monad-mainnet', {
+    enabled: !!selectedNetwork && !!resolved
+  });
+  const { data: delegations, isLoading: delegationsLoading, error: delegationsError } = 
+    useDelegationsQuery(selectedNetwork || 'monad-mainnet', address || '', '0', {
+      enabled: !!selectedNetwork && !!resolved && !!address
+    });
+  const { data: withdrawals, isLoading: withdrawalsLoading, error: withdrawalsError } = 
+    useWithdrawalsQuery(selectedNetwork || 'monad-mainnet', address || '', undefined, {
+      enabled: !!selectedNetwork && !!resolved && !!address
+    });
 
   if (!selectedNetwork) {
     return (
@@ -30,7 +43,6 @@ function AccountPageContent() {
     );
   }
 
-  const resolved = tryResolveNetwork(configMap, selectedNetwork);
   if (!resolved) {
     return (
       <div className="space-y-6">
@@ -47,7 +59,7 @@ function AccountPageContent() {
           <div>
             <h1 className="text-3xl font-semibold">My Account</h1>
             <p className="text-slate-400">
-              Connect your wallet to view your staking positions on {resolved.name}
+              Connect your wallet to view your staking positions on {resolved.key}
             </p>
           </div>
           <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
@@ -60,12 +72,6 @@ function AccountPageContent() {
     );
   }
 
-  const { data: epochData } = useEpochQuery(selectedNetwork);
-  const { data: delegations, isLoading: delegationsLoading, error: delegationsError } = 
-    useDelegationsQuery(selectedNetwork, address);
-  const { data: withdrawals, isLoading: withdrawalsLoading, error: withdrawalsError } = 
-    useWithdrawalsQuery(selectedNetwork, address);
-
   const currentEpoch = epochData ? BigInt(epochData.epoch) : 0n;
 
   return (
@@ -74,7 +80,7 @@ function AccountPageContent() {
         <div>
           <h1 className="text-3xl font-semibold">My Account</h1>
           <p className="text-slate-400">
-            Your staking positions on {resolved.name}
+            Your staking positions on {resolved.key}
           </p>
           <p className="text-xs text-slate-500 font-mono">
             {address}

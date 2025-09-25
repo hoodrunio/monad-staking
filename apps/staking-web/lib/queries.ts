@@ -16,7 +16,7 @@ export const queryKeys = {
 };
 
 // Epoch query
-export function useEpochQuery(network: MonadNetwork) {
+export function useEpochQuery(network: MonadNetwork, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.epoch(network),
     queryFn: () => apiGet<{
@@ -28,6 +28,7 @@ export function useEpochQuery(network: MonadNetwork) {
     }>('/api/epoch', { network }),
     staleTime: 10_000, // 10 seconds
     refetchInterval: 30_000, // 30 seconds
+    enabled: options?.enabled,
   });
 }
 
@@ -87,7 +88,12 @@ export function useValidatorQuery(
 }
 
 // Delegations query
-export function useDelegationsQuery(network: MonadNetwork, address: string, cursor = '0') {
+export function useDelegationsQuery(
+  network: MonadNetwork, 
+  address: string, 
+  cursor = '0',
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: queryKeys.delegations(network, address, cursor),
     queryFn: () => apiGet<{
@@ -103,7 +109,7 @@ export function useDelegationsQuery(network: MonadNetwork, address: string, curs
       cursor: { next: string; done: boolean };
     }>('/api/delegations', { network, address, cursor }),
     staleTime: 20_000, // 20 seconds
-    enabled: !!address,
+    enabled: (options?.enabled !== false) && !!address,
   });
 }
 
@@ -111,7 +117,8 @@ export function useDelegationsQuery(network: MonadNetwork, address: string, curs
 export function useWithdrawalsQuery(
   network: MonadNetwork, 
   address: string, 
-  validatorId?: string
+  validatorId?: string,
+  options?: { enabled?: boolean }
 ) {
   return useQuery({
     queryKey: queryKeys.withdrawals(network, address, validatorId),
@@ -131,6 +138,6 @@ export function useWithdrawalsQuery(
       limit: 64,
     }),
     staleTime: 20_000, // 20 seconds
-    enabled: !!address,
+    enabled: (options?.enabled !== false) && !!address,
   });
 }
