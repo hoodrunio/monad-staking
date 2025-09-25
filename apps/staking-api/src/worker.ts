@@ -1,5 +1,5 @@
 import { getResolvedNetworks, getSdk } from './clients';
-import { epochCol } from './db';
+import { epochCol, validatorsCol } from './db';
 import { ingestAllValidators } from './ingest';
 
 const POLL_MS = Number(process.env.EPOCH_POLL_MS ?? 30_000);
@@ -35,6 +35,26 @@ async function pollNetwork(network: 'monad-mainnet' | 'monad-testnet-1' | 'monad
         // trigger ingestion when entering new epoch (outside delay period)
         lastEpoch = epochStr;
         await ingestAllValidators(network);
+
+        // Update isActive flags for consensus set snapshot of this epoch
+        try {
+          let cursor = 0;
+          const active = new Set<string>();
+          for (let i = 0; i < 1000; i++) {
+            const page = await sdk.getConsensusValidatorSet(cursor);
+            for (const id of page.validatorIds) active.add(id.toString());
+            if (page.isDone) break;
+            cursor = page.nextIndex;
+          }
+          const col = await validatorsCol();
+          // Reset all to false for network, then set true for active
+          await col.updateMany({ network }, { $set: { isActive: false } });
+          if (active.size > 0) {
+            await col.updateMany({ network, validatorId: { $in: Array.from(active) } }, { $set: { isActive: true, activeEpoch: epochStr } });
+          }
+        } catch (e) {
+          console.warn(`[worker] failed to update isActive for ${network}`, e);
+        }
       }
     } catch (err) {
       console.error(`[worker] poll error ${network}`, err);

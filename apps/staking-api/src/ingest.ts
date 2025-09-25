@@ -21,12 +21,19 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
   // First, walk known validator sets (execution/consensus/snapshot) to seed ids
   const sets = [sdk.getExecutionValidatorSet.bind(sdk), sdk.getConsensusValidatorSet.bind(sdk), sdk.getSnapshotValidatorSet.bind(sdk)];
   const discovered = new Set<string>();
+  const consensusSet = new Set<string>();
   for (const method of sets) {
     let cursor = 0;
     // cap iterations defensively
     for (let i = 0; i < 1000; i++) {
       const page = await method(cursor);
-      for (const id of page.validatorIds) discovered.add(id.toString());
+      for (const id of page.validatorIds) {
+        const s = id.toString();
+        discovered.add(s);
+        if (method === sdk.getConsensusValidatorSet.bind(sdk)) {
+          consensusSet.add(s);
+        }
+      }
       if (page.isDone) break;
       cursor = page.nextIndex;
     }
@@ -66,6 +73,8 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
           unclaimedRewards: v.unclaimedRewards.toString(),
           flagsRaw: v.flags.toString(),
           keys: { secpPubkey: normalizeHexNo0x(v.secpPubkey), blsPubkey: v.blsPubkey },
+          isActive: consensusSet.has(current.toString()),
+          activeEpoch: undefined,
           updatedAt: new Date().toISOString(),
         };
         await col.updateOne(
@@ -87,7 +96,7 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
     }
   }
   await Promise.allSettled(batch);
-  console.log(`[ingest] scan complete for ${networkKey}: discovered=${discovered.size} upserts=${upserts}`);
+  console.log(`[ingest] scan complete for ${networkKey}: discovered=${discovered.size} upserts=${upserts} consensus=${consensusSet.size}`);
 
   // Enrich with GitHub metadata by secp key when available (handles JSON and non-JSON files)
   try {

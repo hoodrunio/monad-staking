@@ -19,6 +19,9 @@ export interface ValidatorDoc {
     secpPubkey?: string;
     blsPubkey?: string;
   };
+  // activity
+  isActive?: boolean;
+  activeEpoch?: string; // bigint string of epoch when marked active
   // enrichment
   meta?: {
     name?: string;
@@ -68,6 +71,7 @@ export async function validatorsCol(db?: Db): Promise<Collection<ValidatorDoc>> 
   await col.createIndex({ network: 1, validatorId: 1 }, { unique: true });
   await col.createIndex({ network: 1, 'keys.secpPubkey': 1 });
   await col.createIndex({ network: 1, authAddress: 1 });
+  await col.createIndex({ network: 1, isActive: 1 });
   return col;
 }
 
