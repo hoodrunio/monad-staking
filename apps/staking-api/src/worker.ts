@@ -18,7 +18,7 @@ async function pollNetwork(network: 'monad-mainnet' | 'monad-testnet-1' | 'monad
     const state = await col.findOne({ _id: network });
     if (state) lastEpoch = state.epoch;
   } catch (err) {
-    console.warn(`[worker] failed to read epoch state for ${network}`, err);
+    logger.warn(`[worker] failed to read epoch state for ${network}`, err);
   }
 
   // eslint-disable-next-line no-constant-condition
@@ -77,7 +77,7 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error('[worker] fatal', e);
+  logger.error('[worker] fatal', e);
   process.exit(1);
 });
 

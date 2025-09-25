@@ -88,7 +88,7 @@ export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-t
         // Count as miss, log occasionally
         misses++;
         if (misses % 5 === 0) {
-          console.warn(`[ingest] ${networkKey} validator ${current.toString()} scan error`, err);
+          logger.warn(`[ingest] ${networkKey} validator ${current.toString()} scan error`, err);
         }
       }
     }));

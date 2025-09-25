@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getResolvedNetworks, getSdk } from '../clients';
 import { TtlCache } from '../cache';
 import { validatorsCol, type ValidatorDoc } from '../db';
+import { logger } from '../logger';
 
 export const validatorRoutes = new Hono();
 
@@ -261,7 +262,7 @@ validatorRoutes.get('/:id', async (c) => {
         { upsert: true },
       );
     } catch (err) {
-      console.error(`[validators] failed to upsert validator ${idBig.toString()}`, err);
+      logger.error(`[validators] failed to upsert validator ${idBig.toString()}`, err);
     }
     return c.json(payload);
   } catch (err) {
