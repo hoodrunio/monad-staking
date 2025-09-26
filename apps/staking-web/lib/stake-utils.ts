@@ -1,4 +1,3 @@
-import toast from 'react-hot-toast';
 import type { MonadStakingSdk } from '@monad-staking/sdk';
 import type { Transport } from 'viem';
 
@@ -76,12 +75,10 @@ export async function handleDelegate(
       account,
     });
     mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted' });
-    toast.success('Delegation transaction submitted!');
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
     mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error' });
-    toast.error(`Delegation failed: ${message}`);
   }
 }
 
@@ -110,12 +107,10 @@ export async function handleUndelegate(
       account,
     });
     mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted' });
-    toast.success('Undelegation transaction submitted!');
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
     mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error' });
-    toast.error(`Undelegation failed: ${message}`);
   }
 }
 
@@ -142,12 +137,10 @@ export async function handleWithdraw(
       account,
     });
     mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted' });
-    toast.success('Withdrawal transaction submitted!');
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
     mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error' });
-    toast.error(`Withdrawal failed: ${message}`);
   }
 }
 
@@ -172,12 +165,10 @@ export async function handleCompound(
       account,
     });
     mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted' });
-    toast.success('Compound transaction submitted!');
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
     mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error' });
-    toast.error(`Compound failed: ${message}`);
   }
 }
 
@@ -202,12 +193,10 @@ export async function handleClaimRewards(
       account,
     });
     mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted' });
-    toast.success('Claim rewards transaction submitted!');
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
     mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error' });
-    toast.error(`Claim rewards failed: ${message}`);
   }
 }
 
@@ -222,13 +211,11 @@ async function waitForConfirmation(
       if (prev.txHash !== hash) return prev;
       return { ...prev, txStage: 'confirmed' };
     });
-    toast.success('Transaction confirmed on-chain.');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to confirm transaction';
     setState((prev) => {
       if (prev.txHash !== hash) return prev;
       return { ...prev, txError: message, txStage: 'error' };
     });
-    toast.error(`Confirmation error: ${message}`);
   }
 }
