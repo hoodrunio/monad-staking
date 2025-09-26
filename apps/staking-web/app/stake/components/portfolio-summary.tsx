@@ -8,11 +8,13 @@ interface PortfolioSummaryProps {
     readyWithdraw: number;
   };
   readonly onClaimAll: () => void;
+  readonly onStake: () => void;
   readonly claiming: boolean;
   readonly canClaim: boolean;
+  readonly stakeDisabled?: boolean;
 }
 
-export function PortfolioSummary({ totals, onClaimAll, claiming, canClaim }: PortfolioSummaryProps) {
+export function PortfolioSummary({ totals, onClaimAll, onStake, claiming, canClaim, stakeDisabled }: PortfolioSummaryProps) {
   const formatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
 
   return (
@@ -22,14 +24,24 @@ export function PortfolioSummary({ totals, onClaimAll, claiming, canClaim }: Por
           <p className="text-xs uppercase tracking-wide text-emerald-400">Portfolio</p>
           <h2 className="text-xl font-semibold text-slate-100">Your staking summary</h2>
         </div>
-        <button
-          type="button"
-          onClick={onClaimAll}
-          disabled={!canClaim || claiming}
-          className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
-        >
-          {claiming ? 'Claiming rewards…' : 'Claim all rewards'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onStake}
+            disabled={stakeDisabled}
+            className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-200 transition hover:border-emerald-500 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-400"
+          >
+            Stake
+          </button>
+          <button
+            type="button"
+            onClick={onClaimAll}
+            disabled={!canClaim || claiming}
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
+          >
+            {claiming ? 'Claiming rewards…' : 'Claim all rewards'}
+          </button>
+        </div>
       </div>
 
       <dl className="grid gap-4 sm:grid-cols-2">

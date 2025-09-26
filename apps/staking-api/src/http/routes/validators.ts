@@ -13,6 +13,7 @@ const listQuery = z.object({
   network: z.enum(['monad-mainnet', 'monad-testnet-1', 'monad-testnet-2']),
   cursor: z.string().default(''),
   limit: z.coerce.number().int().positive().max(100).default(50),
+  active: z.enum(['true', 'false']).optional(),
 });
 
 const detailQuery = z.object({
@@ -81,15 +82,16 @@ function detectAddressHex(input: string): string | null {
 validatorRoutes.get('/', async (c) => {
   const parsed = listQuery.safeParse(Object.fromEntries(new URL(c.req.url).searchParams));
   if (!parsed.success) return c.json({ error: 'Invalid query', details: parsed.error.flatten() }, 400);
-  const { network, cursor, limit } = parsed.data;
+  const { network, cursor, limit, active } = parsed.data;
+  const activeOnly = active === 'true';
 
-  const cacheKey = `list-db:${network}:${cursor}:${limit}`;
+  const cacheKey = `list-db:${network}:${cursor}:${limit}:${activeOnly ? 'active' : 'all'}`;
   const cached = await listCache.get(cacheKey);
   if (cached) return c.json(cached);
 
   try {
     const col = await validatorsCol();
-    const filter = { network };
+    const filter = activeOnly ? { network, isActive: true } : { network };
     const query = cursor ? { ...filter, validatorId: { $gt: cursor } } : filter;
     const docs = await col.find(query, { sort: { validatorId: 1 }, limit }).toArray();
 

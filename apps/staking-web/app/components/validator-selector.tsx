@@ -22,6 +22,10 @@ interface ValidatorSelectorProps {
   readonly disabled?: boolean;
   readonly filterPlaceholder?: string;
   readonly emptyMessage?: string;
+  readonly hasMore?: boolean;
+  readonly onLoadMore?: () => void;
+  readonly loadingMore?: boolean;
+  readonly toolbar?: React.ReactNode;
 }
 
 export function ValidatorSelector({
@@ -33,6 +37,10 @@ export function ValidatorSelector({
   disabled,
   filterPlaceholder = 'Search validators',
   emptyMessage = 'No validators found',
+  hasMore,
+  onLoadMore,
+  loadingMore,
+  toolbar,
 }: ValidatorSelectorProps) {
   const [query, setQuery] = useState('');
 
@@ -59,6 +67,8 @@ export function ValidatorSelector({
           className="w-full rounded-md border border-slate-700 bg-slate-950 pl-9 pr-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
         />
       </div>
+
+      {toolbar && <div className="flex items-center justify-between text-xs text-slate-400">{toolbar}</div>}
 
       <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
         {loading ? (
@@ -125,6 +135,19 @@ export function ValidatorSelector({
           })
         )}
       </div>
+
+      {hasMore && (
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={onLoadMore}
+            disabled={loadingMore || disabled}
+            className="w-full rounded-md border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-slate-200 hover:border-slate-600 disabled:cursor-not-allowed disabled:text-slate-500"
+          >
+            {loadingMore ? 'Loading…' : 'Load more validators'}
+          </button>
+        </div>
+      )}
     </fieldset>
   );
 }

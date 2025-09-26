@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useSearchParams } from 'next/navigation';
 import type { MonadNetwork } from '@monad-staking/config';
@@ -9,7 +9,6 @@ import { ClientOnly } from '@/app/components/client-only';
 import { TransactionResult } from '@/app/components/transaction-result';
 import { ValidatorSelector } from '@/app/components/validator-selector';
 import { PortfolioSummary } from '@/app/stake/components/portfolio-summary';
-import { ValidatorCard } from '@/app/stake/components/validator-card';
 import { DelegationCard } from '@/app/stake/components/delegation-card';
 import { WithdrawalsList } from '@/app/stake/components/withdrawals-list';
 import { ActionModal } from '@/app/stake/components/action-modal';
@@ -18,7 +17,9 @@ import { parseNetworkKey } from '@/lib/validators';
 import { useStakingSdk } from '@/hooks/useStakingSdk';
 import { useStakeActions } from '@/hooks/useStakeActions';
 import { useStakingData } from '@/hooks/useStakingData';
-import { getNextAvailableWithdrawId } from '@/lib/utils';
+import { useValidatorsQuery } from '@/lib/queries';
+import { formatMonFromWei, getNextAvailableWithdrawId } from '@/lib/utils';
+import type { ValidatorSummary } from '@/lib/api/models';
 
 export default function StakePage() {
   return (
@@ -26,6 +27,10 @@ export default function StakePage() {
       <StakeScreen />
     </ClientOnly>
   );
+}
+
+function sanitizeAmount(value: string): string {
+  return value.replace(/[^0-9.]/g, '');
 }
 
 function StakeScreen() {
@@ -58,14 +63,55 @@ function StakeScreen() {
     withdrawalId: number | null;
   }>({ validatorId: null, amount: '', withdrawalId: null });
   const [withdrawModal, setWithdrawModal] = useState<number | null>(null);
+  const [selectorActiveOnly, setSelectorActiveOnly] = useState(true);
+  const [selectorCursor, setSelectorCursor] = useState('');
+  const [selectorItems, setSelectorItems] = useState<ValidatorSummary[]>([]);
+  const [selectorHasMore, setSelectorHasMore] = useState(false);
+  const [selectorNextCursor, setSelectorNextCursor] = useState<string | null>(null);
+
   const { validators, delegations, withdrawals, epoch } = data;
   const withdrawEntry = useMemo(
     () => (withdrawModal !== null ? withdrawals.find((item) => item.withdrawalId === withdrawModal) ?? null : null),
     [withdrawModal, withdrawals],
   );
 
-  const validatorOptions = useMemo(() => {
-    return validators.map((validator) => ({
+  const delegateModalOpen = delegateModal.validatorId !== null;
+
+  const selectorQuery = useValidatorsQuery(selectedNetwork ?? 'monad-mainnet', selectorCursor, 50, {
+    enabled: delegateModalOpen,
+    filters: { activeOnly: selectorActiveOnly },
+  });
+
+  useEffect(() => {
+    if (!delegateModalOpen) return;
+    const response = selectorQuery.data;
+    if (!response) return;
+    setSelectorHasMore(Boolean(response.cursor.next));
+    setSelectorNextCursor(response.cursor.next ?? null);
+
+    const base = new Map(selectorItems.map((item) => [item.validatorId, item]));
+    response.items.forEach((item) => base.set(item.validatorId, item));
+    const list = Array.from(base.values());
+
+    setSelectorItems((prev) => {
+      if (prev.length === list.length && prev.every((item, index) => item.validatorId === list[index]?.validatorId)) {
+        return prev;
+      }
+      return list;
+    });
+
+    if (
+      list.length > 0 &&
+      (!delegateModal.validatorId || !list.some((item) => item.validatorId === delegateModal.validatorId))
+    ) {
+      setDelegateModal((prevModal) => ({ ...prevModal, validatorId: list[0].validatorId }));
+    }
+  }, [delegateModalOpen, selectorQuery.data, selectorItems, delegateModal.validatorId]);
+
+  const validatorMap = useMemo(() => new Map(validators.map((item) => [item.validatorId, item])), [validators]);
+
+  const selectorOptions = useMemo(() => {
+    return selectorItems.map((validator) => ({
       value: validator.validatorId,
       title: validator.meta?.name ?? `Validator ${validator.validatorId}`,
       subtitle: `${validator.commission.formatted} commission • Stake ${validator.stake.formatted}`,
@@ -75,9 +121,29 @@ function StakeScreen() {
       ],
       badge: validator.isActive ? 'Active' : undefined,
     }));
-  }, [validators]);
+  }, [selectorItems]);
 
-  const validatorMap = useMemo(() => new Map(validators.map((item) => [item.validatorId, item])), [validators]);
+  const delegatedOptions = useMemo(() => {
+    return delegations.map((delegation) => {
+      const validator = validatorMap.get(delegation.validatorId);
+      return {
+        value: delegation.validatorId,
+        title: validator?.meta?.name ?? `Validator ${delegation.validatorId}`,
+        subtitle: `Stake ${delegation.stake.formatted}`,
+        stats: [
+          { label: 'Rewards', value: delegation.unclaimedRewards.formatted },
+          {
+            label: 'Pending',
+            value:
+              delegation.deltaStakeRaw === '0'
+                ? '0 MON'
+                : formatMonFromWei(delegation.deltaStakeRaw),
+          },
+        ],
+        badge: validator?.isActive ? 'Active' : undefined,
+      };
+    });
+  }, [delegations, validatorMap]);
 
   const withdrawalsByValidator = useMemo(() => {
     const map = new Map<string, number[]>();
@@ -115,40 +181,56 @@ function StakeScreen() {
     return <LoadingFallback />;
   }
 
-  const openDelegateModal = (validatorId: string) => {
+  const openDelegateModal = (validatorId: string | null = null) => {
+    const initial = validatorId ? validatorMap.get(validatorId) : undefined;
+    setSelectorActiveOnly(true);
+    setSelectorCursor('');
+    setSelectorNextCursor(null);
+    setSelectorHasMore(false);
+    setSelectorItems(initial ? [initial] : []);
     setDelegateModal({ validatorId, amount: '' });
   };
 
   const openUndelegateModal = (validatorId: string) => {
     const used = withdrawalsByValidator.get(validatorId) ?? [];
-    setUndelegateModal({ validatorId, amount: '', withdrawalId: getNextAvailableWithdrawId(used) });
+    const delegationEntry = delegations.find((item) => item.validatorId === validatorId);
+    setUndelegateModal({
+      validatorId,
+      amount: delegationEntry ? sanitizeAmount(delegationEntry.stake.formatted) : '',
+      withdrawalId: getNextAvailableWithdrawId(used),
+    });
   };
 
-  const closeModals = () => {
+  const closeModals = (reset = true) => {
     setDelegateModal({ validatorId: null, amount: '' });
     setUndelegateModal({ validatorId: null, amount: '', withdrawalId: null });
     setWithdrawModal(null);
-    resetState();
+    setSelectorCursor('');
+    setSelectorNextCursor(null);
+    setSelectorHasMore(false);
+    setSelectorItems([]);
+    setSelectorActiveOnly(true);
+    if (reset) resetState();
   };
 
   const handleDelegateSubmit = async () => {
     if (!delegateModal.validatorId || !delegateModal.amount || !sdk || !account) return;
     await delegate(delegateModal.validatorId, delegateModal.amount);
-    closeModals();
+    closeModals(false);
   };
 
   const handleUndelegateSubmit = async () => {
     if (!undelegateModal.validatorId || !undelegateModal.amount || undelegateModal.withdrawalId == null || !sdk || !account)
       return;
     await undelegate(undelegateModal.validatorId, undelegateModal.amount, undelegateModal.withdrawalId);
-    closeModals();
+    closeModals(false);
   };
 
   const handleWithdrawSubmit = async (withdrawal: number) => {
     const target = withdrawals.find((item) => item.withdrawalId === withdrawal);
     if (!target || !sdk || !account) return;
     await withdraw(target.validatorId, target.withdrawalId);
-    closeModals();
+    closeModals(false);
   };
 
   return (
@@ -173,30 +255,11 @@ function StakeScreen() {
           if (!sdk || !account) return;
           void claimAllRewards();
         }}
+        onStake={() => openDelegateModal(null)}
         claiming={state.busy && state.busyAction === 'claim-all'}
         canClaim={canClaimAll}
+        stakeDisabled={!sdk || !account || state.busy}
       />
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-slate-100">Validators</h2>
-          <p className="text-sm text-slate-500">Browse available validators and delegate stake directly.</p>
-        </div>
-        {data.isLoading.validators ? (
-          <ValidatorsSkeleton />
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {validators.map((validator) => (
-              <ValidatorCard
-                key={validator.validatorId}
-                validator={validator}
-                onDelegate={() => openDelegateModal(validator.validatorId)}
-                disabled={!sdk || !account || state.busy}
-              />
-            ))}
-          </div>
-        )}
-      </section>
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
@@ -264,7 +327,7 @@ function StakeScreen() {
 
       <ActionModal
         open={delegateModal.validatorId !== null}
-        onClose={closeModals}
+        onClose={() => closeModals()}
         title="Delegate stake"
         description="Choose the amount of MON you would like to delegate."
       >
@@ -272,9 +335,33 @@ function StakeScreen() {
           <ValidatorSelector
             value={delegateModal.validatorId ?? ''}
             onChange={(next) => setDelegateModal((prev) => ({ ...prev, validatorId: next }))}
-            options={validatorOptions}
-            loading={data.isLoading.validators}
+            options={selectorOptions}
+            loading={selectorQuery.isFetching && selectorItems.length === 0}
             emptyMessage="No validators available"
+            hasMore={selectorHasMore}
+            onLoadMore={() => selectorNextCursor && setSelectorCursor(selectorNextCursor)}
+            loadingMore={selectorQuery.isFetching && selectorItems.length > 0}
+            disabled={!sdk || !account || state.busy}
+            toolbar={
+              <label className="flex items-center gap-2 text-slate-400">
+                <input
+                  type="checkbox"
+                  className="h-3 w-3"
+                  checked={selectorActiveOnly}
+                  onChange={(event) => {
+                    const next = event.target.checked;
+                    const initial = delegateModal.validatorId ? validatorMap.get(delegateModal.validatorId) : undefined;
+                    setSelectorActiveOnly(next);
+                    setSelectorCursor('');
+                    setSelectorNextCursor(null);
+                    setSelectorHasMore(false);
+                    setSelectorItems(initial ? [initial] : []);
+                  }}
+                  disabled={!sdk || !account || state.busy}
+                />
+                Active only
+              </label>
+            }
           />
           <label className="block text-sm text-slate-300">
             Amount (MON)
@@ -289,7 +376,7 @@ function StakeScreen() {
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              onClick={closeModals}
+              onClick={() => closeModals()}
               className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-600"
             >
               Cancel
@@ -308,7 +395,7 @@ function StakeScreen() {
 
       <ActionModal
         open={undelegateModal.validatorId !== null}
-        onClose={closeModals}
+        onClose={() => closeModals()}
         title="Start undelegation"
         description="Select the amount to undelegate. A withdrawal slot will be reserved for this request."
       >
@@ -317,11 +404,17 @@ function StakeScreen() {
             value={undelegateModal.validatorId ?? ''}
             onChange={(next) => {
               const used = withdrawalsByValidator.get(next) ?? [];
-              setUndelegateModal({ validatorId: next, amount: '', withdrawalId: getNextAvailableWithdrawId(used) });
+              const delegationEntry = delegations.find((item) => item.validatorId === next);
+              setUndelegateModal({
+                validatorId: next,
+                amount: delegationEntry ? sanitizeAmount(delegationEntry.stake.formatted) : '',
+                withdrawalId: getNextAvailableWithdrawId(used),
+              });
             }}
-            options={validatorOptions}
-            loading={data.isLoading.validators}
-            emptyMessage="No validators available"
+            options={delegatedOptions}
+            loading={delegations.length === 0 && data.isLoading.delegations}
+            emptyMessage="No active delegations"
+            disabled={!sdk || !account || state.busy}
           />
           <label className="block text-sm text-slate-300">
             Amount (MON)
@@ -347,7 +440,7 @@ function StakeScreen() {
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              onClick={closeModals}
+              onClick={() => closeModals()}
               className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-600"
             >
               Cancel
@@ -366,7 +459,7 @@ function StakeScreen() {
 
       <ActionModal
         open={withdrawModal !== null}
-        onClose={closeModals}
+        onClose={() => closeModals()}
         title="Withdraw request"
         description="Confirm withdrawal of the selected slot."
         size="sm"
@@ -384,7 +477,7 @@ function StakeScreen() {
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              onClick={closeModals}
+              onClick={() => closeModals()}
               className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-600"
             >
               Cancel
@@ -412,16 +505,6 @@ function LoadingFallback() {
       <div className="h-12 w-2/3 rounded bg-slate-800" />
       <div className="h-48 rounded-xl bg-slate-900/60" />
       <div className="h-64 rounded-xl bg-slate-900/60" />
-    </div>
-  );
-}
-
-function ValidatorsSkeleton() {
-  return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="h-40 animate-pulse rounded-2xl border border-slate-800 bg-slate-950/60" />
-      ))}
     </div>
   );
 }

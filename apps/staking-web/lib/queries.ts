@@ -25,10 +25,14 @@ export type ValidatorDetailResult = ValidatorDetail;
 export type DelegationListResult = DelegationPage;
 export type WithdrawalListResult = WithdrawalPage;
 
+type ValidatorFilters = {
+  activeOnly?: boolean;
+};
+
 export const queryKeys = {
   epoch: (network: MonadNetwork) => ['epoch', network] as const,
-  validators: (network: MonadNetwork, cursor: string, limit: number) =>
-    ['validators', network, cursor, limit] as const,
+  validators: (network: MonadNetwork, cursor: string, limit: number, filters?: ValidatorFilters) =>
+    ['validators', network, cursor, limit, filters?.activeOnly ?? null] as const,
   validator: (network: MonadNetwork, id: string) => ['validator', network, id] as const,
   delegations: (network: MonadNetwork, address: string, cursor: string) =>
     ['delegations', network, address, cursor] as const,
@@ -57,15 +61,17 @@ export function useValidatorsQuery(
   network: MonadNetwork,
   cursor = '',
   limit = 50,
-  options?: { enabled?: boolean },
+  options?: { enabled?: boolean; filters?: ValidatorFilters },
 ) {
+  const filters = options?.filters;
   return useQuery({
-    queryKey: queryKeys.validators(network, cursor, limit),
+    queryKey: queryKeys.validators(network, cursor, limit, filters),
     queryFn: async (): Promise<ValidatorsQueryResult> => {
       const response = await apiGet<ValidatorListApiResponse>('/api/validators', {
         network,
         cursor,
         limit,
+        ...(filters?.activeOnly ? { active: 'true' } : {}),
       });
       return mapValidatorList(response);
     },
@@ -133,4 +139,3 @@ export function useWithdrawalsQuery(
     enabled: options?.enabled !== false && !!address,
   });
 }
-
