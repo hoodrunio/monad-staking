@@ -576,7 +576,7 @@ function StakePageContent() {
                   <p className="mt-2 text-2xl font-semibold text-emerald-200">
                     {totalLockedWithdrawMon.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                   </p>
-                  <p className="text-xs text-slate-500">Unlocking soon</p>
+                  <p className="text-xs text-slate-500">MON Unlocking soon</p>
                 </div>
               </div>
             )
