@@ -93,7 +93,9 @@ validatorRoutes.get('/', async (c) => {
     const col = await validatorsCol();
     const filter = activeOnly ? { network, isActive: true } : { network };
     const query = cursor ? { ...filter, validatorId: { $gt: cursor } } : filter;
-    const docs = await col.find(query, { sort: { validatorId: 1 }, limit }).toArray();
+    const docs = await col
+      .find(query, { sort: { 'stake.consensus': -1, validatorId: 1 }, limit })
+      .toArray();
 
     const items: ValidatorListItem[] = docs.map((d: ValidatorDoc) => ({
       validatorId: d.validatorId,

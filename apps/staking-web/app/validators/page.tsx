@@ -12,6 +12,7 @@ import { useValidatorsQuery } from '@/lib/queries';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';
 import { normalizeCursor } from '@/lib/validators-utils';
+import { formatCompactMonFromDecimal } from '@/lib/format';
 
 function ValidatorsPageContent() {
   const searchParams = useSearchParams();
@@ -113,8 +114,8 @@ function ValidatorsPageContent() {
               id: item.id,
               authAddress: item.authAddress,
               commission: item.commission.formatted,
-              stake: item.stake.formatted,
-              unclaimedRewards: item.unclaimedRewards.formatted,
+              stake: formatCompactMonFromDecimal(item.stake.decimal),
+              unclaimedRewards: formatCompactMonFromDecimal(item.unclaimedRewards.decimal),
               flagsRaw: item.flagsRaw,
               isActive: item.isActive,
             }))}
