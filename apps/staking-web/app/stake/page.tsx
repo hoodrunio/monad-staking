@@ -10,6 +10,7 @@ import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { TransactionResult } from '@/app/components/transaction-result';
 import { EffectiveEpochsInfo } from '@/app/components/effective-epochs-info';
 import { useStakingSdk } from '@/hooks/useStakingSdk';
+import { ValidatorSelector } from '@/app/components/validator-selector';
 import {
   useDelegationsQuery,
   useEpochQuery,
@@ -111,23 +112,53 @@ function StakePageContent() {
     return new Map(validatorItems.map((validator) => [validator.validatorId, validator]));
   }, [validatorItems]);
 
+  const stakeValidatorOptions = useMemo(() => {
+    return validatorItems.map((validator) => ({
+      value: validator.validatorId,
+      title: validator.meta?.name ?? `Validator ${validator.validatorId}`,
+      subtitle: `ID ${validator.validatorId} • Commission ${validator.commission}`,
+      stats: [
+        { label: 'Execution', value: validator.stake.execution },
+        { label: 'Consensus', value: validator.stake.consensus },
+        { label: 'Snapshot', value: validator.stake.snapshot },
+      ],
+    }));
+  }, [validatorItems]);
+
   useEffect(() => {
-    if (!stakeForm.validatorId && validatorItems.length > 0) {
-      setStakeForm((prev) => ({ ...prev, validatorId: validatorItems[0]!.validatorId }));
+    if (!stakeForm.validatorId && stakeValidatorOptions.length > 0) {
+      setStakeForm((prev) => ({ ...prev, validatorId: stakeValidatorOptions[0]!.value }));
     }
-  }, [stakeForm.validatorId, validatorItems]);
+  }, [stakeForm.validatorId, stakeValidatorOptions]);
 
   const delegationItems = useMemo(() => delegationsData?.items ?? [], [delegationsData]);
 
+  const delegatedValidatorOptions = useMemo(() => {
+    return delegationItems.map((delegation) => {
+      const info = validatorLookup.get(delegation.validatorId);
+      return {
+        value: delegation.validatorId,
+        title: info?.meta?.name ?? `Validator ${delegation.validatorId}`,
+        subtitle: `ID ${delegation.validatorId} • Stake ${delegation.stake}`,
+        stats: [
+          { label: 'Rewards', value: delegation.unclaimedRewards },
+          { label: 'Pending', value: delegation.deltaStake },
+        ],
+      };
+    });
+  }, [delegationItems, validatorLookup]);
+
   useEffect(() => {
-    if (!unstakeForm.validatorId && delegationItems.length > 0) {
-      const first = delegationItems[0]!;
+    if (!unstakeForm.validatorId && delegatedValidatorOptions.length > 0) {
+      const first = delegatedValidatorOptions[0]!;
       setUnstakeForm({
-        validatorId: first.validatorId,
-        amount: sanitizeAmount(first.stake),
+        validatorId: first.value,
+        amount: sanitizeAmount(
+          delegationItems.find((item) => item.validatorId === first.value)?.stake ?? '',
+        ),
       });
     }
-  }, [unstakeForm.validatorId, delegationItems]);
+  }, [unstakeForm.validatorId, delegatedValidatorOptions, delegationItems]);
 
   const updateState = (partial: Partial<StakeFormState>) => {
     setState((prev) => ({ ...prev, ...partial }));
@@ -298,21 +329,17 @@ function StakePageContent() {
                     </div>
                   )}
 
-                  <label className="block text-sm text-slate-300">
-                    Validator
-                    <select
+                  <div className="space-y-2 text-sm text-slate-300">
+                    <span className="font-medium text-slate-200">Validator</span>
+                    <ValidatorSelector
+                      options={stakeValidatorOptions}
                       value={stakeForm.validatorId}
-                      onChange={(event) => setStakeForm((prev) => ({ ...prev, validatorId: event.target.value }))}
-                      disabled={state.busy || validatorsLoading}
-                      className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    >
-                      {validatorItems.map((validator) => (
-                        <option key={validator.validatorId} value={validator.validatorId}>
-                          {validator.meta?.name ?? `Validator ${validator.validatorId}`} · {validator.commission} commission
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                      onChange={(next) => setStakeForm((prev) => ({ ...prev, validatorId: next }))}
+                      loading={validatorsLoading}
+                      disabled={state.busy}
+                      emptyMessage="No validators configured for this network"
+                    />
+                  </div>
 
                   <label className="block text-sm text-slate-300">
                     Amount (MON)
@@ -361,32 +388,23 @@ function StakePageContent() {
                   }}
                   className="space-y-4"
                 >
-                  <label className="block text-sm text-slate-300">
-                    My validator
-                    <select
+                  <div className="space-y-2 text-sm text-slate-300">
+                    <span className="font-medium text-slate-200">My validator</span>
+                    <ValidatorSelector
+                      options={delegatedValidatorOptions}
                       value={unstakeForm.validatorId}
-                      onChange={(event) => {
-                        const nextId = event.target.value;
-                        const delegation = delegationItems.find((item) => item.validatorId === nextId);
+                      onChange={(next) => {
+                        const delegation = delegationItems.find((item) => item.validatorId === next);
                         setUnstakeForm({
-                          validatorId: nextId,
+                          validatorId: next,
                           amount: delegation ? sanitizeAmount(delegation.stake) : '',
                         });
                       }}
-                      disabled={state.busy || delegationsLoading || delegationItems.length === 0}
-                      className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    >
-                      {delegationItems.length === 0 ? (
-                        <option value="">No delegations</option>
-                      ) : (
-                        delegationItems.map((delegation) => (
-                          <option key={delegation.validatorId} value={delegation.validatorId}>
-                            {validatorLookup.get(delegation.validatorId)?.meta?.name ?? `Validator ${delegation.validatorId}`} · {delegation.stake}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </label>
+                      loading={delegationsLoading}
+                      disabled={state.busy || delegationItems.length === 0}
+                      emptyMessage="You have no active delegations yet"
+                    />
+                  </div>
 
                   <label className="block text-sm text-slate-300">
                     Amount (MON)
