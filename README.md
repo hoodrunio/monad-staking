@@ -29,6 +29,10 @@ This workspace powers Monad staking experiences with a Bun-based API and shared 
 - Production hosts should use the systemd (or similar daemon/background processors) units in `apps/staking-api/systemd/` and an external environment file (e.g. `/etc/monad-staking/staking-api.env`).
 - The API listens on port 8787 by default (`/health` for probes); the worker polls epoch transitions and refreshes validator data.
 
+## Additional Docs
+- `apps/staking-api/README.md` – Setup, scripts, and deployment steps for the staking API and worker.
+- `packages/README.md` – Overview of shared configuration and SDK packages.
+
 ## Contributing
 - Align protocol logic with **[staking-docs](https://docs.monad.xyz/developer-essentials/staking/)** and document any new assumptions in code reviews.
 - Keep shared types inside `packages/` so API and downstream consumers stay in sync.
