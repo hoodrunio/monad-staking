@@ -15,17 +15,16 @@ app.use('*', cors({
   origin: (origin) => {
     const allowed = [
       'http://localhost:3000',
-      'http://localhost:3001',
       'https://staking.hoodscan.io',
     ];
-    if (!origin) return origin; // Allow requests with no origin (e.g., mobile apps)
+    if (!origin) return origin; // Allow requests with no origin (for mobile apps)
     if (allowed.includes(origin)) return origin;
     if (origin.match(/^https:\/\/.*\.vercel\.app$/)) return origin;
     if (origin.match(/^https:\/\/.*\.netlify\.app$/)) return origin;
     return null; // Block other origins
   },
   allowHeaders: ['Content-Type', 'Authorization'],
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowMethods: ['GET'],
 }));
 
 app.onError((err, c) => {
