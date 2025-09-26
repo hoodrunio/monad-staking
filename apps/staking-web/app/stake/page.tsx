@@ -208,12 +208,13 @@ function StakePageContent() {
 
   const readyWithdrawals = useMemo(() => {
     if (!currentEpoch) return [] as typeof withdrawals;
-    return withdrawals.filter((withdrawal) => BigInt(withdrawal.withdrawEpoch) <= currentEpoch);
+    // Withdrawals become callable the epoch *after* the recorded unlock epoch.
+    return withdrawals.filter((withdrawal) => BigInt(withdrawal.withdrawEpoch) < currentEpoch);
   }, [withdrawals, currentEpoch]);
 
   const pendingWithdrawals = useMemo(() => {
     if (!currentEpoch) return withdrawals;
-    return withdrawals.filter((withdrawal) => BigInt(withdrawal.withdrawEpoch) > currentEpoch);
+    return withdrawals.filter((withdrawal) => BigInt(withdrawal.withdrawEpoch) >= currentEpoch);
   }, [withdrawals, currentEpoch]);
 
   const delegationSummaries: DelegationSummary[] = useMemo(() => {
@@ -689,7 +690,8 @@ function StakePageContent() {
             ) : (
               <div className="grid gap-3">
                 {withdrawals.map((withdrawal) => {
-                  const ready = currentEpoch ? BigInt(withdrawal.withdrawEpoch) <= currentEpoch : false;
+                  const unlockEpoch = BigInt(withdrawal.withdrawEpoch);
+                  const ready = currentEpoch ? unlockEpoch < currentEpoch : false;
                   return (
                     <div
                       key={`${withdrawal.validatorId}-${withdrawal.withdrawalId}`}
@@ -704,14 +706,16 @@ function StakePageContent() {
                           <p className="font-semibold">
                             Validator {withdrawal.validatorId} · Slot #{withdrawal.withdrawalId}
                           </p>
-                          <p className="text-xs text-slate-400">Unlocks at epoch {withdrawal.withdrawEpoch}</p>
+                          <p className="text-xs text-slate-400">
+                            Available after epoch {unlockEpoch + 1n}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-mono text-xs">
-                            {formatMonFromWei(withdrawal.amount)}
-                          </span>
-                          {ready ? (
-                            <button
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-xs">
+                          {formatMonFromWei(withdrawal.amount)}
+                        </span>
+                        {ready ? (
+                          <button
                               type="button"
                               onClick={() => {
                                 if (!sdk || !account || isBusy) return;
@@ -730,7 +734,9 @@ function StakePageContent() {
                               {isActionBusy('withdraw') ? 'Processing…' : 'Withdraw'}
                             </button>
                           ) : (
-                            <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">Pending</span>
+                        <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
+                          Pending (wait until epoch {(unlockEpoch + 1n).toString()})
+                        </span>
                           )}
                         </div>
                       </div>

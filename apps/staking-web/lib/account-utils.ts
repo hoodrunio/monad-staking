@@ -33,6 +33,6 @@ export function formatWithdrawalRow(withdrawal: {
     withdrawalId: withdrawal.withdrawalId,
     amount: formatMonFromWei(withdrawal.amount),
     withdrawEpoch: withdrawal.withdrawEpoch,
-    canWithdraw: (currentEpoch: bigint) => BigInt(withdrawal.withdrawEpoch) <= currentEpoch,
+    canWithdraw: (currentEpoch: bigint) => BigInt(withdrawal.withdrawEpoch) < currentEpoch,
   };
 }
