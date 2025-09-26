@@ -101,7 +101,18 @@ function ValidatorsPageContent() {
         <ValidatorTableSkeleton />
       ) : pageData ? (
         <div className="space-y-4">
-          <ValidatorTable validators={pageData.items} networkConfig={resolved} />
+          <ValidatorTable
+            validators={pageData.items.map((item) => ({
+              id: item.id,
+              authAddress: item.authAddress,
+              commission: item.commission.formatted,
+              stake: item.stake.formatted,
+              unclaimedRewards: item.unclaimedRewards.formatted,
+              flagsRaw: item.flagsRaw,
+              isActive: item.isActive,
+            }))}
+            networkConfig={resolved}
+          />
           <PaginationControls
             prevCursor={pageData.cursor.prev}
             nextCursor={pageData.cursor.next}

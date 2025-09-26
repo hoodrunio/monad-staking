@@ -170,16 +170,8 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
           <h2 className="text-lg font-semibold text-slate-100 mb-4">Stake</h2>
           <div className="space-y-3 text-sm">
             <div>
-              <span className="text-slate-400">Execution Stake:</span>
-              <span className="ml-2 text-slate-200">{validator.stake.execution}</span>
-            </div>
-            <div>
-              <span className="text-slate-400">Consensus Stake:</span>
-              <span className="ml-2 text-slate-200">{validator.stake.consensus}</span>
-            </div>
-            <div>
-              <span className="text-slate-400">Snapshot Stake:</span>
-              <span className="ml-2 text-slate-200">{validator.stake.snapshot}</span>
+              <span className="text-slate-400">Active Stake:</span>
+              <span className="ml-2 text-slate-200">{validator.stake.formatted}</span>
             </div>
           </div>
         </div>
@@ -190,7 +182,11 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
           <div className="space-y-3 text-sm">
             <div>
               <span className="text-slate-400">Current:</span>
-              <span className="ml-2 text-slate-200">{validator.commission}</span>
+              <span className="ml-2 text-slate-200">{validator.commission.formatted}</span>
+            </div>
+            <div>
+              <span className="text-slate-400">Raw:</span>
+              <span className="ml-2 font-mono text-xs text-slate-300">{validator.commission.raw}</span>
             </div>
           </div>
         </div>
@@ -201,7 +197,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
           <div className="space-y-3 text-sm">
             <div>
               <span className="text-slate-400">Unclaimed Rewards:</span>
-              <span className="ml-2 text-slate-200">{validator.unclaimedRewards}</span>
+              <span className="ml-2 text-slate-200">{validator.unclaimedRewards.formatted}</span>
             </div>
           </div>
         </div>

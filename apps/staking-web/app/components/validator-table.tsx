@@ -7,12 +7,13 @@ import { ExplorerLink } from './explorer-link';
 import { formatShortAddress } from '@/lib/validators-utils';
 
 interface ValidatorTableRow {
-  validatorId: string;
+  id: string;
   authAddress: string;
   commission: string;
-  stake: { execution: string; consensus: string; snapshot: string };
+  stake: string;
   unclaimedRewards: string;
   flagsRaw: string;
+  isActive?: boolean;
 }
 
 interface ValidatorTableProps {
@@ -41,25 +42,23 @@ export function ValidatorTable({ validators, networkConfig }: ValidatorTableProp
             <th className="px-4 py-3 text-left font-semibold">Validator ID</th>
             <th className="px-4 py-3 text-left font-semibold">Auth Address</th>
             <th className="px-4 py-3 text-left font-semibold">Commission</th>
-            <th className="px-4 py-3 text-left font-semibold">Execution Stake</th>
-            <th className="px-4 py-3 text-left font-semibold">Consensus Stake</th>
-            <th className="px-4 py-3 text-left font-semibold">Snapshot Stake</th>
+            <th className="px-4 py-3 text-left font-semibold">Stake</th>
             <th className="px-4 py-3 text-left font-semibold">Unclaimed Rewards</th>
             <th className="px-4 py-3 text-left font-semibold">Flags</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-800 bg-slate-950/40 text-slate-200">
           {validators.map((validator) => (
-            <tr key={validator.validatorId} className="hover:bg-slate-900/40">
+            <tr key={validator.id} className="hover:bg-slate-900/40">
               <td className="px-4 py-3 font-mono text-xs text-slate-300">
                 <Link
                   href={{
-                    pathname: `/validators/${validator.validatorId}`,
+                    pathname: `/validators/${validator.id}`,
                     query: { network: currentNetwork }
                   }}
                   className="text-emerald-400 hover:text-emerald-300 transition-colors"
                 >
-                  {validator.validatorId}
+                  {validator.id}
                 </Link>
               </td>
               <td className="px-4 py-3 font-mono text-xs">
@@ -76,13 +75,7 @@ export function ValidatorTable({ validators, networkConfig }: ValidatorTableProp
                 {validator.commission}
               </td>
               <td className="px-4 py-3 text-slate-200">
-                {validator.stake.execution}
-              </td>
-              <td className="px-4 py-3 text-slate-200">
-                {validator.stake.consensus}
-              </td>
-              <td className="px-4 py-3 text-slate-200">
-                {validator.stake.snapshot}
+                {validator.stake}
               </td>
               <td className="px-4 py-3 text-slate-200">
                 {validator.unclaimedRewards}

@@ -5,12 +5,13 @@ import { usePublicClient, useWalletClient } from 'wagmi';
 import { createMonadStakingSdk } from '@monad-staking/sdk';
 import type { ResolvedMonadNetworkConfig } from '@monad-staking/config';
 
-export function useStakingSdk(network: ResolvedMonadNetworkConfig) {
-  const publicClient = usePublicClient({ chainId: network.chainId });
-  const { data: walletClient } = useWalletClient({ chainId: network.chainId });
+export function useStakingSdk(network: ResolvedMonadNetworkConfig | null | undefined) {
+  const chainId = network?.chainId;
+  const publicClient = usePublicClient(chainId ? { chainId } : undefined);
+  const { data: walletClient } = useWalletClient(chainId ? { chainId } : undefined);
 
   return useMemo(() => {
-    if (!publicClient) return null;
+    if (!network || !publicClient) return null;
 
     return createMonadStakingSdk({
       network,

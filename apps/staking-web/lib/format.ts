@@ -1,4 +1,4 @@
-import type { AmountField, CommissionField } from './api-types';
+import type { AmountField, CommissionField } from './api/types';
 
 const MON_DECIMALS = 18n;
 const ONE_MON = 10n ** MON_DECIMALS;
