@@ -1,3 +1,5 @@
+import type { AmountField, CommissionField } from './api-types';
+
 const MON_DECIMALS = 18n;
 const ONE_MON = 10n ** MON_DECIMALS;
 
@@ -43,6 +45,18 @@ export function formatCommission(commission: bigint): string {
   return fractionStr
     ? `${integer.toString()}.${fractionStr}%`
     : `${integer.toString()}%`;
+}
+
+export function formatAmountField(amount: AmountField | undefined, options?: { suffix?: string; fallback?: string }): string {
+  const base = amount && amount.decimal !== '' ? amount.decimal : options?.fallback ?? '0';
+  const suffix = options?.suffix ?? ' MON';
+  return suffix ? `${base}${suffix}` : base;
+}
+
+export function formatCommissionField(commission: CommissionField | undefined, options?: { suffix?: string; fallback?: string }): string {
+  const base = commission && commission.percent !== '' ? commission.percent : options?.fallback ?? '0';
+  const suffix = options?.suffix ?? '%';
+  return `${base}${suffix}`;
 }
 
 export function truncateAddress(address: string, size = 6): string {

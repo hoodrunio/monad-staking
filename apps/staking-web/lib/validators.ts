@@ -2,7 +2,8 @@ import { cache } from 'react';
 import type { MonadNetwork } from '@monad-staking/config';
 import { getNetworkConfigMap, tryResolveNetwork } from './networks';
 import { apiGet } from './api';
-import { truncateAddress } from './format';
+import type { ValidatorListApiResponse } from './api-types';
+import { formatAmountField, formatCommissionField, truncateAddress } from './format';
 
 export type ValidatorSetView = 'execution' | 'consensus' | 'snapshot';
 
@@ -47,28 +48,21 @@ export const getValidatorSetPage = cache(
       throw new Error('Network is not fully configured.');
     }
 
-    const data = await apiGet<{
-      items: Array<{
-        validatorId: string;
-        authAddress: string;
-        commission: string;
-        stake: { execution: string; consensus: string; snapshot: string };
-        unclaimedRewards: string;
-        flagsRaw: string;
-      }>;
-      cursor: { next: string | null; prev: string | null };
-      isDone: boolean;
-    }>('/api/validators', { network: networkKey, cursor, limit: 50 });
+    const data = await apiGet<ValidatorListApiResponse>('/api/validators', {
+      network: networkKey,
+      cursor,
+      limit: 50,
+    });
 
     const validators: ValidatorRow[] = data.items.map((item) => ({
       id: item.validatorId,
       authAddress: item.authAddress,
       flags: item.flagsRaw,
-      stake: item.stake.execution,
-      consensusStake: item.stake.consensus,
-      snapshotStake: item.stake.snapshot,
-      commission: item.commission,
-      unclaimedRewards: item.unclaimedRewards,
+      stake: formatAmountField(item.stake.execution),
+      consensusStake: formatAmountField(item.stake.consensus),
+      snapshotStake: formatAmountField(item.stake.snapshot),
+      commission: formatCommissionField(item.commission),
+      unclaimedRewards: formatAmountField(item.unclaimedRewards),
     }));
 
     return {
