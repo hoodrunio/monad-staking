@@ -80,6 +80,7 @@ function StakePageContent() {
     busyAction: null,
     txError: null,
     txHash: null,
+    txStage: 'idle',
   });
   const [action, setAction] = useState<ActionKey>('stake');
   const [stakeForm, setStakeForm] = useState<StakeForm>({ validatorId: '', amount: '' });
@@ -235,14 +236,14 @@ function StakePageContent() {
   );
 
   useEffect(() => {
-    if (!state.busy && (state.txHash || state.txError)) {
+    if (!state.busy && ['submitted', 'confirmed', 'error'].includes(state.txStage)) {
       setShowResultModal(true);
     }
-  }, [state.busy, state.txHash, state.txError]);
+  }, [state.busy, state.txStage]);
 
   const closeResultModal = () => {
     setShowResultModal(false);
-    updateState({ txHash: null, txError: null });
+    updateState({ txHash: null, txError: null, txStage: 'idle' });
   };
 
   if (!resolved) {
@@ -341,7 +342,7 @@ function StakePageContent() {
                       stakeValidatorBig,
                       stakeAmountWei,
                       account,
-                      updateState,
+                      setState,
                       'stake',
                     );
                   }}
@@ -360,7 +361,7 @@ function StakePageContent() {
                       value={stakeForm.validatorId}
                       onChange={(next) => setStakeForm((prev) => ({ ...prev, validatorId: next }))}
                       loading={validatorsLoading}
-                    disabled={isBusy}
+                      disabled={isBusy}
                       emptyMessage="No validators configured for this network"
                     />
                   </div>
@@ -371,7 +372,7 @@ function StakePageContent() {
                       type="text"
                       value={stakeForm.amount}
                       onChange={(event) => setStakeForm((prev) => ({ ...prev, amount: event.target.value }))}
-                      disabled={state.busy}
+                      disabled={isBusy}
                       placeholder="0.0"
                       className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     />
@@ -389,7 +390,7 @@ function StakePageContent() {
                   <button
                     type="submit"
                     disabled={!canStake}
-                    className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:pointer-events-none"
                   >
                     {isActionBusy('stake') ? 'Submitting…' : 'Stake'}
                   </button>
@@ -407,7 +408,7 @@ function StakePageContent() {
                       unstakeAmountWei,
                       suggestedWithdrawalId,
                       account,
-                      updateState,
+                      setState,
                       'unstake',
                     );
                   }}
@@ -463,7 +464,7 @@ function StakePageContent() {
                   <button
                     type="submit"
                     disabled={!canUnstake}
-                    className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:pointer-events-none"
                   >
                     {isActionBusy('unstake') ? 'Submitting…' : 'Start undelegation'}
                   </button>
@@ -511,12 +512,12 @@ function StakePageContent() {
                                 parseValidatorId(withdrawal.validatorId),
                                 withdrawal.withdrawalId,
                                 account,
-                                updateState,
+                                setState,
                                 'withdraw',
                               );
                             }}
                             disabled={!sdk || !account || isBusy}
-                            className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:pointer-events-none"
                           >
                             {isActionBusy('withdraw') ? 'Processing…' : 'Withdraw'}
                           </button>
@@ -639,12 +640,12 @@ function StakePageContent() {
                               sdk,
                               parseValidatorId(delegation.validatorId),
                               account,
-                              updateState,
+                              setState,
                               'compound',
                             );
                           }}
                           disabled={!sdk || !account || isBusy}
-                          className="rounded-md border border-blue-500/40 bg-blue-500/10 px-4 py-2 text-xs font-semibold text-blue-200 hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="rounded-md border border-blue-500/40 bg-blue-500/10 px-4 py-2 text-xs font-semibold text-blue-200 hover:border-blue-500 disabled:cursor-not-allowed disabled:pointer-events-none"
                         >
                           {isActionBusy('compound') ? 'Processing…' : 'Compound'}
                         </button>
@@ -656,12 +657,12 @@ function StakePageContent() {
                               sdk,
                               parseValidatorId(delegation.validatorId),
                               account,
-                              updateState,
+                              setState,
                               'claim',
                             );
                           }}
                           disabled={!sdk || !account || isBusy}
-                          className="rounded-md border border-purple-500/40 bg-purple-500/10 px-4 py-2 text-xs font-semibold text-purple-200 hover:border-purple-500 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="rounded-md border border-purple-500/40 bg-purple-500/10 px-4 py-2 text-xs font-semibold text-purple-200 hover:border-purple-500 disabled:cursor-not-allowed disabled:pointer-events-none"
                         >
                           {isActionBusy('claim') ? 'Processing…' : 'Claim rewards'}
                         </button>
@@ -713,18 +714,18 @@ function StakePageContent() {
                             <button
                               type="button"
                               onClick={() => {
-                              if (!sdk || !account || isBusy) return;
-                              void handleWithdraw(
-                                sdk,
-                                parseValidatorId(withdrawal.validatorId),
-                                withdrawal.withdrawalId,
-                                account,
-                                updateState,
-                                'withdraw',
-                              );
-                            }}
-                            disabled={!sdk || !account || isBusy}
-                              className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                if (!sdk || !account || isBusy) return;
+                                void handleWithdraw(
+                                  sdk,
+                                  parseValidatorId(withdrawal.validatorId),
+                                  withdrawal.withdrawalId,
+                                  account,
+                                  setState,
+                                  'withdraw',
+                                );
+                              }}
+                              disabled={!sdk || !account || isBusy}
+                              className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:pointer-events-none"
                             >
                               {isActionBusy('withdraw') ? 'Processing…' : 'Withdraw'}
                             </button>
@@ -748,6 +749,7 @@ function StakePageContent() {
         networkConfig={resolved}
         open={showResultModal}
         onClose={closeResultModal}
+        stage={state.txStage}
       />
     </div>
   );

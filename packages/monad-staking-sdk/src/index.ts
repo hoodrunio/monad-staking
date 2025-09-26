@@ -2,6 +2,7 @@ import type {
   Address,
   Hash,
   PublicClient,
+  TransactionReceipt,
   Transport,
   WalletClient,
 } from 'viem';
@@ -484,6 +485,10 @@ export class MonadStakingSdk<TTransport extends Transport> {
       throw new Error('Wallet client is not configured. Call setWalletClient or provide one during construction.');
     }
     return this.walletClient;
+  }
+
+  async waitForTransactionReceipt(hash: Hash): Promise<TransactionReceipt> {
+    return this.options.publicClient.waitForTransactionReceipt({ hash });
   }
 }
 
