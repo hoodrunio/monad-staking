@@ -49,6 +49,11 @@ export function useValidatorsQuery(
         stake: { execution: string; consensus: string; snapshot: string };
         unclaimedRewards: string;
         flagsRaw: string;
+        meta?: {
+          name?: string;
+          website?: string;
+          logoUrl?: string;
+        };
       }>;
       cursor: { next: string | null; prev: string | null };
       isDone: boolean;
