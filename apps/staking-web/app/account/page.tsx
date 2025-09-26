@@ -10,7 +10,7 @@ import { NetworkSelector } from '@/app/components/network-selector';
 import { ClientOnly } from '@/app/components/client-only';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { useDelegationsQuery, useWithdrawalsQuery, useEpochQuery } from '@/lib/queries';
-
+import { formatMonFromWei } from '@/lib/utils';
 function AccountPageContent() {
   const searchParams = useSearchParams();
   const { address } = useAccount();
@@ -137,7 +137,7 @@ function AccountPageContent() {
                       <div>
                         <span className="text-slate-400">Pending Change:</span>
                         <div className="font-mono text-amber-300">
-                          {formatted.pendingChanges.deltaStake} (Epoch {formatted.pendingChanges.deltaEpoch})
+                        {formatMonFromWei(formatted.pendingChanges.deltaStake)} (Epoch {formatted.pendingChanges.deltaEpoch})
                         </div>
                       </div>
                     )}
@@ -146,7 +146,7 @@ function AccountPageContent() {
                       <div>
                         <span className="text-slate-400">Next Change:</span>
                         <div className="font-mono text-blue-300">
-                          {formatted.pendingChanges.nextDeltaStake} (Epoch {formatted.pendingChanges.nextDeltaEpoch})
+                          {formatMonFromWei(formatted.pendingChanges.nextDeltaStake)} (Epoch {formatted.pendingChanges.nextDeltaEpoch})
                         </div>
                       </div>
                     )}

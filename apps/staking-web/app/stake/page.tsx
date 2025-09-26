@@ -609,11 +609,11 @@ function StakePageContent() {
                           </div>
                           <div>
                             <p className="text-xs uppercase tracking-wide text-slate-500">Pending change</p>
-                            <p className="mt-1 font-mono text-slate-300">{delegation.deltaStake}</p>
+                            <p className="mt-1 font-mono text-slate-300">{formatMonFromWei(delegation.deltaStake)}</p>
                           </div>
                           <div>
                             <p className="text-xs uppercase tracking-wide text-slate-500">Next change</p>
-                            <p className="mt-1 font-mono text-slate-300">{delegation.nextDeltaStake}</p>
+                            <p className="mt-1 font-mono text-slate-300">{formatMonFromWei(delegation.nextDeltaStake)}</p>
                           </div>
                         </div>
                       </div>
