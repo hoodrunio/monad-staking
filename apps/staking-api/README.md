@@ -65,6 +65,17 @@ The API listens on `http://localhost:8787` by default and exposes `/health`, `/a
    ```
 5. Inspect logs with `journalctl -u staking-api.service -u staking-api-worker.service`.
 
+### Docker Compose (local/staging)
+
+If you prefer container orchestration, the root `docker-compose.yml` defines both services:
+
+```bash
+cp apps/staking-api/.env.example apps/staking-api/.env  # adjust secrets before running
+docker compose up --build
+```
+
+This spins up `staking-api` (port `8787`) and `staking-worker` from the same image, with the worker overriding the default command to execute `dist/worker.js`.
+
 The HTTP server surfaces operational metrics via `/health` and Prometheus-formatted metrics under `/metrics`. The worker automatically ingests validators whenever a new epoch (outside the delay period) is observed.
 
 ### Container image
