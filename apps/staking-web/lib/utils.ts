@@ -54,3 +54,33 @@ export function getNextAvailableWithdrawId(usedIds: number[]): number | null {
   const available = findAvailableWithdrawIds(usedIds);
   return available.length > 0 ? available[0] : null;
 }
+
+function toBigInt(value: string | bigint): bigint {
+  return typeof value === 'string' ? BigInt(value) : value;
+}
+
+export function formatMonFromWei(value: string | bigint, fractionDigits = 4): string {
+  const big = toBigInt(value);
+  const base = 10n ** 18n;
+  const integer = big / base;
+  const remainder = big % base;
+  if (fractionDigits <= 0) return `${integer.toString()} MON`;
+  const scaled = remainder.toString().padStart(18, '0');
+  const fraction = scaled.slice(0, fractionDigits).replace(/0+$/, '');
+  return fraction ? `${integer.toString()}.${fraction} MON` : `${integer.toString()} MON`;
+}
+
+export function monWeiToDecimalString(value: string | bigint, fractionDigits = 6): string {
+  const big = toBigInt(value);
+  const base = 10n ** 18n;
+  const integer = big / base;
+  if (fractionDigits <= 0) return integer.toString();
+  const remainder = big % base;
+  const scaled = remainder.toString().padStart(18, '0');
+  const fraction = scaled.slice(0, fractionDigits).replace(/0+$/, '');
+  return fraction ? `${integer.toString()}.${fraction}` : integer.toString();
+}
+
+export function parseFormattedMon(value: string): string {
+  return value.replace(/[^0-9.]/g, '');
+}

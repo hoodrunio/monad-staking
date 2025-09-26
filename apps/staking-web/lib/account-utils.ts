@@ -1,3 +1,5 @@
+import { formatMonFromWei } from './utils';
+
 export function formatDelegationRow(delegation: {
   validatorId: string;
   stake: string;
@@ -29,7 +31,7 @@ export function formatWithdrawalRow(withdrawal: {
   return {
     validatorId: withdrawal.validatorId,
     withdrawalId: withdrawal.withdrawalId,
-    amount: withdrawal.amount,
+    amount: formatMonFromWei(withdrawal.amount),
     withdrawEpoch: withdrawal.withdrawEpoch,
     canWithdraw: (currentEpoch: bigint) => BigInt(withdrawal.withdrawEpoch) <= currentEpoch,
   };
