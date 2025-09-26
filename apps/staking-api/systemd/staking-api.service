@@ -1,0 +1,20 @@
+# Systemd unit for the staking-api HTTP app. Copy to /etc/systemd/system/ and adjust
+# WorkingDirectory, User/Group, and EnvironmentFile paths for your deployment target.
+[Unit]
+Description=Monad Staking API (HTTP server)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/monad-staking/apps/staking-api
+Environment=NODE_ENV=production
+EnvironmentFile=/root/monad-staking/apps/staking-api/.env
+ExecStart=/root/.bun/bin/bun run src/index.ts
+Restart=on-failure
+RestartSec=5s
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
