@@ -1,38 +1,34 @@
-# Monad Staking dApp Monorepo
+# Monad Staking Monorepo
 
-This repository hosts a production-focused workspace for building a fast, secure staking experience on Monad across mainnet and testnets. It couples the official staking documentation with typed tooling and a Next.js dashboard so contributors can ship validator and delegator workflows with confidence.
+This workspace powers Monad staking experiences with a Bun-based API and shared TypeScript tooling. Packages here are consumed by production services and internal dashboards.
 
-## Project Structure
-- `apps/staking-web`: Next.js 14 application that renders the staking dashboard and, soon, interactive delegation flows.
-- `packages/config`: Runtime-safe network configuration loader that validates required environment variables per Monad network.
-- `packages/monad-staking-sdk`: Typed viem-based client for the staking precompile at `0x0000000000000000000000000000000000001000`, including guardrails around commissions, withdrawal IDs, and reward bounds.
-- `(staking-docs)[https://docs.monad.xyz/developer-essentials/staking/]`: Canonical references for staking behavior and precompile semantics.
+## Workspace Layout
+- `apps/staking-api` – Bun + Hono HTTP edge for staking data; relies on the SDK for chain reads and MongoDB and Redis for caching.
+- `packages/monad-staking-sdk` – Type-safe viem client targeting the staking precompile (`0x…1000`) and helper flows (delegations, rewards, withdrawals).
+- `packages/config` – Runtime configuration loader that validates Monad network settings before the API or SDK instantiate clients.
+- **[staking-docs](https://docs.monad.xyz/developer-essentials/staking/)** – Protocol references and implementation notes sourced from Monad documentation.
 
 ## Getting Started
-1. Install dependencies (pnpm ≥ 8.9, Node ≥ 18.18):
+1. Install dependencies (pnpm ≥ 8.9, Node ≥ 18.18, Bun ≥ 1.1):
    ```bash
    pnpm install
    ```
-2. Copy `.env.example` (to be added) or set environment variables directly. Each enabled network requires `MONAD_<NETWORK>_CHAIN_ID` and `MONAD_<NETWORK>_RPC_URL`, e.g.:
+2. Configure environment variables using `apps/staking-api/.env.example` as a template. Each enabled network must expose `MONAD_<NETWORK>_CHAIN_ID` and `MONAD_<NETWORK>_RPC_URL` alongside MongoDB credentials.
+3. Run the API and worker locally:
    ```bash
-   export MONAD_TESTNET_1_CHAIN_ID=10143
-   export MONAD_TESTNET_1_RPC_URL=https://rpc.testnet1.yourprovider.com
-   ```
-3. Launch the staking web app:
-   ```bash
-   pnpm dev --filter @monad-staking/staking-web
-   ```
-4. Run checks before every PR:
-   ```bash
-   pnpm lint
-   pnpm test
-   pnpm build
+   pnpm dev --filter apps/staking-api
+   pnpm --filter apps/staking-api run worker
    ```
 
-## Development Notes
-- The SDK and web app share viem clients via `apps/staking-web/lib/clients.ts`; use these helpers when adding new data hooks or transaction flows.
-- TailwindCSS drives the design system. Extend tokens in `tailwind.config.ts` and global styles in `app/globals.css`.
-- React Query (planned) should back any long-lived RPC polling so we respect Monad epoch timing without overwhelming providers.
+## Quality Gates
+- `pnpm lint` to run ESLint + Prettier rules across the workspace.
+- `pnpm build` to compile every package.
+- `pnpm --filter apps/staking-api run typecheck` for API-specific TypeScript validation.
+
+## Deployment Notes
+- Production hosts should use the systemd (or similar daemon/background processors) units in `apps/staking-api/systemd/` and an external environment file (e.g. `/etc/monad-staking/staking-api.env`).
+- The API listens on port 8787 by default (`/health` for probes); the worker polls epoch transitions and refreshes validator data.
 
 ## Contributing
-- Reference staking constants and epoch semantics from `(staking-docs)[https://docs.monad.xyz/developer-essentials/staking/]` when implementing business logic, and document any protocol assumptions in code reviews.
+- Align protocol logic with **[staking-docs](https://docs.monad.xyz/developer-essentials/staking/)** and document any new assumptions in code reviews.
+- Keep shared types inside `packages/` so API and downstream consumers stay in sync.
