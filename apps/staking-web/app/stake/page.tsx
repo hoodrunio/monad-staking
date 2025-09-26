@@ -188,7 +188,7 @@ function StakeScreen() {
     setSelectorNextCursor(null);
     setSelectorHasMore(false);
     setSelectorItems(initial ? [initial] : []);
-    setDelegateModal({ validatorId, amount: '' });
+    setDelegateModal({ validatorId: validatorId ?? '', amount: '' });
   };
 
   const openUndelegateModal = (validatorId: string) => {
