@@ -445,6 +445,26 @@ export class MonadStakingSdk<TTransport extends Transport> {
     });
   }
 
+  async claimAllRewards(args: { readonly account: Address }): Promise<Hash[]> {
+    const walletClient = this.requireWalletClient();
+    const delegations = await this.getDelegations(args.account, 0n);
+    const results: Hash[] = [];
+    for (const validatorId of delegations.validatorIds) {
+      const delegator = await this.getDelegator(validatorId, args.account);
+      if (delegator.unclaimedRewards <= 0n) continue;
+      const hash = await walletClient.writeContract({
+        address: this.address,
+        abi: stakingAbi,
+        functionName: 'claimRewards',
+        args: [validatorId],
+        account: args.account,
+        chain: walletClient.chain ?? undefined,
+      });
+      results.push(hash);
+    }
+    return results;
+  }
+
   async changeCommission(args: {
     readonly validatorId: bigint;
     readonly newCommission: bigint;
