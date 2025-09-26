@@ -12,6 +12,7 @@ export interface StakeFormState {
   txError: string | null;
   txHash: string | null;
   busy: boolean;
+  busyAction: string | null;
 }
 
 export function parseValidatorId(validatorId: string): bigint {
@@ -48,9 +49,10 @@ export async function handleDelegate(
   validatorId: bigint,
   amount: bigint,
   account: `0x${string}`,
-  setState: (state: Partial<StakeFormState>) => void
+  setState: (state: Partial<StakeFormState>) => void,
+  busyAction?: string,
 ): Promise<void> {
-  setState({ busy: true, txError: null, txHash: null });
+  setState({ busy: true, txError: null, txHash: null, busyAction: busyAction ?? 'delegate' });
   
   try {
     const hash = await sdk.delegate({
@@ -58,11 +60,11 @@ export async function handleDelegate(
       amount,
       account,
     });
-    setState({ txHash: hash, busy: false });
+    setState({ txHash: hash, busy: false, busyAction: null });
     toast.success('Delegation transaction submitted!');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
-    setState({ txError: message, busy: false });
+    setState({ txError: message, busy: false, busyAction: null });
     toast.error(`Delegation failed: ${message}`);
   }
 }
@@ -73,9 +75,10 @@ export async function handleUndelegate(
   amount: bigint,
   withdrawalId: number,
   account: `0x${string}`,
-  setState: (state: Partial<StakeFormState>) => void
+  setState: (state: Partial<StakeFormState>) => void,
+  busyAction?: string,
 ): Promise<void> {
-  setState({ busy: true, txError: null, txHash: null });
+  setState({ busy: true, txError: null, txHash: null, busyAction: busyAction ?? 'undelegate' });
   
   try {
     const hash = await sdk.undelegate({
@@ -84,11 +87,11 @@ export async function handleUndelegate(
       withdrawalId,
       account,
     });
-    setState({ txHash: hash, busy: false });
+    setState({ txHash: hash, busy: false, busyAction: null });
     toast.success('Undelegation transaction submitted!');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
-    setState({ txError: message, busy: false });
+    setState({ txError: message, busy: false, busyAction: null });
     toast.error(`Undelegation failed: ${message}`);
   }
 }
@@ -98,9 +101,10 @@ export async function handleWithdraw(
   validatorId: bigint,
   withdrawalId: number,
   account: `0x${string}`,
-  setState: (state: Partial<StakeFormState>) => void
+  setState: (state: Partial<StakeFormState>) => void,
+  busyAction?: string,
 ): Promise<void> {
-  setState({ busy: true, txError: null, txHash: null });
+  setState({ busy: true, txError: null, txHash: null, busyAction: busyAction ?? 'withdraw' });
   
   try {
     const hash = await sdk.withdraw({
@@ -108,11 +112,11 @@ export async function handleWithdraw(
       withdrawalId,
       account,
     });
-    setState({ txHash: hash, busy: false });
+    setState({ txHash: hash, busy: false, busyAction: null });
     toast.success('Withdrawal transaction submitted!');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
-    setState({ txError: message, busy: false });
+    setState({ txError: message, busy: false, busyAction: null });
     toast.error(`Withdrawal failed: ${message}`);
   }
 }
@@ -121,20 +125,21 @@ export async function handleCompound(
   sdk: MonadStakingSdk<Transport>,
   validatorId: bigint,
   account: `0x${string}`,
-  setState: (state: Partial<StakeFormState>) => void
+  setState: (state: Partial<StakeFormState>) => void,
+  busyAction?: string,
 ): Promise<void> {
-  setState({ busy: true, txError: null, txHash: null });
+  setState({ busy: true, txError: null, txHash: null, busyAction: busyAction ?? 'compound' });
   
   try {
     const hash = await sdk.compound({
       validatorId,
       account,
     });
-    setState({ txHash: hash, busy: false });
+    setState({ txHash: hash, busy: false, busyAction: null });
     toast.success('Compound transaction submitted!');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
-    setState({ txError: message, busy: false });
+    setState({ txError: message, busy: false, busyAction: null });
     toast.error(`Compound failed: ${message}`);
   }
 }
@@ -143,20 +148,21 @@ export async function handleClaimRewards(
   sdk: MonadStakingSdk<Transport>,
   validatorId: bigint,
   account: `0x${string}`,
-  setState: (state: Partial<StakeFormState>) => void
+  setState: (state: Partial<StakeFormState>) => void,
+  busyAction?: string,
 ): Promise<void> {
-  setState({ busy: true, txError: null, txHash: null });
+  setState({ busy: true, txError: null, txHash: null, busyAction: busyAction ?? 'claim' });
   
   try {
     const hash = await sdk.claimRewards({
       validatorId,
       account,
     });
-    setState({ txHash: hash, busy: false });
+    setState({ txHash: hash, busy: false, busyAction: null });
     toast.success('Claim rewards transaction submitted!');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
-    setState({ txError: message, busy: false });
+    setState({ txError: message, busy: false, busyAction: null });
     toast.error(`Claim rewards failed: ${message}`);
   }
 }
