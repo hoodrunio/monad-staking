@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MONAD_NETWORK_KEYS } from '@monad-staking/config';
 import { NetworkSelector } from '@/app/components/network-selector';
@@ -12,11 +12,13 @@ import { useValidatorsQuery } from '@/lib/queries';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';
 import { normalizeCursor } from '@/lib/validators-utils';
+import { formatCompactMonFromDecimal } from '@/lib/format';
 
 function ValidatorsPageContent() {
   const searchParams = useSearchParams();
   const configMap = useMemo(() => getNetworkConfigMap(), []);
   const enabledNetworks = getEnabledNetworkConfigs(configMap);
+  const [showActiveOnly, setShowActiveOnly] = useState(true);
   
   const networkParam = searchParams.get('network');
   const selectedNetwork = getSelectedNetwork(networkParam, enabledNetworks);
@@ -25,10 +27,10 @@ function ValidatorsPageContent() {
   // Always call hooks at the top level
   const resolved = selectedNetwork ? tryResolveNetwork(configMap, selectedNetwork) : null;
   const { data: pageData, isLoading, error } = useValidatorsQuery(
-    selectedNetwork || 'monad-mainnet', // provide fallback to avoid undefined
-    cursor, 
+    selectedNetwork || 'monad-mainnet',
+    cursor,
     50,
-    { enabled: !!selectedNetwork && !!resolved }
+    { enabled: !!selectedNetwork && !!resolved, filters: { activeOnly: showActiveOnly } },
   );
 
   if (enabledNetworks.length === 0) {
@@ -85,10 +87,16 @@ function ValidatorsPageContent() {
             </p>
           </div>
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <NetworkSelector
-              networks={enabledNetworks}
-              selectedKey={selectedNetwork}
-            />
+            <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+            <label className="flex items-center gap-2 text-xs text-slate-400">
+              <input
+                type="checkbox"
+                className="h-3 w-3"
+                checked={showActiveOnly}
+                onChange={(event) => setShowActiveOnly(event.target.checked)}
+              />
+              Active only
+            </label>
           </div>
         </div>
       </header>
@@ -101,7 +109,18 @@ function ValidatorsPageContent() {
         <ValidatorTableSkeleton />
       ) : pageData ? (
         <div className="space-y-4">
-          <ValidatorTable validators={pageData.items} networkConfig={resolved} />
+          <ValidatorTable
+            validators={pageData.items.map((item) => ({
+              id: item.id,
+              authAddress: item.authAddress,
+              commission: item.commission.formatted,
+              stake: formatCompactMonFromDecimal(item.stake.decimal),
+              unclaimedRewards: formatCompactMonFromDecimal(item.unclaimedRewards.decimal),
+              flagsRaw: item.flagsRaw,
+              isActive: item.isActive,
+            }))}
+            networkConfig={resolved}
+          />
           <PaginationControls
             prevCursor={pageData.cursor.prev}
             nextCursor={pageData.cursor.next}

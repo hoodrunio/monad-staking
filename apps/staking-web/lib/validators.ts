@@ -2,8 +2,9 @@ import { cache } from 'react';
 import type { MonadNetwork } from '@monad-staking/config';
 import { getNetworkConfigMap, tryResolveNetwork } from './networks';
 import { apiGet } from './api';
-import type { ValidatorListApiResponse } from './api-types';
-import { formatAmountField, formatCommissionField, truncateAddress } from './format';
+import type { ValidatorListApiResponse } from './api/types';
+import { mapValidatorList } from './api/transformers';
+import { truncateAddress } from './format';
 
 export type ValidatorSetView = 'execution' | 'consensus' | 'snapshot';
 
@@ -20,8 +21,6 @@ export interface ValidatorRow {
   readonly authAddress?: string;
   readonly flags?: string;
   readonly stake?: string;
-  readonly consensusStake?: string;
-  readonly snapshotStake?: string;
   readonly commission?: string;
   readonly unclaimedRewards?: string;
   readonly error?: string;
@@ -54,24 +53,24 @@ export const getValidatorSetPage = cache(
       limit: 50,
     });
 
-    const validators: ValidatorRow[] = data.items.map((item) => ({
-      id: item.validatorId,
+    const mapped = mapValidatorList(data);
+
+    const validators: ValidatorRow[] = mapped.items.map((item) => ({
+      id: item.id,
       authAddress: item.authAddress,
       flags: item.flagsRaw,
-      stake: formatAmountField(item.stake.execution),
-      consensusStake: formatAmountField(item.stake.consensus),
-      snapshotStake: formatAmountField(item.stake.snapshot),
-      commission: formatCommissionField(item.commission),
-      unclaimedRewards: formatAmountField(item.unclaimedRewards),
+      stake: item.stake.formatted,
+      commission: item.commission.formatted,
+      unclaimedRewards: item.unclaimedRewards.formatted,
     }));
 
     return {
       networkKey,
       validators,
       currentCursor: cursor,
-      nextCursor: data.cursor.next,
-      prevCursor: data.cursor.prev,
-      isDone: data.isDone,
+      nextCursor: mapped.cursor.next,
+      prevCursor: mapped.cursor.prev,
+      isDone: mapped.isDone,
     };
   },
 );

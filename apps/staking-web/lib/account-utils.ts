@@ -1,41 +1,28 @@
 import { formatMonFromWei } from './utils';
+import type { DelegationSummary, WithdrawalSummary } from './api/models';
 
-export function formatDelegationRow(delegation: {
-  validatorId: string;
-  stake: string;
-  stakeRaw: string;
-  unclaimedRewards: string;
-  unclaimedRewardsRaw: string;
-  deltaStake: string;
-  nextDeltaStake: string;
-  deltaEpoch: string;
-  nextDeltaEpoch: string;
-}) {
+export function formatDelegationRow(delegation: DelegationSummary) {
   return {
     validatorId: delegation.validatorId,
-    stake: delegation.stake,
-    unclaimedRewards: delegation.unclaimedRewards,
+    stake: delegation.stake.formatted,
+    unclaimedRewards: delegation.unclaimedRewards.formatted,
     pendingChanges: {
-      deltaStake: delegation.deltaStake,
-      nextDeltaStake: delegation.nextDeltaStake,
+      deltaStake: delegation.deltaStakeRaw,
+      nextDeltaStake: delegation.nextDeltaStakeRaw,
       deltaEpoch: delegation.deltaEpoch,
       nextDeltaEpoch: delegation.nextDeltaEpoch,
-    }
+    },
   };
 }
 
-export function formatWithdrawalRow(withdrawal: {
-  validatorId: string;
-  withdrawalId: number;
-  amount: string;
-  amountDisplay: string;
-  withdrawEpoch: string;
-}) {
+export function formatWithdrawalRow(withdrawal: WithdrawalSummary) {
   return {
     validatorId: withdrawal.validatorId,
     withdrawalId: withdrawal.withdrawalId,
-    amount: withdrawal.amountDisplay || formatMonFromWei(withdrawal.amount),
+    amount:
+      withdrawal.amount.formatted || formatMonFromWei(withdrawal.amount.raw),
     withdrawEpoch: withdrawal.withdrawEpoch,
-    canWithdraw: (currentEpoch: bigint) => BigInt(withdrawal.withdrawEpoch) < currentEpoch,
+    canWithdraw: (currentEpoch: bigint) =>
+      BigInt(withdrawal.withdrawEpoch) < currentEpoch,
   };
 }

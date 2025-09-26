@@ -1,4 +1,4 @@
-import type { AmountField, CommissionField } from './api-types';
+import type { AmountField, CommissionField } from './api/types';
 
 const MON_DECIMALS = 18n;
 const ONE_MON = 10n ** MON_DECIMALS;
@@ -57,6 +57,25 @@ export function formatCommissionField(commission: CommissionField | undefined, o
   const base = commission && commission.percent !== '' ? commission.percent : options?.fallback ?? '0';
   const suffix = options?.suffix ?? '%';
   return `${base}${suffix}`;
+}
+
+export function formatCompactMonFromDecimal(decimal: string | undefined, fractionDigits = 3): string {
+  if (!decimal || decimal.length === 0) return '0 MON';
+  const negative = decimal.startsWith('-');
+  const normalized = negative ? decimal.slice(1) : decimal;
+  const [integerPart = '0', fractionalPart = ''] = normalized.split('.');
+
+  let formattedInteger: string;
+  try {
+    formattedInteger = BigInt(integerPart || '0').toLocaleString();
+  } catch {
+    const num = Number(integerPart || '0');
+    formattedInteger = Number.isFinite(num) ? num.toLocaleString() : integerPart;
+  }
+
+  const trimmedFraction = fractionalPart.slice(0, fractionDigits).replace(/0+$/, '');
+  const body = trimmedFraction ? `${formattedInteger}.${trimmedFraction}` : formattedInteger;
+  return `${negative ? '-' : ''}${body} MON`;
 }
 
 export function truncateAddress(address: string, size = 6): string {

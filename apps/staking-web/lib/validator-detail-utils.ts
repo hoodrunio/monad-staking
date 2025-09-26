@@ -1,8 +1,8 @@
 export function getValidatorDisplayName(validator: {
-  validatorId: string;
+  id: string;
   meta?: { name?: string };
 }): string {
-  return validator.meta?.name ?? `Validator ${validator.validatorId}`;
+  return validator.meta?.name ?? `Validator ${validator.id}`;
 }
 
 export function hasValidatorMetadata(validator: {
