@@ -28,6 +28,7 @@ import {
   handleWithdraw,
   handleCompound,
   handleClaimRewards,
+  handleClaimAllRewards,
   type StakeFormState,
 } from '@/lib/stake-utils';
 import {
@@ -81,6 +82,7 @@ function StakePageContent() {
     txError: null,
     txHash: null,
     txStage: 'idle',
+    txCount: 0,
   });
   const [action, setAction] = useState<ActionKey>('stake');
   const [stakeForm, setStakeForm] = useState<StakeForm>({ validatorId: '', amount: '' });
@@ -244,7 +246,7 @@ function StakePageContent() {
 
   const closeResultModal = () => {
     setShowResultModal(false);
-    updateState({ txHash: null, txError: null, txStage: 'idle' });
+    updateState({ txHash: null, txError: null, txStage: 'idle', txCount: 0 });
   };
 
   if (!resolved) {
@@ -312,6 +314,20 @@ function StakePageContent() {
                 </span>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (!sdk || !account || totalRewardsMon <= 0) return;
+                void handleClaimAllRewards(sdk, account, setState, 'claim-all');
+              }}
+              disabled={!sdk || !account || isBusy || totalRewardsMon <= 0}
+              className="mt-4 w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:pointer-events-none"
+            >
+              {isActionBusy('claim-all') ? 'Claiming rewards…' : 'Claim all rewards'}
+            </button>
+            <p className="mt-2 text-[11px] text-emerald-300/80">
+              This will submit a transaction for each validator with unclaimed rewards.
+            </p>
           </div>
 
           <div>
@@ -756,6 +772,7 @@ function StakePageContent() {
         open={showResultModal}
         onClose={closeResultModal}
         stage={state.txStage}
+        txCount={state.txCount}
       />
     </div>
   );

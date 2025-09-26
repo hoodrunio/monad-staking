@@ -13,6 +13,7 @@ export interface StakeFormState {
   busy: boolean;
   busyAction: string | null;
   txStage: TransactionStage;
+  txCount: number;
 }
 
 export type TransactionStage = 'idle' | 'pending' | 'submitted' | 'confirmed' | 'error';
@@ -66,6 +67,7 @@ export async function handleDelegate(
     txHash: null,
     busyAction: busyAction ?? 'delegate',
     txStage: 'pending',
+    txCount: 0,
   });
   
   try {
@@ -74,11 +76,11 @@ export async function handleDelegate(
       amount,
       account,
     });
-    mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted' });
+    mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted', txCount: 1 });
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
-    mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error' });
+    mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error', txCount: 0 });
   }
 }
 
@@ -97,6 +99,7 @@ export async function handleUndelegate(
     txHash: null,
     busyAction: busyAction ?? 'undelegate',
     txStage: 'pending',
+    txCount: 0,
   });
   
   try {
@@ -106,11 +109,11 @@ export async function handleUndelegate(
       withdrawalId,
       account,
     });
-    mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted' });
+    mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted', txCount: 1 });
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
-    mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error' });
+    mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error', txCount: 0 });
   }
 }
 
@@ -128,6 +131,7 @@ export async function handleWithdraw(
     txHash: null,
     busyAction: busyAction ?? 'withdraw',
     txStage: 'pending',
+    txCount: 0,
   });
   
   try {
@@ -136,11 +140,11 @@ export async function handleWithdraw(
       withdrawalId,
       account,
     });
-    mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted' });
+    mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted', txCount: 1 });
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
-    mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error' });
+    mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error', txCount: 0 });
   }
 }
 
@@ -157,6 +161,7 @@ export async function handleCompound(
     txHash: null,
     busyAction: busyAction ?? 'compound',
     txStage: 'pending',
+    txCount: 0,
   });
   
   try {
@@ -164,11 +169,11 @@ export async function handleCompound(
       validatorId,
       account,
     });
-    mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted' });
+    mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted', txCount: 1 });
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
-    mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error' });
+    mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error', txCount: 0 });
   }
 }
 
@@ -185,6 +190,7 @@ export async function handleClaimRewards(
     txHash: null,
     busyAction: busyAction ?? 'claim',
     txStage: 'pending',
+    txCount: 0,
   });
   
   try {
@@ -192,11 +198,75 @@ export async function handleClaimRewards(
       validatorId,
       account,
     });
-    mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted' });
+    mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted', txCount: 1 });
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Transaction failed';
-    mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error' });
+    mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error', txCount: 0 });
+  }
+}
+
+export async function handleClaimAllRewards(
+  sdk: MonadStakingSdk<Transport>,
+  account: `0x${string}`,
+  setState: StakeStateSetter,
+  busyAction?: string,
+): Promise<void> {
+  mergeState(setState, {
+    busy: true,
+    txError: null,
+    txHash: null,
+    busyAction: busyAction ?? 'claim-all',
+    txStage: 'pending',
+    txCount: 0,
+  });
+
+  try {
+    const hashes = await sdk.claimAllRewards({ account });
+    if (hashes.length === 0) {
+      mergeState(setState, {
+        busy: false,
+        busyAction: null,
+        txStage: 'idle',
+        txHash: null,
+        txError: null,
+        txCount: 0,
+      });
+      return;
+    }
+
+    const [firstHash] = hashes;
+    mergeState(setState, {
+      txHash: firstHash,
+      busy: false,
+      busyAction: null,
+      txStage: 'submitted',
+      txCount: hashes.length,
+    });
+
+    void (async () => {
+      try {
+        await Promise.all(
+          hashes.map((hash) => sdk.waitForTransactionReceipt(hash as `0x${string}`)),
+        );
+        mergeState(setState, { txStage: 'confirmed' });
+      } catch (confirmationError) {
+        const message =
+          confirmationError instanceof Error
+            ? confirmationError.message
+            : 'Failed to confirm transactions';
+        mergeState(setState, { txError: message, txStage: 'error' });
+      }
+    })();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Transaction failed';
+    mergeState(setState, {
+      txError: message,
+      busy: false,
+      busyAction: null,
+      txStage: 'error',
+      txCount: 0,
+    });
   }
 }
 

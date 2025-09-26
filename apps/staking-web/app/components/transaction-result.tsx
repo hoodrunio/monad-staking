@@ -12,9 +12,10 @@ interface TransactionResultProps {
   open: boolean;
   onClose: () => void;
   stage: TransactionStage;
+  txCount: number;
 }
 
-export function TransactionResult({ txHash, txError, networkConfig, open, onClose, stage }: TransactionResultProps) {
+export function TransactionResult({ txHash, txError, networkConfig, open, onClose, stage, txCount }: TransactionResultProps) {
   if (!open) return null;
   if (stage === 'idle' || stage === 'pending') return null;
 
@@ -57,6 +58,16 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
             <div>
               <h3 className="text-lg font-semibold">{title}</h3>
               <p className={`text-sm ${isError ? 'text-red-300' : 'text-emerald-300'}`}>{description}</p>
+              {!isError && txCount > 1 && (
+                <p className="mt-1 text-xs text-emerald-300/80">
+                  {txCount} transactions were submitted for this action.
+                </p>
+              )}
+              {isError && txCount > 1 && (
+                <p className="mt-1 text-xs text-red-300/80">
+                  {txCount} transactions were attempted; at least one failed.
+                </p>
+              )}
             </div>
           </div>
 
