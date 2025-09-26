@@ -1,16 +1,17 @@
 import { randomUUID } from 'node:crypto';
 import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
-import { validatorRoutes } from './routes/validators';
-import { epochRoutes } from './routes/epoch';
-import { delegationsRoutes } from './routes/delegations';
-import { withdrawalsRoutes } from './routes/withdrawals';
-import { ingestAllValidators } from './ingest';
-import { getResolvedNetworks } from './clients';
-import { logger } from './logger';
-import { createRateLimitMiddleware } from './rate-limit';
-import { metricsRegistry, recordHttpMetrics } from './metrics';
-import { getMongo, getRedis } from './db';
+import { validatorRoutes } from './http/routes/validators';
+import { epochRoutes } from './http/routes/epoch';
+import { delegationsRoutes } from './http/routes/delegations';
+import { withdrawalsRoutes } from './http/routes/withdrawals';
+import { ingestAllValidators } from './services/ingest';
+import { getResolvedNetworks } from './infra/clients';
+import { logger } from './infra/logger';
+import { createRateLimitMiddleware } from './http/middleware/rate-limit';
+import { metricsRegistry, recordHttpMetrics } from './infra/metrics';
+import { getMongo, getRedis } from './infra/db';
+import { corsConfig, rateLimitConfig, serverConfig } from './config/env';
 
 const app = new Hono<{
   Variables: {
@@ -19,7 +20,7 @@ const app = new Hono<{
   };
 }>();
 
-const allowlist = buildCorsAllowlist();
+const allowlist = new Set([...corsConfig.defaults, ...corsConfig.extra]);
 
 app.use('*', cors({
   origin: (origin) => {
@@ -64,11 +65,7 @@ app.use('*', async (c, next) => {
   }
 });
 
-const rateLimit = createRateLimitMiddleware({
-  limit: Number(process.env.RATE_LIMIT ?? '180'),
-  windowSeconds: Number(process.env.RATE_LIMIT_WINDOW ?? '60'),
-  prefix: 'staking-api',
-});
+const rateLimit = createRateLimitMiddleware(rateLimitConfig);
 
 app.use('/api/*', rateLimit);
 
@@ -119,7 +116,7 @@ app.route('/api/validators', validatorRoutes);
 app.route('/api/delegations', delegationsRoutes);
 app.route('/api/withdrawals', withdrawalsRoutes);
 
-const port = Number(process.env.PORT ?? 8787);
+const port = serverConfig.port;
 logger.info('staking-api starting', { port });
 
 export default {
@@ -143,15 +140,6 @@ export default {
     logger.warn('bootstrap skipped', { error: String(e) });
   }
 })();
-
-function buildCorsAllowlist(): Set<string> {
-  const defaults = ['http://localhost:3000', 'https://staking.hoodscan.io'];
-  const fromEnv = (process.env.CORS_ALLOWED_ORIGINS ?? '')
-    .split(',')
-    .map((v) => v.trim())
-    .filter((v) => v.length > 0);
-  return new Set([...defaults, ...fromEnv]);
-}
 
 function canonicalRoute(path: string): string {
   if (path.startsWith('/api/validators/')) return '/api/validators/:id';

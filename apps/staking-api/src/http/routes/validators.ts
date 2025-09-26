@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { getResolvedNetworks, getSdk } from '../clients';
-import { createHybridCache } from '../cache';
-import { validatorsCol, type ValidatorDoc } from '../db';
-import { logger } from '../logger';
-import { normalizeAmount, normalizeCommission, type AmountField, type CommissionField } from '../format';
-import { normalizeHexNo0x, normalizeSecpKey, ensure0x, normalizeAddress } from '../key-format';
+import { getResolvedNetworks, getSdk } from '../../infra/clients';
+import { createHybridCache } from '../../lib/cache';
+import { validatorsCol, type ValidatorDoc } from '../../infra/db';
+import { logger } from '../../infra/logger';
+import { normalizeAmount, normalizeCommission, type AmountField, type CommissionField } from '../../lib/format';
+import { normalizeHexNo0x, normalizeSecpKey, ensure0x, normalizeAddress } from '../../lib/key-format';
 
 export const validatorRoutes = new Hono();
 

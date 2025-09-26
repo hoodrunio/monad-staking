@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { getResolvedNetworks, getSdk } from '../clients';
-import { createHybridCache } from '../cache';
+import { getResolvedNetworks, getSdk } from '../../infra/clients';
+import { createHybridCache } from '../../lib/cache';
 
 export const epochRoutes = new Hono();
 
@@ -50,4 +50,3 @@ epochRoutes.get('/', async (c) => {
     return c.json({ error: message }, 500);
   }
 });
-

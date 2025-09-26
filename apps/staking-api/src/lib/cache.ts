@@ -1,6 +1,6 @@
 import type Redis from 'ioredis';
-import { getRedis } from './db';
-import { logger } from './logger';
+import { getRedis } from '../infra/db';
+import { logger } from '../infra/logger';
 
 export interface CacheEntry<T> {
   readonly value: T;
@@ -137,4 +137,3 @@ export function createHybridCache<TValue>({
     },
   };
 }
-

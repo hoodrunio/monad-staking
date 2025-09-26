@@ -23,6 +23,13 @@ Copy `.env.example` to `.env`. Required environment variables as today:
 | `RATE_LIMIT` | Requests allowed per window for public APIs (default `180`) |
 | `RATE_LIMIT_WINDOW` | Sliding window length in seconds (default `60`) |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated allowlist in addition to the bundled defaults |
+| `EPOCH_POLL_MS` | Base polling cadence for epoch watcher (default `30000`) |
+| `EPOCH_POLL_MIN_MS` | Minimum sleep between polls when backoff applies (default `5000`) |
+| `EPOCH_POLL_MAX_MS` | Upper bound for exponential backoff (default `300000`) |
+| `INGEST_MAX_RETRIES` | How many times the worker retries per epoch before giving up |
+| `INGEST_MISS_THRESHOLD` | Consecutive empty validator ids before scan stops (default `8`) |
+| `INGEST_BATCH_SIZE` | Number of validator ids fetched per batch (default `32`) |
+| `INGEST_RESUME_LOOKBACK` | BigInt window to rewind when resuming scans (default `256`) |
 | `GITHUB_TOKEN` | Token used by ingestion helpers that scrape validator info documentation |
 
 Additional networks can be configured via the shared config package; see **[staking-docs](https://docs.monad.xyz/developer-essentials/staking/)** for the full matrix and update the `MONAD_*` variables accordingly.

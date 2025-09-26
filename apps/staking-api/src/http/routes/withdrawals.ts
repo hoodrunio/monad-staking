@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import pLimit from 'p-limit';
-import { getResolvedNetworks, getSdk } from '../clients';
-import { TtlCache } from '../cache';
-import { normalizeAmount, type AmountField } from '../format';
+import { getResolvedNetworks, getSdk } from '../../infra/clients';
+import { TtlCache } from '../../lib/cache';
+import { normalizeAmount, type AmountField } from '../../lib/format';
 
 export const withdrawalsRoutes = new Hono();
 
@@ -103,4 +103,3 @@ withdrawalsRoutes.get('/', async (c) => {
     return c.json({ error: message }, 500);
   }
 });
-

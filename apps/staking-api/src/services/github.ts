@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Buffer } from 'node:buffer';
+import { githubConfig } from '../config/env';
 
 const ghContentSchema = z.array(
   z.object({
@@ -14,15 +15,15 @@ const ghContentSchema = z.array(
 
 export type NetworkFolder = 'testnet' | 'testnet-2' | 'mainnet';
 
+const githubHeaders = githubConfig.token
+  ? { Authorization: `Bearer ${githubConfig.token}` }
+  : undefined;
+
 export async function listValidatorInfo(networkFolder: NetworkFolder): Promise<
   { name: string; path: string; sha: string; url: string; downloadUrl?: string }[]
 > {
   const url = `https://api.github.com/repos/monad-developers/validator-info/contents/${networkFolder}?ref=main`;
-  const res = await fetch(url, {
-    headers: process.env.GITHUB_TOKEN
-      ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
-      : undefined,
-  });
+  const res = await fetch(url, { headers: githubHeaders });
   if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
   const json = await res.json();
   const parsed = ghContentSchema.parse(json);
@@ -33,11 +34,7 @@ export async function listValidatorInfo(networkFolder: NetworkFolder): Promise<
 
 // Use GitHub Contents API to fetch file content (base64), then parse JSON if possible
 export async function fetchValidatorJsonFromApi(contentUrl: string): Promise<unknown | null> {
-  const res = await fetch(contentUrl, {
-    headers: process.env.GITHUB_TOKEN
-      ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
-      : undefined,
-  });
+  const res = await fetch(contentUrl, { headers: githubHeaders });
   if (!res.ok) throw new Error(`GitHub content error: ${res.status}`);
   const data = (await res.json()) as { content?: string; encoding?: string };
   if (!data.content || data.encoding !== 'base64') return null;
@@ -48,5 +45,4 @@ export async function fetchValidatorJsonFromApi(contentUrl: string): Promise<unk
     return null;
   }
 }
-
 

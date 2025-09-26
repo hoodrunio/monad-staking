@@ -1,12 +1,13 @@
-import { getResolvedNetworks, getSdk } from './clients';
-import { epochCol } from './db';
-import { logger } from './logger';
-import { ingestAllValidators } from './ingest';
+import { getResolvedNetworks, getSdk } from './infra/clients';
+import { epochCol } from './infra/db';
+import { logger } from './infra/logger';
+import { ingestAllValidators } from './services/ingest';
+import { workerConfig } from './config/env';
 
-const BASE_DELAY_MS = Number(process.env.EPOCH_POLL_MS ?? 30_000);
-const MAX_DELAY_MS = Number(process.env.EPOCH_POLL_MAX_MS ?? 300_000);
-const MIN_DELAY_MS = Number(process.env.EPOCH_POLL_MIN_MS ?? 5_000);
-const INGEST_MAX_RETRIES = Number(process.env.INGEST_MAX_RETRIES ?? 3);
+const BASE_DELAY_MS = workerConfig.pollMs;
+const MAX_DELAY_MS = workerConfig.pollMaxMs;
+const MIN_DELAY_MS = workerConfig.pollMinMs;
+const INGEST_MAX_RETRIES = workerConfig.ingestMaxRetries;
 
 async function pollNetwork(network: 'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2') {
   const resolvedMap = getResolvedNetworks();
@@ -112,4 +113,3 @@ main().catch((error) => {
 async function sleep(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
-

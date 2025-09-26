@@ -1,13 +1,14 @@
 import pLimit from 'p-limit';
-import { getResolvedNetworks, getSdk } from './clients';
-import { ingestStateCol, validatorsCol, type ValidatorDoc } from './db';
+import { getResolvedNetworks, getSdk } from '../infra/clients';
+import { ingestStateCol, validatorsCol, type ValidatorDoc } from '../infra/db';
 import { listValidatorInfo, fetchValidatorJsonFromApi, type NetworkFolder } from './github';
-import { logger } from './logger';
-import { normalizeHexNo0x, normalizeSecpKey } from './key-format';
+import { logger } from '../infra/logger';
+import { normalizeHexNo0x, normalizeSecpKey } from '../lib/key-format';
+import { ingestConfig } from '../config/env';
 
-const MISS_THRESHOLD = Number(process.env.INGEST_MISS_THRESHOLD ?? '8');
-const SCAN_BATCH_SIZE = Number(process.env.INGEST_BATCH_SIZE ?? '32');
-const RESUME_LOOKBACK = BigInt(process.env.INGEST_RESUME_LOOKBACK ?? '256');
+const MISS_THRESHOLD = Math.max(1, ingestConfig.missThreshold);
+const SCAN_BATCH_SIZE = Math.max(1, ingestConfig.batchSize);
+const RESUME_LOOKBACK = ingestConfig.resumeLookback;
 
 export async function ingestAllValidators(networkKey: 'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2') {
   const resolved = getResolvedNetworks()[networkKey];

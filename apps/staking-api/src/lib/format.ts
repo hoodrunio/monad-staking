@@ -1,4 +1,4 @@
-import { logger } from './logger';
+import { logger } from '../infra/logger';
 
 export type AmountField = {
   raw: string;
@@ -59,4 +59,3 @@ export function ensureBigInt(value: bigint | string): bigint {
 export function decimalFromRaw(raw: string): string {
   return normalizeAmount(raw).decimal;
 }
-
