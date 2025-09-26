@@ -1,8 +1,8 @@
 import { cache } from 'react';
 import type { MonadNetwork } from '@monad-staking/config';
 import { getNetworkConfigMap, tryResolveNetwork } from './networks';
-import { getStakingSdk } from './clients';
-import { formatBigInt, formatCommission, formatMon, truncateAddress } from './format';
+import { apiGet } from './api';
+import { truncateAddress } from './format';
 
 export type ValidatorSetView = 'execution' | 'consensus' | 'snapshot';
 
@@ -12,21 +12,7 @@ const VIEW_LABELS: Record<ValidatorSetView, string> = {
   snapshot: 'Snapshot',
 };
 
-const VIEW_METHOD: Record<
-  ValidatorSetView,
-  (sdk: ReturnType<typeof getStakingSdk>, startIndex: number) => Promise<{
-    isDone: boolean;
-    nextIndex: number;
-    validatorIds: readonly bigint[];
-  }>
-> = {
-  execution: async (sdk, startIndex) =>
-    sdk.getExecutionValidatorSet(startIndex),
-  consensus: async (sdk, startIndex) =>
-    sdk.getConsensusValidatorSet(startIndex),
-  snapshot: async (sdk, startIndex) =>
-    sdk.getSnapshotValidatorSet(startIndex),
-};
+// view retained for URL/state but list uses API/db
 
 export interface ValidatorRow {
   readonly id: string;
@@ -42,19 +28,18 @@ export interface ValidatorRow {
 
 export interface ValidatorSetPage {
   readonly networkKey: MonadNetwork;
-  readonly view: ValidatorSetView;
   readonly validators: readonly ValidatorRow[];
-  readonly currentCursor: number;
-  readonly nextCursor: number | null;
-  readonly prevCursor: number | null;
+  readonly currentCursor: string;
+  readonly nextCursor: string | null;
+  readonly prevCursor: string | null;
   readonly isDone: boolean;
 }
 
 export const getValidatorSetPage = cache(
   async (
     networkKey: MonadNetwork,
-    view: ValidatorSetView,
-    startIndex = 0,
+    _view: ValidatorSetView,
+    cursor = '',
   ): Promise<ValidatorSetPage> => {
     const configMap = getNetworkConfigMap();
     const resolved = tryResolveNetwork(configMap, networkKey);
@@ -62,55 +47,37 @@ export const getValidatorSetPage = cache(
       throw new Error('Network is not fully configured.');
     }
 
-    const sdk = getStakingSdk(resolved);
-    const method = VIEW_METHOD[view];
+    const data = await apiGet<{
+      items: Array<{
+        validatorId: string;
+        authAddress: string;
+        commission: string;
+        stake: { execution: string; consensus: string; snapshot: string };
+        unclaimedRewards: string;
+        flagsRaw: string;
+      }>;
+      cursor: { next: string | null; prev: string | null };
+      isDone: boolean;
+    }>('/api/validators', { network: networkKey, cursor, limit: 50 });
 
-    const { isDone, nextIndex, validatorIds } = await method(
-      sdk,
-      Math.max(0, startIndex),
-    );
-
-    const details = await Promise.allSettled(
-      validatorIds.map((id) => sdk.getValidator(id)),
-    );
-
-    const validators: ValidatorRow[] = validatorIds.map((id, idx) => {
-      const detail = details[idx];
-      if (detail.status === 'fulfilled') {
-        const info = detail.value;
-        return {
-          id: id.toString(),
-          authAddress: info.authAddress,
-          flags: formatBigInt(info.flags),
-          stake: formatMon(info.stake),
-          consensusStake: formatMon(info.consensusStake),
-          snapshotStake: formatMon(info.snapshotStake),
-          commission: formatCommission(info.commission),
-          unclaimedRewards: formatMon(info.unclaimedRewards),
-        };
-      }
-
-      return {
-        id: id.toString(),
-        error:
-          detail.reason instanceof Error
-            ? detail.reason.message
-            : 'Unknown error retrieving validator.',
-      };
-    });
-
-    const count = validatorIds.length;
-    const prevCursor = startIndex > 0 ? Math.max(0, startIndex - count) : null;
-    const finalizedNext = isDone ? null : nextIndex;
+    const validators: ValidatorRow[] = data.items.map((item) => ({
+      id: item.validatorId,
+      authAddress: item.authAddress,
+      flags: item.flagsRaw,
+      stake: item.stake.execution,
+      consensusStake: item.stake.consensus,
+      snapshotStake: item.stake.snapshot,
+      commission: item.commission,
+      unclaimedRewards: item.unclaimedRewards,
+    }));
 
     return {
       networkKey,
-      view,
       validators,
-      currentCursor: startIndex,
-      nextCursor: finalizedNext,
-      prevCursor,
-      isDone,
+      currentCursor: cursor,
+      nextCursor: data.cursor.next,
+      prevCursor: data.cursor.prev,
+      isDone: data.isDone,
     };
   },
 );

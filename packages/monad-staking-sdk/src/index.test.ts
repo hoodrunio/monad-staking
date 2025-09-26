@@ -1,11 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { PublicClient, Transport, WalletClient } from 'viem';
+import { encodeFunctionData, encodeFunctionResult } from 'viem';
 import { MONAD_STAKING_PRECOMPILE_ADDRESS } from '@monad-staking/config';
 import {
   MonadStakingSdk,
   createMonadStakingSdk,
   loadMonadNetworks,
   resolveMonadNetwork,
+  stakingAbi,
 } from './index.js';
 
 const network = {
@@ -25,13 +27,26 @@ type TestTransport = Transport;
 
 describe('MonadStakingSdk', () => {
   it('reads epoch information via the public client', async () => {
-    const readContract = vi
-      .fn()
-      .mockResolvedValue([12n, false] as [bigint, boolean]);
+    const call = vi.fn().mockImplementation(({ data }: { data: `0x${string}` }) => {
+      // ensure request data matches encoded call
+      const expected = encodeFunctionData({
+        abi: stakingAbi,
+        functionName: 'getEpoch',
+        args: [],
+      });
+      expect(data).toBe(expected);
+      return Promise.resolve({
+        data: encodeFunctionResult({
+          abi: stakingAbi,
+          functionName: 'getEpoch',
+          result: [12n, false],
+        }),
+      });
+    });
 
     const publicClient = {
       chain: { id: network.chainId },
-      readContract,
+      call,
     } as unknown as PublicClient<TestTransport>;
 
     const sdk = new MonadStakingSdk({
@@ -41,19 +56,17 @@ describe('MonadStakingSdk', () => {
 
     const info = await sdk.getEpoch();
 
-    expect(readContract).toHaveBeenCalledWith({
-      address: network.precompileAddress,
-      abi: expect.any(Array),
-      functionName: 'getEpoch',
-    });
+    expect(call).toHaveBeenCalledOnce();
     expect(info).toEqual({ epoch: 12n, inEpochDelayPeriod: false });
   });
 
   it('throws when attempting to delegate without a wallet client', async () => {
     const readContract = vi.fn();
+    const call = vi.fn();
     const publicClient = {
       chain: { id: network.chainId },
       readContract,
+      call,
     } as unknown as PublicClient<TestTransport>;
 
     const sdk = new MonadStakingSdk({
@@ -80,6 +93,7 @@ describe('MonadStakingSdk', () => {
     const publicClient = {
       chain: { id: network.chainId },
       readContract: vi.fn(),
+      call: vi.fn(),
     } as unknown as PublicClient<TestTransport>;
 
     const sdk = createMonadStakingSdk({

@@ -1,11 +1,17 @@
 import type {
   Address,
   Hash,
+  Hex,
   PublicClient,
+  TransactionReceipt,
   Transport,
   WalletClient,
+  ContractFunctionArgs,
+  ContractFunctionReturnType,
+  ContractFunctionName,
 } from 'viem';
-import { stakingAbi } from './abi.js';
+import { encodeFunctionData, decodeFunctionResult } from 'viem';
+import { stakingAbi, type MonadStakingAbi } from './abi.js';
 import {
   MONAD_STAKING_PRECOMPILE_ADDRESS,
   type MonadNetwork,
@@ -17,6 +23,18 @@ import {
 
 export { stakingAbi };
 
+type FunctionName = Extract<MonadStakingAbi[number], { type: 'function' }>['name'];
+type AnyStateMutability = 'nonpayable' | 'payable' | 'view' | 'pure';
+type FunctionArgs<TName extends FunctionName> = ContractFunctionArgs<
+  MonadStakingAbi,
+  AnyStateMutability,
+  TName
+>;
+type FunctionReturn<TName extends FunctionName> = ContractFunctionReturnType<
+  MonadStakingAbi,
+  AnyStateMutability,
+  TName
+>;
 export interface MonadStakingSdkOptions<TTransport extends Transport> {
   readonly network: ResolvedMonadNetworkConfig;
   readonly publicClient: PublicClient<TTransport>;
@@ -71,14 +89,6 @@ function assertCommissionBounds(commission: bigint) {
   const max = 1_000_000_000_000_000_000n; // 1e18
   if (commission < 0n || commission > max) {
     throw new Error('commission must be expressed in 1e18 units between 0 and 1e18 inclusive.');
-  }
-}
-
-function assertExternalRewardBounds(amount: bigint) {
-  const min = 1_000_000_000_000_000_000n; // 1 MON (1e18 wei)
-  const max = 1_000_000_000_000_000_000_000n; // 1,000,000 MON (1e24 wei)
-  if (amount < min || amount > max) {
-    throw new Error('external reward amount must be between 1 and 1,000,000 MON (inclusive).');
   }
 }
 
@@ -170,37 +180,38 @@ export class MonadStakingSdk<TTransport extends Transport> {
     this.walletClient = client;
   }
 
-  async getEpoch(): Promise<EpochInfo> {
-    const result = (await this.options.publicClient.readContract({
-      address: this.address,
+  private async callFunction<TName extends FunctionName>(
+    functionName: TName,
+    args: FunctionArgs<TName>,
+  ): Promise<FunctionReturn<TName>> {
+    const data = encodeFunctionData({
       abi: stakingAbi,
-      functionName: 'getEpoch',
-    })) as [bigint, boolean];
-    const [epoch, inEpochDelayPeriod] = result;
+      functionName: functionName as ContractFunctionName<MonadStakingAbi>,
+      args: args as ContractFunctionArgs<MonadStakingAbi, AnyStateMutability, ContractFunctionName<MonadStakingAbi>>,
+    });
+
+    const { data: raw } = await this.options.publicClient.call({
+      to: this.address,
+      data,
+    });
+
+    if (!raw) {
+      throw new Error(`Call to ${functionName} returned empty data.`);
+    }
+
+    return decodeFunctionResult({
+      abi: stakingAbi,
+      functionName: functionName as ContractFunctionName<MonadStakingAbi>,
+      data: raw as Hex,
+    }) as FunctionReturn<TName>;
+  }
+
+  async getEpoch(): Promise<EpochInfo> {
+    const [epoch, inEpochDelayPeriod] = await this.callFunction('getEpoch', []);
     return { epoch, inEpochDelayPeriod };
   }
 
   async getValidator(validatorId: bigint): Promise<ValidatorInfo> {
-    const result = (await this.options.publicClient.readContract({
-      address: this.address,
-      abi: stakingAbi,
-      functionName: 'getValidator',
-      args: [validatorId],
-    })) as [
-      Address,
-      bigint,
-      bigint,
-      bigint,
-      bigint,
-      bigint,
-      bigint,
-      bigint,
-      bigint,
-      bigint,
-      `0x${string}`,
-      `0x${string}`,
-    ];
-
     const [
       authAddress,
       flags,
@@ -214,7 +225,7 @@ export class MonadStakingSdk<TTransport extends Transport> {
       snapshotCommission,
       secpPubkey,
       blsPubkey,
-    ] = result;
+    ] = await this.callFunction('getValidator', [validatorId]);
 
     return {
       authAddress,
@@ -236,13 +247,6 @@ export class MonadStakingSdk<TTransport extends Transport> {
     validatorId: bigint,
     delegator: Address,
   ): Promise<DelegatorInfo> {
-    const result = (await this.options.publicClient.readContract({
-      address: this.address,
-      abi: stakingAbi,
-      functionName: 'getDelegator',
-      args: [validatorId, delegator],
-    })) as [bigint, bigint, bigint, bigint, bigint, bigint, bigint];
-
     const [
       stake,
       accRewardPerToken,
@@ -251,7 +255,7 @@ export class MonadStakingSdk<TTransport extends Transport> {
       nextDeltaStake,
       deltaEpoch,
       nextDeltaEpoch,
-    ] = result;
+    ] = await this.callFunction('getDelegator', [validatorId, delegator]);
 
     return {
       stake,
@@ -270,14 +274,10 @@ export class MonadStakingSdk<TTransport extends Transport> {
     withdrawalId: number,
   ): Promise<WithdrawalRequestInfo> {
     assertWithdrawalId(withdrawalId);
-    const result = (await this.options.publicClient.readContract({
-      address: this.address,
-      abi: stakingAbi,
-      functionName: 'getWithdrawalRequest',
-      args: [validatorId, delegator, Number(withdrawalId)],
-    })) as [bigint, bigint, bigint];
-
-    const [withdrawalAmount, accRewardPerToken, withdrawEpoch] = result;
+    const [withdrawalAmount, accRewardPerToken, withdrawEpoch] = await this.callFunction(
+      'getWithdrawalRequest',
+      [validatorId, delegator, Number(withdrawalId)],
+    );
     return { withdrawalAmount, accRewardPerToken, withdrawEpoch };
   }
 
@@ -303,14 +303,10 @@ export class MonadStakingSdk<TTransport extends Transport> {
     delegator: Address,
     startValId: bigint,
   ): Promise<PaginatedDelegations> {
-    const result = (await this.options.publicClient.readContract({
-      address: this.address,
-      abi: stakingAbi,
-      functionName: 'getDelegations',
-      args: [delegator, startValId],
-    })) as [boolean, bigint, readonly bigint[]];
-
-    const [isDone, nextValId, valIds] = result;
+    const [isDone, nextValId, valIds] = await this.callFunction(
+      'getDelegations',
+      [delegator, startValId],
+    );
     return {
       isDone,
       nextValId,
@@ -322,14 +318,10 @@ export class MonadStakingSdk<TTransport extends Transport> {
     validatorId: bigint,
     startDelegator: Address,
   ): Promise<PaginatedDelegators> {
-    const result = (await this.options.publicClient.readContract({
-      address: this.address,
-      abi: stakingAbi,
-      functionName: 'getDelegators',
-      args: [validatorId, startDelegator],
-    })) as [boolean, Address, readonly Address[]];
-
-    const [isDone, nextDelegator, delegators] = result;
+    const [isDone, nextDelegator, delegators] = await this.callFunction(
+      'getDelegators',
+      [validatorId, startDelegator],
+    );
     return {
       isDone,
       nextDelegator,
@@ -345,14 +337,7 @@ export class MonadStakingSdk<TTransport extends Transport> {
       throw new Error('startIndex must be non-negative.');
     }
 
-    const result = (await this.options.publicClient.readContract({
-      address: this.address,
-      abi: stakingAbi,
-      functionName,
-      args: [startIndex],
-    })) as [boolean, number, readonly bigint[]];
-
-    const [isDone, nextIndex, valIds] = result;
+    const [isDone, nextIndex, valIds] = await this.callFunction(functionName, [startIndex]);
     return {
       isDone,
       nextIndex: toSafeNumber(nextIndex, `${functionName}.nextIndex`),
@@ -444,6 +429,26 @@ export class MonadStakingSdk<TTransport extends Transport> {
     });
   }
 
+  async claimAllRewards(args: { readonly account: Address }): Promise<Hash[]> {
+    const walletClient = this.requireWalletClient();
+    const delegations = await this.getDelegations(args.account, 0n);
+    const results: Hash[] = [];
+    for (const validatorId of delegations.validatorIds) {
+      const delegator = await this.getDelegator(validatorId, args.account);
+      if (delegator.unclaimedRewards <= 0n) continue;
+      const hash = await walletClient.writeContract({
+        address: this.address,
+        abi: stakingAbi,
+        functionName: 'claimRewards',
+        args: [validatorId],
+        account: args.account,
+        chain: walletClient.chain ?? undefined,
+      });
+      results.push(hash);
+    }
+    return results;
+  }
+
   async changeCommission(args: {
     readonly validatorId: bigint;
     readonly newCommission: bigint;
@@ -463,17 +468,14 @@ export class MonadStakingSdk<TTransport extends Transport> {
 
   async externalReward(args: {
     readonly validatorId: bigint;
-    readonly amount: bigint;
     readonly account: Address;
   }): Promise<Hash> {
-    assertExternalRewardBounds(args.amount);
     const walletClient = this.requireWalletClient();
     return walletClient.writeContract({
       address: this.address,
       abi: stakingAbi,
       functionName: 'externalReward',
       args: [args.validatorId],
-      value: args.amount,
       account: args.account,
       chain: walletClient.chain ?? undefined,
     });
@@ -484,6 +486,10 @@ export class MonadStakingSdk<TTransport extends Transport> {
       throw new Error('Wallet client is not configured. Call setWalletClient or provide one during construction.');
     }
     return this.walletClient;
+  }
+
+  async waitForTransactionReceipt(hash: Hash): Promise<TransactionReceipt> {
+    return this.options.publicClient.waitForTransactionReceipt({ hash });
   }
 }
 

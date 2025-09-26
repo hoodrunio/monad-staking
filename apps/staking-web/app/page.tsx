@@ -1,56 +1,28 @@
-import type { MonadNetwork } from '@monad-staking/config';
-import { MONAD_NETWORK_KEYS } from '@monad-staking/config';
-import type { EpochInfo } from '@monad-staking/sdk';
+'use client';
+
+import { useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
+import { getSelectedNetwork } from '@/lib/page-utils';
 import { NetworkSelector } from '@/app/components/network-selector';
-import {
-  getEnabledNetworkConfigs,
-  getNetworkConfigMap,
-  parseNetworkKey,
-  tryResolveNetwork,
-} from '@/lib/networks';
-import { getStakingSdk } from '@/lib/clients';
+import { LoadingSkeleton } from '@/app/components/loading-skeleton';
+import { ClientOnly } from '@/app/components/client-only';
+import { useEpochQuery } from '@/lib/queries';
+import { MONAD_NETWORK_KEYS } from '@monad-staking/config';
 
-interface PageProps {
-  searchParams?: Promise<Record<string, string | string[] | undefined>> |
-    Record<string, string | string[] | undefined>;
-}
-
-async function resolveSearchParams(
-  searchParams: PageProps['searchParams'],
-): Promise<Record<string, string | string[] | undefined>> {
-  if (!searchParams) return {};
-  if (searchParams instanceof Promise) {
-    return searchParams;
-  }
-  return searchParams;
-}
-
-async function fetchEpoch(
-  networkKey: MonadNetwork,
-): Promise<{ info: EpochInfo | null; error?: string }> {
-  const configMap = getNetworkConfigMap();
-  const resolved = tryResolveNetwork(configMap, networkKey);
-  if (!resolved) {
-    return { info: null, error: 'Network is not fully configured.' };
-  }
-
-  try {
-    const sdk = getStakingSdk(resolved);
-    const info = await sdk.getEpoch();
-    return { info };
-  } catch (error) {
-    let message = 'Failed to fetch epoch data.';
-    if (error instanceof Error) {
-      message = `${message} ${error.message}`;
-    }
-    return { info: null, error: message };
-  }
-}
-
-export default async function Page(props: PageProps) {
-  const searchParams = await resolveSearchParams(props.searchParams);
-  const configMap = getNetworkConfigMap();
+function HomePageContent() {
+  const searchParams = useSearchParams();
+  const configMap = useMemo(() => getNetworkConfigMap(), []);
   const enabledNetworks = getEnabledNetworkConfigs(configMap);
+
+  const networkParam = searchParams.get('network');
+  const selectedNetwork = getSelectedNetwork(networkParam, enabledNetworks);
+  const resolved = selectedNetwork ? tryResolveNetwork(configMap, selectedNetwork) : null;
+
+  // Always call hooks at the top level
+  const { data: epochData, isLoading, error } = useEpochQuery(selectedNetwork || 'monad-mainnet', {
+    enabled: !!selectedNetwork && !!resolved
+  });
 
   if (enabledNetworks.length === 0) {
     return (
@@ -58,7 +30,8 @@ export default async function Page(props: PageProps) {
         <header className="space-y-2">
           <h1 className="text-3xl font-semibold">Monad Staking Dashboard</h1>
           <p className="text-slate-400">
-            Configure environment variables for at least one network to begin.
+            Configure environment variables for at least one Monad network to
+            get started.
           </p>
         </header>
         <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6">
@@ -76,120 +49,131 @@ export default async function Page(props: PageProps) {
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-sm text-slate-500">
-            Refer to <code className="rounded bg-slate-800 px-2 py-1">AGENTS.md</code>{' '}
-            in the repository root for additional guidance.
-          </p>
         </section>
       </div>
     );
   }
 
-  const networkParam = searchParams['network'];
-  const requestedKey = Array.isArray(networkParam)
-    ? parseNetworkKey(networkParam[0])
-    : parseNetworkKey(networkParam);
-
-  const fallbackKey = enabledNetworks[0]?.key;
-  const selectedKey = requestedKey ?? fallbackKey;
-
-  if (!selectedKey) {
+  if (!selectedNetwork) {
     return null;
   }
 
-  const epochResult = await fetchEpoch(selectedKey);
-
-  const selectedConfig = configMap[selectedKey];
+  if (!resolved) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-semibold">Dashboard</h1>
+        <p className="text-slate-400">Selected network is not fully configured.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
+      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
           <h1 className="text-3xl font-semibold">Monad Staking Dashboard</h1>
           <p className="text-slate-400">
-            Track epoch progress and validator activation timelines across Monad
-            networks.
+            Overview of staking information on {resolved.key}
           </p>
         </div>
-        <NetworkSelector
-          networks={enabledNetworks}
-          selectedKey={selectedKey}
-        />
+        <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
       </header>
 
-      <section className="grid gap-6 md:grid-cols-2">
-        <article className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-lg shadow-black/10">
-          <h2 className="text-xl font-semibold text-slate-100">
-            Epoch Overview
-          </h2>
-          {epochResult.info ? (
-            <dl className="mt-4 space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Current Epoch</dt>
-                <dd className="font-mono text-base text-slate-50">
-                  {epochResult.info.epoch.toString()}
-                </dd>
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold text-slate-100">Epoch Overview</h2>
+        
+        {error ? (
+          <div className="rounded-lg border border-red-900/40 bg-red-950/30 p-6 text-sm text-red-200">
+            Failed to load epoch information: {error instanceof Error ? error.message : 'Unknown error'}
+          </div>
+        ) : isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-slate-800 bg-slate-900/50 p-6">
+                <LoadingSkeleton className="h-4 w-20 mb-2" />
+                <LoadingSkeleton className="h-8 w-16" />
               </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Epoch Delay Period</dt>
-                <dd className="font-mono text-base text-slate-50">
-                  {epochResult.info.inEpochDelayPeriod ? 'Active' : 'Inactive'}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Blocks per Epoch</dt>
-                <dd className="font-mono text-base text-slate-50">
-                  {selectedConfig.epochLength.toLocaleString()}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Rounds in Delay Period</dt>
-                <dd className="font-mono text-base text-slate-50">
-                  {selectedConfig.epochDelayPeriod.toLocaleString()}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Withdrawal Delay</dt>
-                <dd className="font-mono text-base text-slate-50">
-                  {selectedConfig.withdrawalDelay} epoch
-                  {selectedConfig.withdrawalDelay === 1 ? '' : 's'}
-                </dd>
-              </div>
-            </dl>
-          ) : (
-            <p className="mt-4 text-sm text-red-400">
-              {epochResult.error ?? 'Unable to load epoch information.'}
-            </p>
-          )}
-        </article>
+            ))}
+          </div>
+        ) : epochData ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-6">
+              <h3 className="text-sm font-medium text-slate-400">Current Epoch</h3>
+              <p className="mt-1 text-2xl font-semibold text-slate-100">
+                {epochData.epoch}
+              </p>
+            </div>
+            
+            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-6">
+              <h3 className="text-sm font-medium text-slate-400">Epoch Status</h3>
+              <p className="mt-1 text-2xl font-semibold text-slate-100">
+                {epochData.inEpochDelayPeriod ? (
+                  <span className="text-amber-400">Delay Period</span>
+                ) : (
+                  <span className="text-emerald-400">Active</span>
+                )}
+              </p>
+            </div>
 
-        <article className="rounded-xl border border-emerald-900/40 bg-emerald-950/30 p-6">
-          <h2 className="text-xl font-semibold text-emerald-200">
-            Activation Windows
-          </h2>
-          <p className="mt-3 text-sm text-emerald-100/80">
-            Delegations submitted before the boundary block activate in the next
-            epoch. Requests within the delay window activate two epochs later.
-            Withdrawals settle after an additional{' '}
-            {selectedConfig.withdrawalDelay} epoch.
-          </p>
-          <ul className="mt-4 space-y-2 text-sm text-emerald-100/70">
-            <li>
-              <span className="font-semibold">Delegation:</span> Effective in
-              epoch <code>n + 1</code> or <code>n + 2</code> depending on timing.
-            </li>
-            <li>
-              <span className="font-semibold">Undelegation:</span> Leaves the
-              active set in the same cadence and becomes withdrawable after the
-              configured delay.
-            </li>
-            <li>
-              <span className="font-semibold">Rewards:</span> Claim directly or
-              call <code>compound</code> to roll them into stake.
-            </li>
-          </ul>
-        </article>
+            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-6">
+              <h3 className="text-sm font-medium text-slate-400">Epoch Length</h3>
+              <p className="mt-1 text-2xl font-semibold text-slate-100">
+                {epochData.epochLength.toLocaleString()} blocks
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-6">
+              <h3 className="text-sm font-medium text-slate-400">Withdrawal Delay</h3>
+              <p className="mt-1 text-2xl font-semibold text-slate-100">
+                {epochData.withdrawalDelay} epochs
+              </p>
+            </div>
+          </div>
+        ) : null}
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold text-slate-100">Activation Windows</h2>
+        {epochData ? (
+          <div className="rounded-lg border border-blue-900/40 bg-blue-950/30 p-6">
+            <div className="space-y-3 text-sm text-blue-200">
+              <div className="flex items-center justify-between">
+                <span>New delegations become active:</span>
+                <span className="font-mono">
+                  Epoch {(BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n)).toString()}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>New undelegations become inactive:</span>
+                <span className="font-mono">
+                  Epoch {(BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n)).toString()}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Undelegated funds withdrawable:</span>
+                <span className="font-mono">
+                  Epoch {(BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n) + BigInt(epochData.withdrawalDelay)).toString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <LoadingSkeleton className="h-24 w-full" />
+        )}
       </section>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <ClientOnly fallback={
+      <div className="space-y-6">
+        <h1 className="text-3xl font-semibold">Monad Staking Dashboard</h1>
+        <p className="text-slate-400">Loading...</p>
+      </div>
+    }>
+      <HomePageContent />
+    </ClientOnly>
   );
 }

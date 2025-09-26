@@ -1,0 +1,20 @@
+# Systemd unit for the staking-api background worker. Copy to /etc/systemd/system/
+# and adjust WorkingDirectory, User/Group, and EnvironmentFile paths for production.
+[Unit]
+Description=Monad Staking API (worker)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/monad-staking/apps/staking-api
+Environment=NODE_ENV=production
+EnvironmentFile=/root/monad-staking/apps/staking-api/.env
+ExecStart=/root/.bun/bin/bun run src/worker.ts
+Restart=on-failure
+RestartSec=10s
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

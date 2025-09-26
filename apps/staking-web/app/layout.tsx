@@ -49,6 +49,12 @@ export default function RootLayout({
                   >
                     Stake
                   </Link>
+                  <Link
+                    href="/account"
+                    className="rounded-md px-3 py-2 transition hover:bg-slate-800/60 hover:text-slate-100"
+                  >
+                    Account
+                  </Link>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -70,6 +76,12 @@ export default function RootLayout({
                     className="rounded-md px-3 py-2 transition hover:bg-slate-800/60 hover:text-slate-100"
                   >
                     Stake
+                  </Link>
+                  <Link
+                    href="/account"
+                    className="rounded-md px-3 py-2 transition hover:bg-slate-800/60 hover:text-slate-100"
+                  >
+                    Account
                   </Link>
                 </div>
                 <ClientOnly

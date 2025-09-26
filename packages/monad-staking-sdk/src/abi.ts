@@ -6,11 +6,7 @@ export const stakingAbi = [
     "name": "addValidator",
     "inputs": [
       { "name": "payload", "type": "bytes", "internalType": "bytes" },
-      {
-        "name": "signedSecpMessage",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
+      { "name": "signedSecpMessage", "type": "bytes", "internalType": "bytes" },
       { "name": "signedBlsMessage", "type": "bytes", "internalType": "bytes" }
     ],
     "outputs": [
@@ -72,7 +68,7 @@ export const stakingAbi = [
     "outputs": [
       { "name": "success", "type": "bool", "internalType": "bool" }
     ],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -127,11 +123,7 @@ export const stakingAbi = [
         "internalType": "uint256"
       },
       { "name": "deltaEpoch", "type": "uint64", "internalType": "uint64" },
-      {
-        "name": "nextDeltaEpoch",
-        "type": "uint64",
-        "internalType": "uint64"
-      }
+      { "name": "nextDeltaEpoch", "type": "uint64", "internalType": "uint64" }
     ],
     "stateMutability": "nonpayable"
   },
@@ -140,19 +132,11 @@ export const stakingAbi = [
     "name": "getDelegators",
     "inputs": [
       { "name": "validatorId", "type": "uint64", "internalType": "uint64" },
-      {
-        "name": "startDelegator",
-        "type": "address",
-        "internalType": "address"
-      }
+      { "name": "startDelegator", "type": "address", "internalType": "address" }
     ],
     "outputs": [
       { "name": "isDone", "type": "bool", "internalType": "bool" },
-      {
-        "name": "nextDelegator",
-        "type": "address",
-        "internalType": "address"
-      },
+      { "name": "nextDelegator", "type": "address", "internalType": "address" },
       { "name": "delegators", "type": "address[]", "internalType": "address[]" }
     ],
     "stateMutability": "nonpayable"
@@ -163,11 +147,7 @@ export const stakingAbi = [
     "inputs": [],
     "outputs": [
       { "name": "epoch", "type": "uint64", "internalType": "uint64" },
-      {
-        "name": "inEpochDelayPeriod",
-        "type": "bool",
-        "internalType": "bool"
-      }
+      { "name": "inEpochDelayPeriod", "type": "bool", "internalType": "bool" }
     ],
     "stateMutability": "nonpayable"
   },
@@ -228,11 +208,7 @@ export const stakingAbi = [
         "type": "uint256",
         "internalType": "uint256"
       },
-      {
-        "name": "snapshotStake",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
+      { "name": "snapshotStake", "type": "uint256", "internalType": "uint256" },
       {
         "name": "snapshotCommission",
         "type": "uint256",
@@ -241,7 +217,7 @@ export const stakingAbi = [
       { "name": "secpPubkey", "type": "bytes", "internalType": "bytes" },
       { "name": "blsPubkey", "type": "bytes", "internalType": "bytes" }
     ],
-    "stateMutability": "nonpayable"
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -249,7 +225,7 @@ export const stakingAbi = [
     "inputs": [
       { "name": "validatorId", "type": "uint64", "internalType": "uint64" },
       { "name": "delegator", "type": "address", "internalType": "address" },
-      { "name": "withdrawId", "type": "uint8", "internalType": "uint8" }
+      { "name": "withdrawalId", "type": "uint8", "internalType": "uint8" }
     ],
     "outputs": [
       {
@@ -297,11 +273,9 @@ export const stakingAbi = [
     "inputs": [
       { "name": "validatorId", "type": "uint64", "internalType": "uint64" },
       { "name": "amount", "type": "uint256", "internalType": "uint256" },
-      { "name": "withdrawId", "type": "uint8", "internalType": "uint8" }
+      { "name": "withdrawalId", "type": "uint8", "internalType": "uint8" }
     ],
-    "outputs": [
-      { "name": "success", "type": "bool", "internalType": "bool" }
-    ],
+    "outputs": [{ "name": "success", "type": "bool", "internalType": "bool" }],
     "stateMutability": "nonpayable"
   },
   {
@@ -309,11 +283,9 @@ export const stakingAbi = [
     "name": "withdraw",
     "inputs": [
       { "name": "validatorId", "type": "uint64", "internalType": "uint64" },
-      { "name": "withdrawId", "type": "uint8", "internalType": "uint8" }
+      { "name": "withdrawalId", "type": "uint8", "internalType": "uint8" }
     ],
-    "outputs": [
-      { "name": "success", "type": "bool", "internalType": "bool" }
-    ],
+    "outputs": [{ "name": "success", "type": "bool", "internalType": "bool" }],
     "stateMutability": "nonpayable"
   },
   {
@@ -414,7 +386,7 @@ export const stakingAbi = [
         "internalType": "address"
       },
       {
-        "name": "withdrawId",
+        "name": "withdrawalId",
         "type": "uint8",
         "indexed": false,
         "internalType": "uint8"
@@ -469,7 +441,12 @@ export const stakingAbi = [
         "indexed": true,
         "internalType": "address"
       },
-      { "name": "flags", "type": "uint64", "indexed": false, "internalType": "uint64" }
+      {
+        "name": "flags",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
     ],
     "anonymous": false
   },
@@ -490,7 +467,7 @@ export const stakingAbi = [
         "internalType": "address"
       },
       {
-        "name": "withdrawId",
+        "name": "withdrawalId",
         "type": "uint8",
         "indexed": false,
         "internalType": "uint8"

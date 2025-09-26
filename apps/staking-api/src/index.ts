@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { validatorRoutes } from './routes/validators';
 import { epochRoutes } from './routes/epoch';
 import { delegationsRoutes } from './routes/delegations';
@@ -8,6 +9,23 @@ import { getResolvedNetworks } from './clients';
 import { logger } from './logger';
 
 const app = new Hono();
+
+// CORS middleware
+app.use('*', cors({
+  origin: (origin) => {
+    const allowed = [
+      'http://localhost:3000',
+      'https://staking.hoodscan.io',
+    ];
+    if (!origin) return origin; // Allow requests with no origin (for mobile apps)
+    if (allowed.includes(origin)) return origin;
+    if (origin.match(/^https:\/\/.*\.vercel\.app$/)) return origin;
+    if (origin.match(/^https:\/\/.*\.netlify\.app$/)) return origin;
+    return null; // Block other origins
+  },
+  allowHeaders: ['Content-Type', 'Authorization'],
+  allowMethods: ['GET'],
+}));
 
 app.onError((err, c) => {
   const message = err instanceof Error ? err.message : 'Unexpected error';
