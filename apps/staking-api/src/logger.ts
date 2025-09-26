@@ -3,6 +3,8 @@ import winston from 'winston';
 const level = process.env.LOG_LEVEL ?? 'info';
 const pretty = (process.env.LOG_PRETTY ?? '').toLowerCase() === 'true' || (process.stdout.isTTY && process.env.NODE_ENV !== 'production');
 
+const service = process.env.LOG_SERVICE ?? 'staking-api';
+
 const baseFormats = [
   winston.format.timestamp({ format: () => new Date().toISOString() }),
   winston.format.errors({ stack: true }),
@@ -23,7 +25,7 @@ const colorFormat = winston.format.combine(
 export const logger = winston.createLogger({
   level,
   format: pretty ? colorFormat : jsonFormat,
+  defaultMeta: { service },
   transports: [new winston.transports.Console({ level })],
 });
-
 

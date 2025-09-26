@@ -43,6 +43,12 @@ export interface EpochStateDoc {
   updatedAt: string; // ISO
 }
 
+export interface IngestStateDoc {
+  _id: string; // network
+  nextValidatorId: string; // bigint string
+  updatedAt: string; // ISO
+}
+
 let mongoClient: MongoClient | null = null;
 let mongoDb: Db | null = null;
 let redisClient: Redis | null = null;
@@ -81,4 +87,10 @@ export async function epochCol(db?: Db): Promise<Collection<EpochStateDoc>> {
   return col;
 }
 
+export async function ingestStateCol(db?: Db): Promise<Collection<IngestStateDoc>> {
+  const database = db ?? (await getMongo());
+  const col = database.collection<IngestStateDoc>('ingest_state');
+  await col.createIndex({ updatedAt: 1 });
+  return col;
+}
 

@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { getResolvedNetworks, getSdk } from '../clients';
-import { TtlCache } from '../cache';
+import { createHybridCache } from '../cache';
 
 export const epochRoutes = new Hono();
 
@@ -17,7 +17,7 @@ type EpochResponse = {
   withdrawalDelay: number;
 };
 
-const cache = new TtlCache<EpochResponse>(10_000);
+const cache = createHybridCache<EpochResponse>({ prefix: 'epoch', ttlSeconds: 10 });
 
 epochRoutes.get('/', async (c) => {
   const parsed = querySchema.safeParse(Object.fromEntries(new URL(c.req.url).searchParams));
@@ -27,7 +27,7 @@ epochRoutes.get('/', async (c) => {
 
   const { network } = parsed.data;
   const cacheKey = `epoch:${network}`;
-  const cached = cache.get(cacheKey);
+  const cached = await cache.get(cacheKey);
   if (cached) return c.json(cached);
 
   const resolved = getResolvedNetworks()[network];
@@ -43,12 +43,11 @@ epochRoutes.get('/', async (c) => {
       epochDelayPeriod: resolved.epochDelayPeriod,
       withdrawalDelay: resolved.withdrawalDelay,
     };
-    cache.set(cacheKey, response, 10_000);
+    await cache.set(cacheKey, response);
     return c.json(response);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to fetch epoch';
     return c.json({ error: message }, 500);
   }
 });
-
 

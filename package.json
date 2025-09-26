@@ -17,7 +17,8 @@
     "build:all": "pnpm -r run build",
     "lint": "pnpm -r run lint",
     "test": "pnpm -r run test",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "docker:staking-api": "docker build -f apps/staking-api/Dockerfile -t staking-api:latest ."
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

@@ -1,9 +1,11 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { getResolvedNetworks, getSdk } from '../clients';
-import { TtlCache } from '../cache';
+import { createHybridCache } from '../cache';
 import { validatorsCol, type ValidatorDoc } from '../db';
 import { logger } from '../logger';
+import { normalizeAmount, normalizeCommission, type AmountField, type CommissionField } from '../format';
+import { normalizeHexNo0x, normalizeSecpKey, ensure0x, normalizeAddress } from '../key-format';
 
 export const validatorRoutes = new Hono();
 
@@ -20,10 +22,15 @@ const detailQuery = z.object({
 type ValidatorListItem = {
   validatorId: string;
   authAddress: string;
-  commission: string;
-  stake: { execution: string; consensus: string; snapshot: string };
-  unclaimedRewards: string;
+  commission: CommissionField;
+  stake: {
+    execution: AmountField;
+    consensus: AmountField;
+    snapshot: AmountField;
+  };
+  unclaimedRewards: AmountField;
   flagsRaw: string;
+  keys: { secpPubkey: string; blsPubkey: string };
   meta?: { name?: string; website?: string; logoUrl?: string };
   isActive?: boolean;
   activeEpoch?: string;
@@ -38,10 +45,13 @@ type ValidatorListResponse = {
 type ValidatorDetailResponse = {
   validatorId: string;
   authAddress: string;
-  commissionRaw: string;
-  commission: string;
-  stake: { execution: string; consensus: string; snapshot: string };
-  unclaimedRewards: string;
+  commission: CommissionField;
+  stake: {
+    execution: AmountField;
+    consensus: AmountField;
+    snapshot: AmountField;
+  };
+  unclaimedRewards: AmountField;
   flagsRaw: string;
   keys: { secpPubkey: `${string}`; blsPubkey: `${string}` };
   meta?: {
@@ -57,32 +67,15 @@ type ValidatorDetailResponse = {
   activeEpoch?: string;
 };
 
-function formatMon(value: bigint): string {
-  const decimals = 18n;
-  const sign = value < 0n ? '-' : '';
-  const abs = value < 0n ? -value : value;
-  const int = abs / (10n ** decimals);
-  const frac = (abs % (10n ** decimals)).toString().padStart(Number(decimals), '0').slice(0, 4).replace(/0+$/, '');
-  return `${sign}${int.toString()}${frac ? '.' + frac : ''} MON`;
-}
-
-const listCache = new TtlCache<ValidatorListResponse>(30_000);
-const detailCache = new TtlCache<ValidatorDetailResponse>(120_000);
-
-function normalizeHexNo0x(input: string): string | null {
-  const trimmed = input.trim();
-  const no0x = trimmed.startsWith('0x') || trimmed.startsWith('0X') ? trimmed.slice(2) : trimmed;
-  return /^[0-9a-fA-F]+$/.test(no0x) ? no0x.toLowerCase() : null;
-}
+const listCache = createHybridCache<ValidatorListResponse>({ prefix: 'validators:list', ttlSeconds: 30 });
+const detailCache = createHybridCache<ValidatorDetailResponse>({ prefix: 'validators:detail', ttlSeconds: 120 });
 
 function isDecimalId(input: string): boolean {
   return /^\d+$/.test(input);
 }
 
 function detectAddressHex(input: string): string | null {
-  const m = input.match(/^0x([0-9a-fA-F]{40})$/);
-  if (m) return m[1].toLowerCase();
-  return null;
+  return normalizeAddress(input) ?? null;
 }
 
 validatorRoutes.get('/', async (c) => {
@@ -91,7 +84,7 @@ validatorRoutes.get('/', async (c) => {
   const { network, cursor, limit } = parsed.data;
 
   const cacheKey = `list-db:${network}:${cursor}:${limit}`;
-  const cached = listCache.get(cacheKey);
+  const cached = await listCache.get(cacheKey);
   if (cached) return c.json(cached);
 
   try {
@@ -100,31 +93,27 @@ validatorRoutes.get('/', async (c) => {
     const query = cursor ? { ...filter, validatorId: { $gt: cursor } } : filter;
     const docs = await col.find(query, { sort: { validatorId: 1 }, limit }).toArray();
 
-    const items: ValidatorListItem[] = docs.map((d: ValidatorDoc) => {
-      const commissionBig = BigInt(d.commission);
-      const scaled = (commissionBig * 10000n) / (10n ** 18n);
-      const integer = scaled / 100n;
-      const fraction = (scaled % 100n).toString().padStart(2, '0').replace(/0+$/, '');
-      const commission = fraction ? `${integer.toString()}.${fraction}%` : `${integer.toString()}%`;
-      return {
-        validatorId: d.validatorId,
-        authAddress: d.authAddress,
-        commission,
-        stake: {
-          execution: formatMon(BigInt(d.stake.execution)),
-          consensus: formatMon(BigInt(d.stake.consensus)),
-          snapshot: formatMon(BigInt(d.stake.snapshot)),
-        },
-        unclaimedRewards: formatMon(BigInt(d.unclaimedRewards)),
-        flagsRaw: d.flagsRaw,
-        keys: { secpPubkey: d.keys?.secpPubkey ?? '', blsPubkey: d.keys?.blsPubkey ?? '' },
-        meta: d.meta
-          ? { name: d.meta.name, website: d.meta.website, logoUrl: d.meta.logoUrl }
-          : undefined,
-        isActive: d.isActive,
-        activeEpoch: d.activeEpoch,
-      };
-    });
+    const items: ValidatorListItem[] = docs.map((d: ValidatorDoc) => ({
+      validatorId: d.validatorId,
+      authAddress: d.authAddress,
+      commission: normalizeCommission(d.commission),
+      stake: {
+        execution: normalizeAmount(d.stake.execution),
+        consensus: normalizeAmount(d.stake.consensus),
+        snapshot: normalizeAmount(d.stake.snapshot),
+      },
+      unclaimedRewards: normalizeAmount(d.unclaimedRewards),
+      flagsRaw: d.flagsRaw,
+      keys: {
+        secpPubkey: d.keys?.secpPubkey ? ensure0x(d.keys.secpPubkey) : '',
+        blsPubkey: d.keys?.blsPubkey ?? '',
+      },
+      meta: d.meta
+        ? { name: d.meta.name, website: d.meta.website, logoUrl: d.meta.logoUrl }
+        : undefined,
+      isActive: d.isActive,
+      activeEpoch: d.activeEpoch,
+    }));
 
     const next = docs.length === limit ? docs[docs.length - 1]!.validatorId : null;
     const response: ValidatorListResponse = {
@@ -132,7 +121,7 @@ validatorRoutes.get('/', async (c) => {
       cursor: { prev: null, next },
       isDone: next === null,
     };
-    listCache.set(cacheKey, response);
+    await listCache.set(cacheKey, response);
     return c.json(response);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to load validators';
@@ -158,11 +147,11 @@ validatorRoutes.get('/:id', async (c) => {
     const secpParam = url.searchParams.get('secp');
     const authParam = url.searchParams.get('auth');
     // Prefer explicit query, else infer from path param
-    secp = secpParam ? normalizeHexNo0x(secpParam) : null;
+    secp = secpParam ? normalizeSecpKey(secpParam) : null;
     auth = authParam ? normalizeHexNo0x(authParam) : detectAddressHex(idParam);
     if (!secp && !auth) {
       // If still nothing, as a last attempt treat path as hex (could be secp without 0x)
-      const maybeHex = normalizeHexNo0x(idParam);
+      const maybeHex = normalizeSecpKey(idParam) ?? normalizeHexNo0x(idParam);
       if (maybeHex && maybeHex.length >= 40) secp = maybeHex;
     }
     if (!secp && !auth) {
@@ -171,7 +160,7 @@ validatorRoutes.get('/:id', async (c) => {
   }
 
   const cacheKey = `detail:${net}:${idBig !== null ? idBig.toString() : `secp:${secp}`}`;
-  const cached = detailCache.get(cacheKey);
+  const cached = await detailCache.get(cacheKey);
   if (cached) return c.json(cached);
 
   try {
@@ -183,23 +172,21 @@ validatorRoutes.get('/:id', async (c) => {
       ? await col.findOne({ network: net as 'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2', 'keys.secpPubkey': secp })
       : await col.findOne({ network: net as 'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2', authAddress: { $regex: new RegExp(`^0x${auth}$`, 'i') } });
     if (doc) {
-      const commissionBig = BigInt(doc.commission);
-      const scaled = (commissionBig * 10000n) / (10n ** 18n);
-      const integer = scaled / 100n;
-      const fraction = (scaled % 100n).toString().padStart(2, '0').replace(/0+$/, '');
-      const payload = {
+      const payload: ValidatorDetailResponse = {
         validatorId: doc.validatorId,
         authAddress: doc.authAddress,
-        commissionRaw: doc.commission,
-        commission: fraction ? `${integer.toString()}.${fraction}%` : `${integer.toString()}%`,
+        commission: normalizeCommission(doc.commission),
         stake: {
-          execution: formatMon(BigInt(doc.stake.execution)),
-          consensus: formatMon(BigInt(doc.stake.consensus)),
-          snapshot: formatMon(BigInt(doc.stake.snapshot)),
+          execution: normalizeAmount(doc.stake.execution),
+          consensus: normalizeAmount(doc.stake.consensus),
+          snapshot: normalizeAmount(doc.stake.snapshot),
         },
-        unclaimedRewards: formatMon(BigInt(doc.unclaimedRewards)),
+        unclaimedRewards: normalizeAmount(doc.unclaimedRewards),
         flagsRaw: doc.flagsRaw,
-        keys: { secpPubkey: doc.keys?.secpPubkey ?? '', blsPubkey: doc.keys?.blsPubkey ?? '' },
+        keys: {
+          secpPubkey: doc.keys?.secpPubkey ? ensure0x(doc.keys.secpPubkey) : '',
+          blsPubkey: doc.keys?.blsPubkey ?? '',
+        },
         meta: doc.meta
           ? {
               name: doc.meta.name,
@@ -213,8 +200,8 @@ validatorRoutes.get('/:id', async (c) => {
           : undefined,
         isActive: doc.isActive,
         activeEpoch: doc.activeEpoch,
-      } as ValidatorDetailResponse;
-      detailCache.set(cacheKey, payload);
+      };
+      await detailCache.set(cacheKey, payload);
       return c.json(payload);
     }
 
@@ -226,26 +213,24 @@ validatorRoutes.get('/:id', async (c) => {
     if (!resolved) return c.json({ error: { code: 'BAD_REQUEST', message: 'Network not configured' } }, 400);
     const sdk = getSdk(resolved);
     const v = await sdk.getValidator(idBig);
+    const normalizedSecp = normalizeSecpKey(v.secpPubkey) ?? normalizeHexNo0x(v.secpPubkey);
     const payload: ValidatorDetailResponse = {
       validatorId: idBig.toString(),
       authAddress: v.authAddress,
-      commissionRaw: v.commission.toString(),
-      commission: (() => {
-        const scaled = (v.commission * 10000n) / (10n ** 18n);
-        const integer = scaled / 100n;
-        const fraction = (scaled % 100n).toString().padStart(2, '0').replace(/0+$/, '');
-        return fraction ? `${integer.toString()}.${fraction}%` : `${integer.toString()}%`;
-      })(),
+      commission: normalizeCommission(v.commission),
       stake: {
-        execution: formatMon(v.stake),
-        consensus: formatMon(v.consensusStake),
-        snapshot: formatMon(v.snapshotStake),
+        execution: normalizeAmount(v.stake),
+        consensus: normalizeAmount(v.consensusStake),
+        snapshot: normalizeAmount(v.snapshotStake),
       },
-      unclaimedRewards: formatMon(v.unclaimedRewards),
+      unclaimedRewards: normalizeAmount(v.unclaimedRewards),
       flagsRaw: v.flags.toString(),
-      keys: { secpPubkey: v.secpPubkey, blsPubkey: v.blsPubkey },
+      keys: {
+        secpPubkey: normalizedSecp ? ensure0x(normalizedSecp) : ensure0x(v.secpPubkey),
+        blsPubkey: v.blsPubkey,
+      },
     };
-    detailCache.set(cacheKey, payload);
+    await detailCache.set(cacheKey, payload);
     try {
       await (await validatorsCol()).updateOne(
         { _id: `${net}:${idBig.toString()}` },
@@ -263,7 +248,10 @@ validatorRoutes.get('/:id', async (c) => {
             },
             unclaimedRewards: v.unclaimedRewards.toString(),
             flagsRaw: v.flags.toString(),
-            keys: { secpPubkey: v.secpPubkey, blsPubkey: v.blsPubkey },
+            keys: {
+              secpPubkey: normalizedSecp ?? undefined,
+              blsPubkey: v.blsPubkey,
+            },
             updatedAt: new Date().toISOString(),
           } as ValidatorDoc,
         },
@@ -278,5 +266,3 @@ validatorRoutes.get('/:id', async (c) => {
     return c.json({ error: { code: 'INTERNAL_ERROR', message } }, 500);
   }
 });
-
-

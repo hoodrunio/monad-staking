@@ -3,6 +3,7 @@ import { z } from 'zod';
 import pLimit from 'p-limit';
 import { getResolvedNetworks, getSdk } from '../clients';
 import { TtlCache } from '../cache';
+import { normalizeAmount, type AmountField } from '../format';
 
 export const withdrawalsRoutes = new Hono();
 
@@ -18,8 +19,8 @@ const querySchema = z.object({
 type WithdrawalItem = {
   validatorId: string;
   withdrawalId: number;
-  amount: string;
-  accRewardPerToken: string;
+  amount: AmountField;
+  accRewardPerToken: AmountField;
   withdrawEpoch: string;
 };
 
@@ -60,8 +61,8 @@ withdrawalsRoutes.get('/', async (c) => {
           items.push({
             validatorId: valId.toString(),
             withdrawalId: wid,
-            amount: req.withdrawalAmount.toString(),
-            accRewardPerToken: req.accRewardPerToken.toString(),
+            amount: normalizeAmount(req.withdrawalAmount),
+            accRewardPerToken: normalizeAmount(req.accRewardPerToken),
             withdrawEpoch: req.withdrawEpoch.toString(),
           });
           count++;
@@ -102,5 +103,4 @@ withdrawalsRoutes.get('/', async (c) => {
     return c.json({ error: message }, 500);
   }
 });
-
 

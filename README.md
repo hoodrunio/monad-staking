@@ -27,6 +27,7 @@ This workspace powers Monad staking experiences with a Bun-based API and shared 
 
 ## Deployment Notes
 - Production hosts should use the systemd (or similar daemon/background processors) units in `apps/staking-api/systemd/` and an external environment file (e.g. `/etc/monad-staking/staking-api.env`).
+- Container deployments can rely on `pnpm docker:staking-api` (Dockerfile lives in `apps/staking-api/`) and override the command to switch between the HTTP server and worker entry points.
 - The API listens on port 8787 by default (`/health` for probes); the worker polls epoch transitions and refreshes validator data.
 
 ## Additional Docs

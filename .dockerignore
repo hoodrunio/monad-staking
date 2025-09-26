@@ -1,0 +1,13 @@
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+onchain/*/node_modules
+.tmp
+.git
+.gitignore
+.vscode
+**/dist
+.env
+.env.*
+coverage
+Dockerfile

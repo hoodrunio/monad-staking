@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { getResolvedNetworks, getSdk } from '../clients';
-import { TtlCache } from '../cache';
+import { createHybridCache } from '../cache';
+import { normalizeAmount, type AmountField } from '../format';
 
 export const delegationsRoutes = new Hono();
 
@@ -11,21 +12,12 @@ const listQuery = z.object({
   cursor: z.coerce.bigint().default(0n),
 });
 
-function formatMon(value: bigint): string {
-  const decimals = 18n;
-  const sign = value < 0n ? '-' : '';
-  const abs = value < 0n ? -value : value;
-  const int = abs / (10n ** decimals);
-  const frac = (abs % (10n ** decimals)).toString().padStart(Number(decimals), '0').slice(0, 4).replace(/0+$/, '');
-  return `${sign}${int.toString()}${frac ? '.' + frac : ''} MON`;
-}
-
 type DelegationItem = {
   validatorId: string;
-  stake: string;
-  unclaimedRewards: string;
-  deltaStake: string;
-  nextDeltaStake: string;
+  stake: AmountField;
+  unclaimedRewards: AmountField;
+  deltaStake: AmountField;
+  nextDeltaStake: AmountField;
   deltaEpoch: string;
   nextDeltaEpoch: string;
 };
@@ -35,7 +27,7 @@ type DelegationsResponse = {
   cursor: { next: string; done: boolean };
 };
 
-const cache = new TtlCache<DelegationsResponse>(20_000);
+const cache = createHybridCache<DelegationsResponse>({ prefix: 'delegations', ttlSeconds: 20 });
 
 delegationsRoutes.get('/', async (c) => {
   const parsed = listQuery.safeParse(Object.fromEntries(new URL(c.req.url).searchParams));
@@ -43,7 +35,7 @@ delegationsRoutes.get('/', async (c) => {
   const { network, address, cursor } = parsed.data;
 
   const cacheKey = `delegations:${network}:${address}:${cursor.toString()}`;
-  const cached = cache.get(cacheKey);
+  const cached = await cache.get(cacheKey);
   if (cached) return c.json(cached);
 
   const resolved = getResolvedNetworks()[network];
@@ -60,10 +52,10 @@ delegationsRoutes.get('/', async (c) => {
       const d = details[i];
       return {
         validatorId: id.toString(),
-        stake: formatMon(d.stake),
-        unclaimedRewards: formatMon(d.unclaimedRewards),
-        deltaStake: d.deltaStake.toString(),
-        nextDeltaStake: d.nextDeltaStake.toString(),
+        stake: normalizeAmount(d.stake),
+        unclaimedRewards: normalizeAmount(d.unclaimedRewards),
+        deltaStake: normalizeAmount(d.deltaStake),
+        nextDeltaStake: normalizeAmount(d.nextDeltaStake),
         deltaEpoch: d.deltaEpoch.toString(),
         nextDeltaEpoch: d.nextDeltaEpoch.toString(),
       };
@@ -73,12 +65,10 @@ delegationsRoutes.get('/', async (c) => {
       items,
       cursor: { next: page.nextValId.toString(), done: page.isDone },
     };
-    cache.set(cacheKey, response);
+    await cache.set(cacheKey, response);
     return c.json(response);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to load delegations';
     return c.json({ error: message }, 500);
   }
 });
-
-

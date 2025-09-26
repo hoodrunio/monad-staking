@@ -19,6 +19,10 @@ Copy `.env.example` to `.env`. Required environment variables as today:
 | `MONAD_TESTNET_2_EXPLORER_URL` | Explorer base URL exposed to clients |
 | `MONGODB_URI` | Connection string for MongoDB |
 | `MONGODB_DB` | Database name to store staking collections |
+| `REDIS_URL` | Redis connection string powering rate limiting and response caching (defaults to `redis://localhost:6379`) |
+| `RATE_LIMIT` | Requests allowed per window for public APIs (default `180`) |
+| `RATE_LIMIT_WINDOW` | Sliding window length in seconds (default `60`) |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated allowlist in addition to the bundled defaults |
 | `GITHUB_TOKEN` | Token used by ingestion helpers that scrape validator info documentation |
 
 Additional networks can be configured via the shared config package; see **[staking-docs](https://docs.monad.xyz/developer-essentials/staking/)** for the full matrix and update the `MONAD_*` variables accordingly.
@@ -47,6 +51,7 @@ The API listens on `http://localhost:8787` by default and exposes `/health`, `/a
 | `pnpm --filter apps/staking-api run worker` | Run the polling worker loop |
 | `pnpm --filter apps/staking-api run build` | Produce Bun build artifacts in `dist/` |
 | `pnpm --filter apps/staking-api run typecheck` | Validate TypeScript types |
+| `pnpm docker:staking-api` | Build the production container image |
 
 ## Production deployment
 
@@ -60,7 +65,22 @@ The API listens on `http://localhost:8787` by default and exposes `/health`, `/a
    ```
 5. Inspect logs with `journalctl -u staking-api.service -u staking-api-worker.service`.
 
-The HTTP server surfaces operational metrics via `/health`. The worker automatically ingests validators whenever a new epoch (outside the delay period) is observed.
+The HTTP server surfaces operational metrics via `/health` and Prometheus-formatted metrics under `/metrics`. The worker automatically ingests validators whenever a new epoch (outside the delay period) is observed.
+
+### Container image
+
+For containerized deployments, a multi-stage `Dockerfile` is available in `apps/staking-api/`. The image bundles both the HTTP server (`dist/index.js`) and the worker (`dist/worker.js`). Build and run locally with:
+
+```bash
+pnpm docker:staking-api
+docker run --rm -p 8787:8787 --env-file /path/to/staking-api.env staking-api:latest
+```
+
+Override the default command to launch the worker instead of the HTTP server:
+
+```bash
+docker run --rm --env-file /path/to/staking-api.env staking-api:latest run apps/staking-api/dist/worker.js
+```
 
 ## Testing
 
