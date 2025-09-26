@@ -281,7 +281,7 @@ function StakePageContent() {
         <aside className="space-y-6 rounded-2xl border border-slate-800 bg-slate-950/70 p-6">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-wide text-slate-500">Wallet</p>
-            <p className="text-sm font-mono text-slate-300">
+            <p className="text-sm font-mono text-slate-300 break-all">
               {account ?? 'Connect wallet to manage stake'}
             </p>
           </div>
