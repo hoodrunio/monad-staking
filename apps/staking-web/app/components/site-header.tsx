@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import type { Route } from 'next';
 import {
   Bars3Icon,
   ChartPieIcon,
@@ -14,11 +15,17 @@ import {
 import { WalletConnectButton } from '@/app/components/wallet-connect-button';
 import { ClientOnly } from '@/app/components/client-only';
 
-const navigationLinks = [
-  { href: '/', label: 'Dashboard', icon: RectangleGroupIcon },
-  { href: '/stake', label: 'Stake', icon: ShieldCheckIcon },
-  { href: '/validators', label: 'Validators', icon: ChartPieIcon },
-  { href: '/account', label: 'Account', icon: CursorArrowRippleIcon },
+interface NavigationLink {
+  href: Route;
+  label: string;
+  icon: typeof RectangleGroupIcon;
+}
+
+const navigationLinks: NavigationLink[] = [
+  { href: '/' as Route, label: 'Dashboard', icon: RectangleGroupIcon },
+  { href: '/stake' as Route, label: 'Stake', icon: ShieldCheckIcon },
+  { href: '/validators' as Route, label: 'Validators', icon: ChartPieIcon },
+  { href: '/account' as Route, label: 'Account', icon: CursorArrowRippleIcon },
 ];
 
 function buildLinkClasses(active: boolean): string {
