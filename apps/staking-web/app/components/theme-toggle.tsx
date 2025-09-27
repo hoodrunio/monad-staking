@@ -1,24 +1,23 @@
 'use client';
 
-import { MoonIcon, SunIcon } from '@heroicons/react/24/outline';
+import { Moon, Sun } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
 import { useTheme } from '@/app/theme-provider';
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <button
+    <Button
       type="button"
-      onClick={toggleTheme}
-      className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-card/70 text-muted-foreground transition hover:border-primary/40 hover:text-primary"
+      variant="ghost"
+      size="icon"
       aria-label="Toggle theme"
+      onClick={toggleTheme}
+      className="relative text-muted-foreground"
     >
-      <SunIcon
-        className={`h-5 w-5 transition-transform ${theme === 'light' ? 'rotate-0 scale-100' : '-rotate-90 scale-0'}`}
-      />
-      <MoonIcon
-        className={`absolute h-5 w-5 transition-transform ${theme === 'dark' ? 'rotate-0 scale-100' : 'rotate-90 scale-0'}`}
-      />
-    </button>
+      <Sun className={`h-4 w-4 transition-transform ${theme === 'light' ? 'rotate-0 scale-100' : '-rotate-90 scale-0'}`} />
+      <Moon className={`absolute h-4 w-4 transition-transform ${theme === 'dark' ? 'rotate-0 scale-100' : 'rotate-90 scale-0'}`} />
+    </Button>
   );
 }

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { Button } from '@/app/components/ui/button';
 
 export function WalletConnectButton() {
   return (
@@ -25,47 +26,37 @@ export function WalletConnectButton() {
         if (!ready) {
           return (
             <div aria-hidden>
-              <button
-                type="button"
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-muted-foreground"
-              >
-                Connecting...
-              </button>
+              <Button variant="outline" size="sm" className="cursor-wait">
+                Connecting…
+              </Button>
             </div>
           );
         }
 
         if (!connected) {
           return (
-            <button
-              type="button"
-              onClick={openConnectModal}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition hover:bg-primary/90"
-            >
+            <Button type="button" onClick={openConnectModal} variant="accent">
               Connect Wallet
-            </button>
+            </Button>
           );
         }
 
         if (chain.unsupported) {
           return (
-            <button
+            <Button
               type="button"
               onClick={openChainModal}
-              className="rounded-xl border border-destructive/60 bg-destructive/20 px-4 py-2 text-sm font-semibold text-destructive-foreground transition hover:border-destructive"
+              variant="outline"
+              className="border-destructive/60 bg-destructive/10 text-destructive hover:border-destructive"
             >
               Wrong network
-            </button>
+            </Button>
           );
         }
 
         return (
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={openChainModal}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-sm text-foreground transition hover:border-primary/40 hover:text-primary-foreground"
-            >
+            <Button type="button" onClick={openChainModal} variant="outline" size="sm" className="gap-2">
               {chain.hasIcon && chain.iconUrl ? (
                 <span className="inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-white/10">
                   <Image
@@ -78,14 +69,10 @@ export function WalletConnectButton() {
                 </span>
               ) : null}
               <span>{chain.name ?? 'Unknown network'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={openAccountModal}
-              className="rounded-xl border border-primary/40 bg-primary/15 px-3 py-1.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/25"
-            >
+            </Button>
+            <Button type="button" onClick={openAccountModal} variant="accent" size="sm" className="px-4">
               {account.displayName}
-            </button>
+            </Button>
           </div>
         );
       }}

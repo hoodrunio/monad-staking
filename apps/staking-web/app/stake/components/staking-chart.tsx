@@ -1,5 +1,7 @@
 'use client';
 
+import { Card } from '@/app/components/ui/card';
+
 interface DataPoint {
   readonly label: string;
   readonly value: number;
@@ -46,12 +48,12 @@ export function StakingChart({ data = DEFAULT_DATA }: StakingChartProps) {
   const areaPath = `M ${paddingX} ${paddingY + chartHeight} L ${points} L ${paddingX + chartWidth} ${paddingY + chartHeight} Z`;
 
   return (
-    <div className="space-y-4 rounded-3xl border border-border/60 bg-card/70 p-6 backdrop-blur">
+    <Card className="space-y-4 p-6">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Total MON staked over time</h2>
+        <h2 className="text-lg font-semibold text-foreground">Total amount of MON staked over time</h2>
         <p className="text-sm text-muted-foreground">Rolling staked MON shown per month.</p>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-border/60 bg-secondary/30 p-4">
+      <div className="overflow-hidden rounded-xl border border-border/40 bg-muted/20 p-4">
         <svg viewBox={`0 0 ${width} ${height}`} className="h-48 w-full">
           <defs>
             <linearGradient id="stakingGradient" x1="0" x2="0" y1="0" y2="1">
@@ -83,6 +85,6 @@ export function StakingChart({ data = DEFAULT_DATA }: StakingChartProps) {
           ))}
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
