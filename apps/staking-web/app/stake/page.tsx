@@ -291,7 +291,7 @@ function StakeScreen() {
       <section className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
-            <h1 className="text-4xl font-semibold text-foreground">Stake</h1>
+            <h1 className="text-4xl font-bold text-balance">Stake</h1>
             <p className="text-sm text-muted-foreground">
               Stake your MON, monitor validator performance, and track rewards on {resolved.label}.
             </p>

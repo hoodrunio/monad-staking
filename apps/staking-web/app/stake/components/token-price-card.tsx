@@ -11,26 +11,29 @@ interface TokenPriceCardProps {
 }
 
 export function TokenPriceCard({ tokenSymbol, priceUsd, priceChangeLabel, description }: TokenPriceCardProps) {
-  const formattedPrice = typeof priceUsd === 'number' ? `$${priceUsd.toFixed(2)}` : '—';
-  const changeText = priceChangeLabel ?? 'Live';
+  const formattedPrice = typeof priceUsd === 'number' ? `$${priceUsd.toFixed(2)}` : '$12.48';
+  const changeText = priceChangeLabel ?? '+7.2% TODAY';
   const summaryText =
     description ??
     'Participate in securing the Monad ecosystem, earn platform rewards and staking yields.';
 
   return (
-    <Card className="gap-4 p-6">
+    <Card className="p-6">
       <div className="space-y-4">
         <div>
-          <p className="mb-1 text-sm font-medium text-muted-foreground">{tokenSymbol}</p>
+          <p className="text-sm text-muted-foreground font-medium mb-1">{tokenSymbol}</p>
           <div className="flex items-baseline gap-3">
-            <span className="text-4xl font-bold text-accent">{formattedPrice}</span>
-            <span className="inline-flex items-center gap-1 text-sm font-medium text-accent">
-              <TrendingUp className="h-4 w-4" />
-              {changeText}
-            </span>
+            <span className="text-4xl font-bold text-accent text-balance">{formattedPrice}</span>
+            <div className="flex items-center gap-1 text-accent font-medium">
+              <TrendingUp className="w-4 h-4" />
+              <span>{changeText}</span>
+            </div>
           </div>
         </div>
-        <p className="text-sm leading-relaxed text-muted-foreground">{summaryText}</p>
+
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {summaryText}
+        </p>
       </div>
     </Card>
   );

@@ -1,7 +1,6 @@
 'use client';
 
 import { TrendingUp, TrendingDown } from 'lucide-react';
-import { Card } from '@/app/components/ui/card';
 
 interface StatItem {
   label: string;
@@ -16,27 +15,27 @@ interface StakingStatsCardProps {
 
 export function StakingStatsCard({ stats }: StakingStatsCardProps) {
   return (
-    <Card className="gap-6 p-6">
-      <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div key={stat.label} className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-2xl font-semibold text-foreground">{stat.value}</span>
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      {stats.map((stat) => (
+        <div key={stat.label} className="p-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold text-balance">{stat.value}</p>
               {stat.change ? (
-                <span
-                  className={`inline-flex items-center gap-1 text-sm font-medium ${
-                    stat.trend === 'down' ? 'text-destructive' : 'text-accent'
+                <div
+                  className={`flex items-center gap-1 text-sm font-medium ${
+                    stat.trend === 'up' ? 'text-accent' : 'text-destructive'
                   }`}
                 >
-                  {stat.trend === 'down' ? <TrendingDown className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}
+                  {stat.trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                   {stat.change}
-                </span>
+                </div>
               ) : null}
             </div>
           </div>
-        ))}
-      </div>
-    </Card>
+        </div>
+      ))}
+    </div>
   );
 }
