@@ -8,10 +8,13 @@ import { NetworkSelector } from '@/app/components/network-selector';
 import { ClientOnly } from '@/app/components/client-only';
 import { TransactionResult } from '@/app/components/transaction-result';
 import { ValidatorSelector } from '@/app/components/validator-selector';
-import { PortfolioSummary } from '@/app/stake/components/portfolio-summary';
 import { DelegationCard } from '@/app/stake/components/delegation-card';
 import { WithdrawalsList } from '@/app/stake/components/withdrawals-list';
 import { ActionModal } from '@/app/stake/components/action-modal';
+import { TokenPriceCard } from '@/app/stake/components/token-price-card';
+import { StakingStatsCard } from '@/app/stake/components/staking-stats-card';
+import { UserPortfolio } from '@/app/stake/components/user-portfolio';
+import { StakingChart } from '@/app/stake/components/staking-chart';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { parseNetworkKey } from '@/lib/validators';
 import { useStakingSdk } from '@/hooks/useStakingSdk';
@@ -175,11 +178,37 @@ function StakeScreen() {
     return { staked, rewards, readyWithdraw: ready, pendingWithdraw: pending };
   }, [delegations, readyWithdrawals, pendingWithdrawals]);
 
-  const canClaimAll = totals.rewards > 0 && !state.busy && !!account && !!sdk;
+  const activeValidators = validators.filter((validator) => validator.isActive).length;
+  const statsFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
+  const stats = [
+    {
+      label: 'Total staked',
+      value: `${statsFormatter.format(totals.staked)} MON`,
+      change: `+${statsFormatter.format(totals.rewards)} rewards`,
+      trend: 'up' as const,
+    },
+    {
+      label: 'Validators',
+      value: validators.length.toString(),
+      change: `${activeValidators} active`,
+      trend: activeValidators > 0 ? ('up' as const) : ('down' as const),
+    },
+    {
+      label: 'Delegations',
+      value: delegations.length.toString(),
+      change: `${readyWithdrawals.length} ready withdrawals`,
+      trend: readyWithdrawals.length > 0 ? ('up' as const) : ('down' as const),
+    },
+    {
+      label: 'Pending withdraw',
+      value: pendingWithdrawals.length.toString(),
+      change: `${statsFormatter.format(totals.pendingWithdraw)} MON`,
+      trend: pendingWithdrawals.length > 0 ? ('down' as const) : ('up' as const),
+    },
+  ];
 
-  if (!selectedNetwork || !resolved) {
-    return <LoadingFallback />;
-  }
+  const firstDelegation = delegations[0] ?? null;
+  const firstReadyWithdrawal = readyWithdrawals[0] ?? null;
 
   const openDelegateModal = (validatorId: string | null = null) => {
     const initial = validatorId ? validatorMap.get(validatorId) : undefined;
@@ -233,42 +262,78 @@ function StakeScreen() {
     closeModals(false);
   };
 
+  if (!selectedNetwork || !resolved) {
+    return <LoadingFallback />;
+  }
+
+  const formattedMon = (value: number) => `${statsFormatter.format(value)} MON`;
+  const canStake = !!sdk && !!account && !state.busy;
+  const canUnstake = Boolean(firstDelegation) && !!sdk && !!account && !state.busy;
+  const canWithdraw = Boolean(firstReadyWithdrawal) && !!sdk && !!account && !state.busy;
+  const canClaim = totals.rewards > 0 && !!account && !!sdk && !state.busy;
+
+  const handleStake = () => openDelegateModal(null);
+  const handleUnstake = () => {
+    if (!firstDelegation) return;
+    openUndelegateModal(firstDelegation.validatorId);
+  };
+  const handleWithdraw = () => {
+    if (!firstReadyWithdrawal) return;
+    setWithdrawModal(firstReadyWithdrawal.withdrawalId);
+  };
+  const handleClaim = () => {
+    if (!sdk || !account) return;
+    void claimAllRewards();
+  };
+
   return (
-    <div className="flex flex-col gap-10">
-      <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-3">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary-foreground">
-            Staking dashboard
-          </span>
-          <h1 className="text-4xl font-semibold text-foreground">Stake MON</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage your delegations, rewards, and withdrawals on {resolved.label}. Move between networks without leaving the page.
-          </p>
+    <div className="space-y-12">
+      <section className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-3">
+            <h1 className="text-4xl font-semibold text-foreground">Stake</h1>
+            <p className="text-sm text-muted-foreground">
+              Stake your MON, monitor validator performance, and track rewards on {resolved.label}.
+            </p>
+          </div>
+          <div className="w-full max-w-xs">
+            <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+          </div>
         </div>
-        <div className="w-full max-w-xs">
-          <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <TokenPriceCard tokenSymbol="MON" priceUsd={null} priceChangeLabel={epoch ? `Epoch ${epoch.epoch}` : undefined} />
+          <div className="lg:col-span-2">
+            <StakingStatsCard stats={stats} />
+          </div>
         </div>
-      </header>
+      </section>
 
-      <PortfolioSummary
-        totals={{
-          staked: totals.staked,
-          rewards: totals.rewards,
-          pendingWithdraw: totals.pendingWithdraw,
-          readyWithdraw: totals.readyWithdraw,
-        }}
-        onClaimAll={() => {
-          if (!sdk || !account) return;
-          void claimAllRewards();
-        }}
-        onStake={() => openDelegateModal(null)}
-        claiming={state.busy && state.busyAction === 'claim-all'}
-        canClaim={canClaimAll}
-        stakeDisabled={!sdk || !account || state.busy}
-      />
+      <section className="grid grid-cols-1 gap-8 lg:grid-cols-8">
+        <div className="lg:col-span-3">
+          <UserPortfolio
+            staked={formattedMon(totals.staked)}
+            locked={formattedMon(totals.pendingWithdraw)}
+            unstaked={formattedMon(totals.readyWithdraw)}
+            rewards={formattedMon(totals.rewards)}
+            apyLabel="Coming soon"
+            onStake={handleStake}
+            onUnstake={handleUnstake}
+            onWithdraw={handleWithdraw}
+            onClaim={handleClaim}
+            canStake={canStake}
+            canUnstake={canUnstake}
+            canWithdraw={canWithdraw}
+            canClaim={canClaim}
+            busyAction={state.busyAction}
+          />
+        </div>
+        <div className="lg:col-span-5">
+          <StakingChart />
+        </div>
+      </section>
 
-      <section className="space-y-5">
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+      <section className="space-y-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-foreground">My delegations</h2>
             <p className="text-sm text-muted-foreground">Manage existing positions, compound rewards, or start undelegation.</p>
@@ -306,8 +371,8 @@ function StakeScreen() {
         )}
       </section>
 
-      <section className="space-y-5">
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+      <section className="space-y-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-foreground">Withdrawals</h2>
             <p className="text-sm text-muted-foreground">Track slots that are ready or still pending.</p>
