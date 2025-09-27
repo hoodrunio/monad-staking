@@ -11,6 +11,7 @@ import { ClientOnly } from '@/app/components/client-only';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { useDelegationsQuery, useWithdrawalsQuery, useEpochQuery } from '@/lib/queries';
 import { formatMonFromWei } from '@/lib/utils';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 function AccountPageContent() {
   const searchParams = useSearchParams();
   const { address } = useAccount();
@@ -36,38 +37,45 @@ function AccountPageContent() {
 
   if (!selectedNetwork) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-semibold">My Account</h1>
-        <p className="text-slate-400">No network configured.</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">My account</CardTitle>
+          <CardDescription>No network configured.</CardDescription>
+        </CardHeader>
+      </Card>
     );
   }
 
   if (!resolved) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-semibold">My Account</h1>
-        <p className="text-slate-400">Selected network is not fully configured.</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">My account</CardTitle>
+          <CardDescription>Selected network is not fully configured.</CardDescription>
+        </CardHeader>
+      </Card>
     );
   }
 
   if (!address) {
     return (
-      <div className="space-y-8">
+      <div className="flex flex-col gap-8">
         <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold">My Account</h1>
-            <p className="text-slate-400">
-              Connect your wallet to view your staking positions on {resolved.key}
-            </p>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold text-foreground">My account</h1>
+            <p className="text-sm text-muted-foreground">Connect your wallet to view your staking positions on {resolved.key}.</p>
           </div>
-          <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+          <div className="w-full max-w-xs">
+            <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+          </div>
         </header>
-        
-        <div className="rounded-lg border border-amber-900/40 bg-amber-950/30 p-6">
-          <p className="text-amber-200">Please connect your wallet to continue.</p>
-        </div>
+
+        <Card className="border border-amber-300/30 bg-amber-400/10">
+          <CardHeader>
+            <CardTitle className="text-base text-foreground">Wallet required</CardTitle>
+            <CardDescription>Please connect your wallet to continue.</CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     );
   }
@@ -75,32 +83,37 @@ function AccountPageContent() {
   const currentEpoch = epochData ? BigInt(epochData.epoch) : 0n;
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-10">
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold">My Account</h1>
-          <p className="text-slate-400">
-            Your staking positions on {resolved.key}
-          </p>
-          <p className="text-xs text-slate-500 font-mono">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold text-foreground">My account</h1>
+          <p className="text-sm text-muted-foreground">Your staking positions on {resolved.key}.</p>
+          <p className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-mono text-muted-foreground">
             {address}
           </p>
         </div>
-        <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+        <div className="w-full max-w-xs">
+          <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+        </div>
       </header>
 
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-slate-100">My Delegations</h2>
-        
+      <section className="space-y-5">
+        <h2 className="text-xl font-semibold text-foreground">My delegations</h2>
+
         {delegationsError ? (
-          <div className="rounded-lg border border-red-900/40 bg-red-950/30 p-6 text-sm text-red-200">
-            Failed to load delegations: {delegationsError instanceof Error ? delegationsError.message : 'Unknown error'}
-          </div>
+          <Card className="border border-destructive/40 bg-destructive/10 text-destructive-foreground">
+            <CardHeader>
+              <CardTitle className="text-base">Failed to load delegations</CardTitle>
+              <CardDescription className="text-destructive-foreground/80">
+                {delegationsError instanceof Error ? delegationsError.message : 'Unknown error'}
+              </CardDescription>
+            </CardHeader>
+          </Card>
         ) : delegationsLoading ? (
           <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-                <div className="flex items-center justify-between mb-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                <div className="mb-3 flex items-center justify-between">
                   <LoadingSkeleton className="h-4 w-32" />
                   <LoadingSkeleton className="h-4 w-24" />
                 </div>
@@ -113,67 +126,68 @@ function AccountPageContent() {
             ))}
           </div>
         ) : delegations && delegations.items.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {delegations.items.map((delegation) => {
               const formatted = formatDelegationRow(delegation);
               return (
-                <div key={formatted.validatorId} className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-slate-200">
-                      Validator {formatted.validatorId}
-                    </h3>
-                    <span className="text-sm text-slate-400">
-                      Stake: {formatted.stake}
-                    </span>
+                <div key={formatted.validatorId} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h3 className="text-lg font-semibold text-foreground">Validator {formatted.validatorId}</h3>
+                    <span className="text-sm text-muted-foreground">Stake: {formatted.stake}</span>
                   </div>
-                  
+
                   <div className="grid gap-4 text-sm md:grid-cols-3">
                     <div>
-                      <span className="text-slate-400">Unclaimed Rewards:</span>
-                      <div className="font-mono text-slate-200">{formatted.unclaimedRewards}</div>
+                      <span className="text-muted-foreground">Unclaimed rewards</span>
+                      <div className="font-mono text-foreground">{formatted.unclaimedRewards}</div>
                     </div>
-                    
-                    {formatted.pendingChanges.deltaStake !== '0' && (
+
+                    {formatted.pendingChanges.deltaStake !== '0' ? (
                       <div>
-                        <span className="text-slate-400">Pending Change:</span>
-                        <div className="font-mono text-amber-300">
-                        {formatMonFromWei(formatted.pendingChanges.deltaStake)} (Epoch {formatted.pendingChanges.deltaEpoch})
+                        <span className="text-muted-foreground">Pending change</span>
+                        <div className="font-mono text-amber-200">
+                          {formatMonFromWei(formatted.pendingChanges.deltaStake)} (Epoch {formatted.pendingChanges.deltaEpoch})
                         </div>
                       </div>
-                    )}
-                    
-                    {formatted.pendingChanges.nextDeltaStake !== '0' && (
+                    ) : null}
+
+                    {formatted.pendingChanges.nextDeltaStake !== '0' ? (
                       <div>
-                        <span className="text-slate-400">Next Change:</span>
-                        <div className="font-mono text-blue-300">
+                        <span className="text-muted-foreground">Next change</span>
+                        <div className="font-mono text-sky-200">
                           {formatMonFromWei(formatted.pendingChanges.nextDeltaStake)} (Epoch {formatted.pendingChanges.nextDeltaEpoch})
                         </div>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6 text-sm text-slate-300">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
             No delegations found. Start by delegating to a validator.
           </div>
         )}
       </section>
 
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-slate-100">Pending Withdrawals</h2>
-        
+      <section className="space-y-5">
+        <h2 className="text-xl font-semibold text-foreground">Pending withdrawals</h2>
+
         {withdrawalsError ? (
-          <div className="rounded-lg border border-red-900/40 bg-red-950/30 p-6 text-sm text-red-200">
-            Failed to load withdrawals: {withdrawalsError instanceof Error ? withdrawalsError.message : 'Unknown error'}
-          </div>
+          <Card className="border border-destructive/40 bg-destructive/10 text-destructive-foreground">
+            <CardHeader>
+              <CardTitle className="text-base">Failed to load withdrawals</CardTitle>
+              <CardDescription className="text-destructive-foreground/80">
+                {withdrawalsError instanceof Error ? withdrawalsError.message : 'Unknown error'}
+              </CardDescription>
+            </CardHeader>
+          </Card>
         ) : withdrawalsLoading ? (
           <div className="space-y-3">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-                <div className="flex items-center justify-between mb-3">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <div key={index} className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                <div className="mb-3 flex items-center justify-between">
                   <LoadingSkeleton className="h-4 w-32" />
                   <LoadingSkeleton className="h-4 w-20" />
                 </div>
@@ -185,51 +199,43 @@ function AccountPageContent() {
             ))}
           </div>
         ) : withdrawals && withdrawals.items.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {withdrawals.items.map((withdrawal) => {
               const formatted = formatWithdrawalRow(withdrawal);
               const canWithdraw = formatted.canWithdraw(currentEpoch);
-              
+
               return (
-                <div key={`${formatted.validatorId}-${formatted.withdrawalId}`} 
-                     className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-slate-200">
+                <div
+                  key={`${formatted.validatorId}-${formatted.withdrawalId}`}
+                  className="rounded-3xl border border-white/10 bg-white/5 p-5"
+                >
+                  <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h3 className="text-lg font-semibold text-foreground">
                       Validator {formatted.validatorId} (ID: {formatted.withdrawalId})
                     </h3>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-slate-400">
-                        {formatted.amount}
-                      </span>
+                      <span className="text-sm text-muted-foreground">{formatted.amount}</span>
                       {canWithdraw ? (
-                        <span className="inline-flex items-center rounded-full bg-emerald-900/40 px-2 py-1 text-xs text-emerald-300">
+                        <span className="inline-flex items-center rounded-full border border-emerald-300/40 bg-emerald-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-100">
                           Ready
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-full bg-amber-900/40 px-2 py-1 text-xs text-amber-300">
+                        <span className="inline-flex items-center rounded-full border border-amber-300/40 bg-amber-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100">
                           Pending
                         </span>
                       )}
                     </div>
                   </div>
-                  
-                  <div className="text-sm text-slate-400">
-                    {canWithdraw ? (
-                      <span className="text-emerald-300">
-                        Available for withdrawal now
-                      </span>
-                    ) : (
-                      <span>
-                        Available in epoch {formatted.withdrawEpoch}
-                      </span>
-                    )}
+
+                  <div className="text-sm text-muted-foreground">
+                    {canWithdraw ? 'Available for withdrawal now' : `Available in epoch ${formatted.withdrawEpoch}`}
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6 text-sm text-slate-300">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
             No pending withdrawals found.
           </div>
         )}

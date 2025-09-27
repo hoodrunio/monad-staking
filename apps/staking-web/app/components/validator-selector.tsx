@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CheckCircleIcon } from '@heroicons/react/24/solid';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, MagnifyingGlassCircleIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid';
+import { cn } from '@/lib/cn';
 
 export interface ValidatorSelectorOption {
   value: string;
@@ -55,33 +56,30 @@ export function ValidatorSelector({
   }, [options, query]);
 
   return (
-    <fieldset className="space-y-3" name={name}>
+    <fieldset className="space-y-4" name={name}>
       <div className="relative">
-        <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+        <MagnifyingGlassCircleIcon className="pointer-events-none absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
         <input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={filterPlaceholder}
           disabled={disabled}
-          className="w-full rounded-md border border-slate-700 bg-slate-950 pl-9 pr-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
+          className="w-full rounded-xl border border-white/10 bg-white/10 pl-11 pr-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
         />
       </div>
 
-      {toolbar && <div className="flex items-center justify-between text-xs text-slate-400">{toolbar}</div>}
+      {toolbar ? <div className="flex items-center justify-between text-xs text-muted-foreground">{toolbar}</div> : null}
 
-      <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+      <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
         {loading ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div
-                key={index}
-                className="h-16 animate-pulse rounded-lg border border-slate-800 bg-slate-900/60"
-              />
+              <div key={index} className="h-16 animate-pulse rounded-2xl border border-white/10 bg-white/5" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-400">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-muted-foreground">
             {emptyMessage}
           </div>
         ) : (
@@ -93,41 +91,36 @@ export function ValidatorSelector({
                 type="button"
                 onClick={() => onChange(option.value)}
                 disabled={disabled}
-                className={`w-full rounded-lg border px-4 py-3 text-left transition focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-950 ${
+                className={cn(
+                  'w-full rounded-2xl border px-4 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-0',
                   selected
-                    ? 'border-emerald-500 bg-emerald-500/10 text-emerald-100'
-                    : 'border-slate-800 bg-slate-950/50 text-slate-100 hover:border-slate-700'
-                }`}
+                    ? 'border-primary/50 bg-primary/10 text-foreground'
+                    : 'border-white/10 bg-white/5 text-foreground hover:border-primary/30',
+                )}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
                     <p className="text-sm font-semibold">{option.title}</p>
-                    {option.subtitle && (
-                      <p className="text-xs text-slate-400">{option.subtitle}</p>
-                    )}
-                    {option.description && (
-                      <p className="text-xs text-slate-500">{option.description}</p>
-                    )}
-                    {option.stats && option.stats.length > 0 && (
-                      <div className="flex flex-wrap gap-3 text-[10px] uppercase tracking-wide text-slate-500">
+                    {option.subtitle ? <p className="text-xs text-muted-foreground">{option.subtitle}</p> : null}
+                    {option.description ? <p className="text-xs text-muted-foreground">{option.description}</p> : null}
+                    {option.stats && option.stats.length > 0 ? (
+                      <div className="flex flex-wrap gap-3 text-[10px] uppercase tracking-wide text-muted-foreground">
                         {option.stats.map((stat) => (
-                          <span key={stat.label} className="flex items-center gap-1 text-slate-400">
+                          <span key={stat.label} className="flex items-center gap-1">
                             <span>{stat.label}:</span>
-                            <span className="font-mono text-slate-200">{stat.value}</span>
+                            <span className="font-mono text-foreground">{stat.value}</span>
                           </span>
                         ))}
                       </div>
-                    )}
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-2">
-                    {option.badge && (
-                      <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] uppercase tracking-wide text-emerald-300">
+                    {option.badge ? (
+                      <span className="rounded-full border border-primary/40 bg-primary/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-primary-foreground">
                         {option.badge}
                       </span>
-                    )}
-                    {selected && (
-                      <CheckCircleIcon className="h-5 w-5 text-emerald-400" />
-                    )}
+                    ) : null}
+                    {selected ? <CheckCircleSolid className="h-5 w-5 text-primary" /> : <CheckCircleIcon className="h-5 w-5 text-muted-foreground" />}
                   </div>
                 </div>
               </button>
@@ -136,18 +129,18 @@ export function ValidatorSelector({
         )}
       </div>
 
-      {hasMore && (
+      {hasMore ? (
         <div className="pt-2">
           <button
             type="button"
             onClick={onLoadMore}
             disabled={loadingMore || disabled}
-            className="w-full rounded-md border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-slate-200 hover:border-slate-600 disabled:cursor-not-allowed disabled:text-slate-500"
+            className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm font-medium text-foreground transition hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loadingMore ? 'Loading…' : 'Load more validators'}
+            {loadingMore ? 'Loading...' : 'Load more validators'}
           </button>
         </div>
-      )}
+      ) : null}
     </fieldset>
   );
 }

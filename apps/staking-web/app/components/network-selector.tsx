@@ -33,9 +33,9 @@ export function NetworkSelector({ networks, selectedKey }: NetworkSelectorProps)
 
   return (
     <label className="flex flex-col gap-2 text-sm">
-      <span className="font-medium text-slate-300">Network</span>
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">Network</span>
       <select
-        className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-slate-400"
+        className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-foreground shadow-[0_12px_30px_-20px_rgba(56,189,248,0.35)] transition focus-visible:border-primary/50 focus-visible:outline-none"
         value={selectedKey ?? ''}
         onChange={handleChange}
         disabled={isPending}

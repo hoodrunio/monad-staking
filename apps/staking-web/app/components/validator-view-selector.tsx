@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 import type { ValidatorSetView } from '@/lib/validators';
 import { getValidatorViewLabel } from '@/lib/validators';
+import { cn } from '@/lib/cn';
 
 const VIEWS: ValidatorSetView[] = ['execution', 'consensus', 'snapshot'];
 
@@ -40,11 +41,12 @@ export function ValidatorViewSelector({ selected }: ValidatorViewSelectorProps) 
             type="button"
             onClick={() => updateView(view)}
             disabled={isPending}
-            className={`rounded-md px-3 py-1.5 text-sm transition ${
+            className={cn(
+              'rounded-xl border px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50',
               isActive
-                ? 'bg-emerald-600 text-white shadow shadow-emerald-900/40'
-                : 'border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-slate-100'
-            }`}
+                ? 'border-primary/40 bg-primary/15 text-primary-foreground shadow-glow'
+                : 'border-white/10 bg-white/10 text-muted-foreground hover:border-primary/40 hover:text-primary',
+            )}
           >
             {getValidatorViewLabel(view)}
           </button>

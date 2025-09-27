@@ -4,8 +4,82 @@
 
 :root {
   color-scheme: dark;
+  --background: oklch(0.18 0.032 260);
+  --foreground: oklch(0.95 0.015 260);
+  --card: oklch(0.23 0.03 260 / 0.92);
+  --card-foreground: oklch(0.95 0.015 260);
+  --popover: oklch(0.17 0.032 260);
+  --popover-foreground: oklch(0.95 0.015 260);
+  --primary: oklch(0.7 0.15 170);
+  --primary-foreground: oklch(0.11 0.01 170);
+  --secondary: oklch(0.27 0.02 260);
+  --secondary-foreground: oklch(0.9 0.02 260);
+  --muted: oklch(0.23 0.02 260);
+  --muted-foreground: oklch(0.68 0.015 260);
+  --accent: oklch(0.78 0.18 150);
+  --accent-foreground: oklch(0.09 0.018 160);
+  --destructive: oklch(0.5 0.18 25);
+  --destructive-foreground: oklch(0.96 0.016 25);
+  --border: oklch(0.29 0.02 260 / 0.55);
+  --input: oklch(0.29 0.02 260 / 0.55);
+  --ring: oklch(0.63 0.13 170 / 0.6);
+  --sidebar: oklch(0.18 0.032 260 / 0.9);
+  --sidebar-foreground: oklch(0.95 0.015 260);
+  --sidebar-primary: oklch(0.7 0.15 170);
+  --sidebar-primary-foreground: oklch(0.11 0.01 170);
+  --sidebar-accent: oklch(0.24 0.025 260);
+  --sidebar-accent-foreground: oklch(0.9 0.02 260);
+  --sidebar-border: oklch(0.29 0.02 260 / 0.55);
+  --sidebar-ring: oklch(0.63 0.13 170 / 0.6);
+  --font-sans: 'Inter', 'Inter var', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --radius: 1rem;
 }
 
 body {
-  @apply bg-slate-950 text-slate-100 antialiased;
+  @apply bg-background text-foreground font-sans antialiased;
+  background-image: radial-gradient(circle at 20% -10%, rgba(56, 189, 248, 0.15), transparent 55%),
+    radial-gradient(circle at 80% 0%, rgba(74, 222, 128, 0.12), transparent 45%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.95) 0%, rgba(2, 10, 28, 0.75) 100%);
+  min-height: 100vh;
+}
+
+.gradient-bg {
+  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 45%),
+    radial-gradient(circle at top right, rgba(74, 222, 128, 0.18), transparent 40%),
+    linear-gradient(160deg, rgba(15, 23, 42, 0.95) 0%, rgba(11, 15, 32, 0.92) 100%);
+}
+
+.card-surface {
+  background: linear-gradient(140deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+}
+
+.surface-muted {
+  background: linear-gradient(160deg, rgba(30, 41, 59, 0.65), rgba(15, 23, 42, 0.65));
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  ::selection {
+    background: rgba(74, 222, 128, 0.3);
+    color: rgba(15, 23, 42, 1);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: oklch(0.62 0.015 260);
+  }
+
+  a {
+    @apply text-foreground;
+  }
+}
+
+@layer components {
+  .card-shadow {
+    box-shadow: 0 24px 45px -30px rgba(15, 118, 110, 0.55);
+  }
 }

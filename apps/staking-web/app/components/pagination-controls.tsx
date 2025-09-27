@@ -9,10 +9,7 @@ interface PaginationControlsProps {
   readonly nextCursor: string | null;
 }
 
-export function PaginationControls({
-  prevCursor,
-  nextCursor,
-}: PaginationControlsProps) {
+export function PaginationControls({ prevCursor, nextCursor }: PaginationControlsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -34,12 +31,14 @@ export function PaginationControls({
   };
 
   return (
-    <div className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-3 text-sm text-slate-300">
-      <div>{prevCursor ? `Cursor ${prevCursor}` : 'Beginning'}</div>
+    <div className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <div className="font-mono text-xs">
+        {prevCursor ? `Cursor ${prevCursor}` : 'Beginning of result set'}
+      </div>
       <div className="flex items-center gap-3">
         <button
           type="button"
-          className="rounded-md border border-slate-700 px-3 py-1.5 transition hover:border-slate-500 hover:text-slate-100 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-600"
+          className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 font-medium text-foreground transition hover:border-primary/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
           onClick={() => updateCursor(prevCursor)}
           disabled={prevCursor === null || isPending}
         >
@@ -47,7 +46,7 @@ export function PaginationControls({
         </button>
         <button
           type="button"
-          className="rounded-md border border-slate-700 px-3 py-1.5 transition hover:border-slate-500 hover:text-slate-100 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-600"
+          className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 font-medium text-foreground transition hover:border-primary/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
           onClick={() => updateCursor(nextCursor)}
           disabled={nextCursor === null || isPending}
         >

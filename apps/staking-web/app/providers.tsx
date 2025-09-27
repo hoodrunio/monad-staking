@@ -35,10 +35,10 @@ export function Providers({
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
           {children}
-          <Toaster 
+          <Toaster
             position="top-right"
             toastOptions={{
-              className: 'bg-slate-800 text-slate-100 border border-slate-700',
+              className: 'border border-white/10 bg-white/10 text-foreground backdrop-blur',
               duration: 4000,
             }}
           />

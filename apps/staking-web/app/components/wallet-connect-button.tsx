@@ -27,9 +27,9 @@ export function WalletConnectButton() {
             <div aria-hidden>
               <button
                 type="button"
-                className="rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-400"
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-muted-foreground"
               >
-                Connecting…
+                Connecting...
               </button>
             </div>
           );
@@ -40,7 +40,7 @@ export function WalletConnectButton() {
             <button
               type="button"
               onClick={openConnectModal}
-              className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow shadow-emerald-900/50 transition hover:bg-emerald-500"
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition hover:bg-primary/90"
             >
               Connect Wallet
             </button>
@@ -52,7 +52,7 @@ export function WalletConnectButton() {
             <button
               type="button"
               onClick={openChainModal}
-              className="rounded-md border border-red-500/60 bg-red-600/20 px-4 py-2 text-sm font-medium text-red-100 hover:border-red-400"
+              className="rounded-xl border border-destructive/60 bg-destructive/20 px-4 py-2 text-sm font-semibold text-destructive-foreground transition hover:border-destructive"
             >
               Wrong network
             </button>
@@ -60,29 +60,29 @@ export function WalletConnectButton() {
         }
 
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={openChainModal}
-              className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:border-slate-500"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-sm text-foreground transition hover:border-primary/40 hover:text-primary-foreground"
             >
               {chain.hasIcon && chain.iconUrl ? (
-                <span className="mr-2 inline-flex h-4 w-4 items-center justify-center">
+                <span className="inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-white/10">
                   <Image
                     src={chain.iconUrl}
                     alt={chain.name ?? 'Chain icon'}
-                    width={16}
-                    height={16}
-                    className="h-4 w-4 rounded-full"
+                    width={20}
+                    height={20}
+                    className="h-5 w-5 object-cover"
                   />
                 </span>
               ) : null}
-              {chain.name ?? 'Unknown Network'}
+              <span>{chain.name ?? 'Unknown network'}</span>
             </button>
             <button
               type="button"
               onClick={openAccountModal}
-              className="rounded-md bg-slate-800 px-3 py-1.5 text-sm text-slate-100 hover:bg-slate-700"
+              className="rounded-xl border border-primary/40 bg-primary/15 px-3 py-1.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/25"
             >
               {account.displayName}
             </button>

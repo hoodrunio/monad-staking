@@ -117,7 +117,7 @@ function StakeScreen() {
       subtitle: `${validator.commission.formatted} commission • Stake ${validator.stake.formatted}`,
       stats: [
         { label: 'Rewards', value: validator.unclaimedRewards.formatted },
-        { label: 'Flags', value: validator.flagsRaw || '—' },
+        { label: 'Flags', value: validator.flagsRaw || 'None' },
       ],
       badge: validator.isActive ? 'Active' : undefined,
     }));
@@ -234,14 +234,20 @@ function StakeScreen() {
   };
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-emerald-400">Staking dashboard</p>
-          <h1 className="text-4xl font-semibold text-white">Stake MON</h1>
-          <p className="text-slate-400">Manage your delegations, rewards, and withdrawals on {resolved.label}.</p>
+    <div className="flex flex-col gap-10">
+      <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-3">
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary-foreground">
+            Staking dashboard
+          </span>
+          <h1 className="text-4xl font-semibold text-foreground">Stake MON</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage your delegations, rewards, and withdrawals on {resolved.label}. Move between networks without leaving the page.
+          </p>
         </div>
-        <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+        <div className="w-full max-w-xs">
+          <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+        </div>
       </header>
 
       <PortfolioSummary
@@ -261,15 +267,17 @@ function StakeScreen() {
         stakeDisabled={!sdk || !account || state.busy}
       />
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-slate-100">My delegations</h2>
-          <p className="text-sm text-slate-500">Manage existing positions, compound rewards, or start undelegation.</p>
+      <section className="space-y-5">
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-foreground">My delegations</h2>
+            <p className="text-sm text-muted-foreground">Manage existing positions, compound rewards, or start undelegation.</p>
+          </div>
         </div>
         {data.isLoading.delegations ? (
           <DelegationsSkeleton />
         ) : delegations.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-6 text-sm text-slate-300">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
             You have no active delegations yet.
           </div>
         ) : (
@@ -298,10 +306,12 @@ function StakeScreen() {
         )}
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-slate-100">Withdrawals</h2>
-          <p className="text-sm text-slate-500">Track slots that are ready or still pending.</p>
+      <section className="space-y-5">
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-foreground">Withdrawals</h2>
+            <p className="text-sm text-muted-foreground">Track slots that are ready or still pending.</p>
+          </div>
         </div>
         {data.isLoading.withdrawals ? (
           <WithdrawalsSkeleton />
@@ -343,10 +353,10 @@ function StakeScreen() {
             loadingMore={selectorQuery.isFetching && selectorItems.length > 0}
             disabled={!sdk || !account || state.busy}
             toolbar={
-              <label className="flex items-center gap-2 text-slate-400">
+              <label className="flex items-center gap-2 text-muted-foreground">
                 <input
                   type="checkbox"
-                  className="h-3 w-3"
+                  className="h-4 w-4 rounded border-white/20 bg-white/10 text-primary focus:ring-primary/40 focus:ring-offset-0"
                   checked={selectorActiveOnly}
                   onChange={(event) => {
                     const next = event.target.checked;
@@ -363,21 +373,21 @@ function StakeScreen() {
               </label>
             }
           />
-          <label className="block text-sm text-slate-300">
+          <label className="block text-sm text-muted-foreground">
             Amount (MON)
             <input
               type="text"
               value={delegateModal.amount}
               onChange={(event) => setDelegateModal((prev) => ({ ...prev, amount: event.target.value }))}
               placeholder="0.0"
-              className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </label>
           <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={() => closeModals()}
-              className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-600"
+              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-primary"
             >
               Cancel
             </button>
@@ -385,7 +395,7 @@ function StakeScreen() {
               type="button"
               onClick={handleDelegateSubmit}
               disabled={!delegateModal.validatorId || !delegateModal.amount}
-              className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-700"
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-muted-foreground"
             >
               Delegate
             </button>
@@ -416,23 +426,23 @@ function StakeScreen() {
             emptyMessage="No active delegations"
             disabled={!sdk || !account || state.busy}
           />
-          <label className="block text-sm text-slate-300">
+          <label className="block text-sm text-muted-foreground">
             Amount (MON)
             <input
               type="text"
               value={undelegateModal.amount}
               onChange={(event) => setUndelegateModal((prev) => ({ ...prev, amount: event.target.value }))}
               placeholder="0.0"
-              className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </label>
-          <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3 text-xs text-slate-300">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-muted-foreground">
             {undelegateModal.withdrawalId !== null ? (
               <p>
-                Withdrawal slot <span className="font-semibold text-emerald-300">#{undelegateModal.withdrawalId}</span> will be used for this request.
+                Withdrawal slot <span className="font-semibold text-primary">#{undelegateModal.withdrawalId}</span> will be used for this request.
               </p>
             ) : (
-              <p className="text-amber-300">
+              <p className="text-amber-200">
                 All withdrawal slots for this validator are in use. Complete or cancel an existing withdrawal first.
               </p>
             )}
@@ -441,7 +451,7 @@ function StakeScreen() {
             <button
               type="button"
               onClick={() => closeModals()}
-              className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-600"
+              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-primary"
             >
               Cancel
             </button>
@@ -449,7 +459,7 @@ function StakeScreen() {
               type="button"
               onClick={handleUndelegateSubmit}
               disabled={!undelegateModal.validatorId || !undelegateModal.amount || undelegateModal.withdrawalId === null}
-              className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
+              className="rounded-xl bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-muted-foreground"
             >
               Undelegate
             </button>
@@ -464,21 +474,19 @@ function StakeScreen() {
         description="Confirm withdrawal of the selected slot."
         size="sm"
       >
-        <div className="space-y-4 text-sm text-slate-300">
-          {withdrawModal !== null && (
+        <div className="space-y-4 text-sm text-muted-foreground">
+          {withdrawModal !== null ? (
             <div>
-              <p className="font-medium text-slate-200">Validator {withdrawEntry?.validatorId ?? '—'}</p>
-              <p className="text-xs text-slate-500">Slot #{withdrawModal}</p>
-              {withdrawEntry && (
-                <p className="mt-2 text-slate-300">Amount {withdrawEntry.amount.formatted}</p>
-              )}
+              <p className="font-medium text-foreground">Validator {withdrawEntry?.validatorId ?? '-'}</p>
+              <p className="text-xs text-muted-foreground">Slot #{withdrawModal}</p>
+              {withdrawEntry ? <p className="mt-2 text-muted-foreground">Amount {withdrawEntry.amount.formatted}</p> : null}
             </div>
-          )}
+          ) : null}
           <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={() => closeModals()}
-              className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-600"
+              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-primary"
             >
               Cancel
             </button>
@@ -488,7 +496,7 @@ function StakeScreen() {
                 if (withdrawModal === null) return;
                 void handleWithdrawSubmit(withdrawModal);
               }}
-              className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition hover:bg-primary/90"
             >
               Withdraw
             </button>
@@ -502,9 +510,9 @@ function StakeScreen() {
 function LoadingFallback() {
   return (
     <div className="space-y-6">
-      <div className="h-12 w-2/3 rounded bg-slate-800" />
-      <div className="h-48 rounded-xl bg-slate-900/60" />
-      <div className="h-64 rounded-xl bg-slate-900/60" />
+      <div className="h-12 w-2/3 rounded-2xl bg-white/10" />
+      <div className="h-48 rounded-3xl border border-white/10 bg-white/5" />
+      <div className="h-64 rounded-3xl border border-white/10 bg-white/5" />
     </div>
   );
 }
@@ -513,7 +521,7 @@ function DelegationsSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 3 }).map((_, index) => (
-        <div key={index} className="h-36 animate-pulse rounded-2xl border border-slate-800 bg-slate-950/60" />
+        <div key={index} className="h-36 animate-pulse rounded-3xl border border-white/10 bg-white/5" />
       ))}
     </div>
   );
@@ -523,7 +531,7 @@ function WithdrawalsSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 2 }).map((_, index) => (
-        <div key={index} className="h-32 animate-pulse rounded-2xl border border-slate-800 bg-slate-950/60" />
+        <div key={index} className="h-32 animate-pulse rounded-3xl border border-white/10 bg-white/5" />
       ))}
     </div>
   );
