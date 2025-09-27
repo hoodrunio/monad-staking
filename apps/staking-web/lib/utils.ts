@@ -84,3 +84,7 @@ export function monWeiToDecimalString(value: string | bigint, fractionDigits = 6
 export function parseFormattedMon(value: string): string {
   return value.replace(/[^0-9.]/g, '');
 }
+
+export function cn(...inputs: Array<string | false | null | undefined>): string {
+  return inputs.filter(Boolean).join(' ');
+}

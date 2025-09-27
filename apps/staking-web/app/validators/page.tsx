@@ -14,7 +14,7 @@ import { getSelectedNetwork } from '@/lib/page-utils';
 import { normalizeCursor } from '@/lib/validators-utils';
 import { formatCompactMonFromDecimal } from '@/lib/format';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils';
 
 function ValidatorsPageContent() {
   const searchParams = useSearchParams();

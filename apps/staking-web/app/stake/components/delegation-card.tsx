@@ -2,7 +2,7 @@
 
 import { formatMonFromWei } from '@/lib/utils';
 import type { DelegationSummary, ValidatorSummary } from '@/lib/api/models';
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils';
 
 interface DelegationCardProps {
   readonly delegation: DelegationSummary;

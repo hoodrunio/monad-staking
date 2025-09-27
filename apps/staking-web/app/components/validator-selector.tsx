@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { CheckCircleIcon, MagnifyingGlassCircleIcon } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid';
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils';
 
 export interface ValidatorSelectorOption {
   value: string;

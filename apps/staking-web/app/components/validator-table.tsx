@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import type { ResolvedMonadNetworkConfig } from '@monad-staking/config';
 import { ExplorerLink } from './explorer-link';
 import { formatShortAddress } from '@/lib/validators-utils';
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils';
 
 interface ValidatorTableRow {
   id: string;

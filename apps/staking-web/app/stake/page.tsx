@@ -287,108 +287,115 @@ function StakeScreen() {
   };
 
   return (
-    <div className="space-y-12">
-      <section className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-3">
-            <h1 className="text-4xl font-bold text-balance">Stake</h1>
-            <p className="text-sm text-muted-foreground">
-              Stake your MON, monitor validator performance, and track rewards on {resolved.label}.
-            </p>
-          </div>
-          <div className="w-full max-w-xs">
-            <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <TokenPriceCard tokenSymbol="MON" priceUsd={null} priceChangeLabel={epoch ? `Epoch ${epoch.epoch}` : undefined} />
-          <div className="lg:col-span-2">
-            <StakingStatsCard stats={stats} />
-          </div>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-1 gap-8 lg:grid-cols-8">
-        <div className="lg:col-span-3">
-          <UserPortfolio
-            staked={formattedMon(totals.staked)}
-            locked={formattedMon(totals.pendingWithdraw)}
-            unstaked={formattedMon(totals.readyWithdraw)}
-            rewards={formattedMon(totals.rewards)}
-            apyLabel="Coming soon"
-            onStake={handleStake}
-            onUnstake={handleUnstake}
-            onWithdraw={handleWithdraw}
-            onClaim={handleClaim}
-            canStake={canStake}
-            canUnstake={canUnstake}
-            canWithdraw={canWithdraw}
-            canClaim={canClaim}
-            busyAction={state.busyAction}
-          />
-        </div>
-        <div className="lg:col-span-5">
-          <StakingChart />
-        </div>
-      </section>
-
-      <section className="space-y-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <div className="min-h-screen gradient-bg">
+      <main className="container mx-auto px-4 py-8 space-y-8">
+        {/* Header Section */}
+        <div className="space-y-6">
           <div>
-            <h2 className="text-2xl font-semibold text-foreground">My delegations</h2>
-            <p className="text-sm text-muted-foreground">Manage existing positions, compound rewards, or start undelegation.</p>
+            <h1 className="text-4xl font-bold text-balance mb-2">Stake</h1>
+            <div className="w-full max-w-xs">
+              <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+            </div>
           </div>
-        </div>
-        {data.isLoading.delegations ? (
-          <DelegationsSkeleton />
-        ) : delegations.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
-            You have no active delegations yet.
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {delegations.map((delegation) => (
-              <DelegationCard
-                key={delegation.validatorId}
-                delegation={delegation}
-                validator={validatorMap.get(delegation.validatorId)}
-                onUndelegate={(entry) => openUndelegateModal(entry.validatorId)}
-                onClaim={async (entry) => {
-                  if (!sdk || !account) return;
-                  await claimRewards(entry.validatorId);
-                  data.refetchAll();
-                }}
-                onCompound={async (entry) => {
-                  if (!sdk || !account) return;
-                  await compound(entry.validatorId);
-                  data.refetchAll();
-                }}
-                busyAction={state.busyAction}
-                disabled={!sdk || !account || state.busy}
-              />
-            ))}
-          </div>
-        )}
-      </section>
 
-      <section className="space-y-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-foreground">Withdrawals</h2>
-            <p className="text-sm text-muted-foreground">Track slots that are ready or still pending.</p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <TokenPriceCard tokenSymbol="MON" priceUsd={null} priceChangeLabel={epoch ? `Epoch ${epoch.epoch}` : undefined} />
+            </div>
+            <div className="lg:col-span-2">
+              <StakingStatsCard stats={stats} />
+            </div>
           </div>
         </div>
-        {data.isLoading.withdrawals ? (
-          <WithdrawalsSkeleton />
-        ) : (
-          <WithdrawalsList
-            ready={readyWithdrawals}
-            pending={pendingWithdrawals}
-            busy={!sdk || !account || (state.busy && state.busyAction === 'withdraw')}
-            onWithdraw={(entry) => setWithdrawModal(entry.withdrawalId)}
-          />
-        )}
-      </section>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-8 gap-8">
+          {/* Left Column - User Portfolio */}
+          <div className="lg:col-span-3">
+            <UserPortfolio
+              staked={formattedMon(totals.staked)}
+              locked={formattedMon(totals.pendingWithdraw)}
+              unstaked={formattedMon(totals.readyWithdraw)}
+              rewards={formattedMon(totals.rewards)}
+              apyLabel="Coming soon"
+              onStake={handleStake}
+              onUnstake={handleUnstake}
+              onWithdraw={handleWithdraw}
+              onClaim={handleClaim}
+              canStake={canStake}
+              canUnstake={canUnstake}
+              canWithdraw={canWithdraw}
+              canClaim={canClaim}
+              busyAction={state.busyAction}
+            />
+          </div>
+
+          {/* Right Column - Chart */}
+          <div className="lg:col-span-5">
+            <StakingChart />
+          </div>
+        </div>
+
+        {/* Delegations Section */}
+        <section className="space-y-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-foreground">My delegations</h2>
+              <p className="text-sm text-muted-foreground">Manage existing positions, compound rewards, or start undelegation.</p>
+            </div>
+          </div>
+          {data.isLoading.delegations ? (
+            <DelegationsSkeleton />
+          ) : delegations.length === 0 ? (
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
+              You have no active delegations yet.
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {delegations.map((delegation) => (
+                <DelegationCard
+                  key={delegation.validatorId}
+                  delegation={delegation}
+                  validator={validatorMap.get(delegation.validatorId)}
+                  onUndelegate={(entry) => openUndelegateModal(entry.validatorId)}
+                  onClaim={async (entry) => {
+                    if (!sdk || !account) return;
+                    await claimRewards(entry.validatorId);
+                    data.refetchAll();
+                  }}
+                  onCompound={async (entry) => {
+                    if (!sdk || !account) return;
+                    await compound(entry.validatorId);
+                    data.refetchAll();
+                  }}
+                  busyAction={state.busyAction}
+                  disabled={!sdk || !account || state.busy}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Withdrawals Section */}
+        <section className="space-y-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-foreground">Withdrawals</h2>
+              <p className="text-sm text-muted-foreground">Track slots that are ready or still pending.</p>
+            </div>
+          </div>
+          {data.isLoading.withdrawals ? (
+            <WithdrawalsSkeleton />
+          ) : (
+            <WithdrawalsList
+              ready={readyWithdrawals}
+              pending={pendingWithdrawals}
+              busy={!sdk || !account || (state.busy && state.busyAction === 'withdraw')}
+              onWithdraw={(entry) => setWithdrawModal(entry.withdrawalId)}
+            />
+          )}
+        </section>
+      </main>
 
       <TransactionResult
         txHash={state.txHash}

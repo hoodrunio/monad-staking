@@ -2,7 +2,7 @@
 
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect } from 'react';
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils';
 
 interface ActionModalProps {
   readonly open: boolean;

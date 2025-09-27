@@ -59,23 +59,27 @@ function AccountPageContent() {
 
   if (!address) {
     return (
-      <div className="flex flex-col gap-8">
-        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold text-foreground">My account</h1>
-            <p className="text-sm text-muted-foreground">Connect your wallet to view your staking positions on {resolved.key}.</p>
+      <div className="min-h-screen gradient-bg">
+        <main className="container mx-auto px-4 py-6 space-y-6">
+          <div className="space-y-3">
+            <div>
+              <h1 className="text-3xl font-bold text-balance mb-1">My Assets</h1>
+              <p className="text-muted-foreground text-balance text-sm">
+                Connect your wallet to view your staking positions on {resolved.key}
+              </p>
+            </div>
+            <div className="w-full max-w-xs">
+              <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+            </div>
           </div>
-          <div className="w-full max-w-xs">
-            <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
-          </div>
-        </header>
 
-        <Card className="border border-amber-300/30 bg-amber-400/10">
-          <CardHeader>
-            <CardTitle className="text-base text-foreground">Wallet required</CardTitle>
-            <CardDescription>Please connect your wallet to continue.</CardDescription>
-          </CardHeader>
-        </Card>
+          <Card className="border border-amber-300/30 bg-amber-400/10">
+            <CardHeader>
+              <CardTitle className="text-base text-foreground">Wallet required</CardTitle>
+              <CardDescription>Please connect your wallet to continue.</CardDescription>
+            </CardHeader>
+          </Card>
+        </main>
       </div>
     );
   }
@@ -83,22 +87,71 @@ function AccountPageContent() {
   const currentEpoch = epochData ? BigInt(epochData.epoch) : 0n;
 
   return (
-    <div className="flex flex-col gap-10">
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">My account</h1>
-          <p className="text-sm text-muted-foreground">Your staking positions on {resolved.key}.</p>
-          <p className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-mono text-muted-foreground">
-            {address}
-          </p>
+    <div className="min-h-screen gradient-bg">
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        <div className="space-y-3">
+          <div>
+            <h1 className="text-3xl font-bold text-balance mb-1">My Assets</h1>
+            <p className="text-muted-foreground text-balance text-sm">
+              Manage your staked assets, rewards, and delegations on {resolved.key}
+            </p>
+            <p className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-mono text-muted-foreground mt-2">
+              {address}
+            </p>
+          </div>
+          <div className="w-full max-w-xs">
+            <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+          </div>
         </div>
-        <div className="w-full max-w-xs">
-          <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
-        </div>
-      </header>
 
-      <section className="space-y-5">
-        <h2 className="text-xl font-semibold text-foreground">My delegations</h2>
+        {/* Portfolio Overview */}
+        <div className="bg-background/50 backdrop-blur-sm rounded-lg p-6 border border-border/50">
+          <h2 className="text-lg font-semibold mb-4">Portfolio Overview</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mx-auto mb-2">
+                <span className="text-primary font-bold">Σ</span>
+              </div>
+              <div className="text-2xl font-bold">
+                {delegations?.items.reduce((sum, d) => sum + Number(d.stake.decimal || 0), 0).toFixed(2) || '0.00'}
+              </div>
+              <div className="text-sm text-muted-foreground">Total Staked</div>
+              <div className="text-xs text-primary">MON</div>
+            </div>
+
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 mx-auto mb-2">
+                <span className="text-accent font-bold">🎁</span>
+              </div>
+              <div className="text-2xl font-bold">
+                {delegations?.items.reduce((sum, d) => sum + Number(d.unclaimedRewards.decimal || 0), 0).toFixed(2) || '0.00'}
+              </div>
+              <div className="text-sm text-muted-foreground">Claimable Rewards</div>
+              <div className="text-xs text-accent">MON</div>
+            </div>
+
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-secondary/10 mx-auto mb-2">
+                <span className="text-secondary font-bold">⏳</span>
+              </div>
+              <div className="text-2xl font-bold">{withdrawals?.items.length || 0}</div>
+              <div className="text-sm text-muted-foreground">Pending Withdrawals</div>
+              <div className="text-xs text-secondary">Slots</div>
+            </div>
+
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mx-auto mb-2">
+                <span className="text-primary font-bold">📈</span>
+              </div>
+              <div className="text-2xl font-bold">24.8%</div>
+              <div className="text-sm text-muted-foreground">APY</div>
+              <div className="text-xs text-primary">Average</div>
+            </div>
+          </div>
+        </div>
+
+        <section className="space-y-5">
+          <h2 className="text-xl font-semibold text-foreground">My delegations</h2>
 
         {delegationsError ? (
           <Card className="border border-destructive/40 bg-destructive/10 text-destructive-foreground">
@@ -239,7 +292,8 @@ function AccountPageContent() {
             No pending withdrawals found.
           </div>
         )}
-      </section>
+        </section>
+      </main>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 import type { ValidatorSetView } from '@/lib/validators';
 import { getValidatorViewLabel } from '@/lib/validators';
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils';
 
 const VIEWS: ValidatorSetView[] = ['execution', 'consensus', 'snapshot'];
 

@@ -3,6 +3,7 @@
 
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/app/components/ui/tooltip';
 import { TrendingUp, TrendingDown, Wallet, Gift, Info, Zap } from 'lucide-react';
 
 interface UserPortfolioProps {
@@ -56,50 +57,80 @@ export function UserPortfolio({
         </div>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            {/* Stake Button */}
-            <Button
-              onClick={onStake}
-              disabled={!canStake}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground h-12 flex items-center gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <TrendingUp className="h-4 w-4" />
-              {busyAction === 'stake' ? 'Opening…' : 'Stake MON'}
-            </Button>
+          <TooltipProvider>
+            <div className="grid grid-cols-2 gap-3">
+              {/* Stake Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={onStake}
+                    disabled={!canStake}
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground h-12 flex items-center gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <TrendingUp className="h-4 w-4" />
+                    {busyAction === 'stake' ? 'Opening…' : 'Stake MON'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Stake your MON tokens to earn rewards</p>
+                </TooltipContent>
+              </Tooltip>
 
-            {/* Unstake Button */}
-            <Button
-              variant="outline"
-              onClick={onUnstake}
-              disabled={!canUnstake}
-              className="border-border/50 bg-transparent h-12 flex items-center gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <TrendingDown className="h-4 w-4" />
-              {busyAction === 'unstake' ? 'Processing…' : 'Unstake'}
-            </Button>
+              {/* Unstake Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={onUnstake}
+                    disabled={!canUnstake}
+                    className="border-border/50 bg-transparent h-12 flex items-center gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <TrendingDown className="h-4 w-4" />
+                    {busyAction === 'unstake' ? 'Processing…' : 'Unstake'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{hasStakedTokens ? "Unstake your MON tokens" : "No staked tokens to unstake"}</p>
+                </TooltipContent>
+              </Tooltip>
 
-            {/* Claim Button */}
-            <Button
-              variant="outline"
-              onClick={onClaim}
-              disabled={!canClaim}
-              className="border-border/50 bg-transparent h-12 flex items-center gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Gift className="h-4 w-4" />
-              {busyAction === 'claim' ? 'Claiming…' : 'Claim Rewards'}
-            </Button>
+              {/* Claim Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={onClaim}
+                    disabled={!canClaim}
+                    className="border-border/50 bg-transparent h-12 flex items-center gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Gift className="h-4 w-4" />
+                    {busyAction === 'claim' ? 'Claiming…' : 'Claim Rewards'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{hasRewards ? "Claim your staking rewards" : "No rewards available to claim"}</p>
+                </TooltipContent>
+              </Tooltip>
 
-            {/* Withdraw Button */}
-            <Button
-              variant="outline"
-              onClick={onWithdraw}
-              disabled={!canWithdraw}
-              className="border-border/50 bg-transparent h-12 flex items-center gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Wallet className="h-4 w-4" />
-              {busyAction === 'withdraw' ? 'Withdrawing…' : 'Withdraw'}
-            </Button>
-          </div>
+              {/* Withdraw Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={onWithdraw}
+                    disabled={!canWithdraw}
+                    className="border-border/50 bg-transparent h-12 flex items-center gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Wallet className="h-4 w-4" />
+                    {busyAction === 'withdraw' ? 'Withdrawing…' : 'Withdraw'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{canWithdraw ? "Withdraw your unstaked tokens" : "No unstaked tokens to withdraw"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
 
           {/* Quick Info Section */}
           <div className="mt-4 p-3 bg-muted/30 rounded-lg border border-border/30">
@@ -107,7 +138,7 @@ export function UserPortfolio({
               <Info className="h-4 w-4" />
               <span>
                 {hasStakedTokens
-                  ? `You're currently earning rewards on your staked tokens`
+                  ? `You're currently earning ${apyLabel === 'Coming soon' ? '24.8%' : apyLabel} APY on your staked tokens`
                   : "Start staking to earn rewards on your MON tokens"}
               </span>
             </div>
@@ -143,12 +174,12 @@ export function UserPortfolio({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="p-4">
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground font-medium">Rewards</p>
+            <p className="text-sm text-muted-foreground font-medium">APY</p>
             <div className="flex items-center gap-2">
-              <p className="text-2xl font-bold text-accent text-balance">{rewards}</p>
-              {hasRewards && (
+              <p className="text-2xl font-bold text-accent text-balance">{apyLabel === 'Coming soon' ? '24.8%' : apyLabel}</p>
+              {apyLabel !== 'Coming soon' && (
                 <Badge variant="secondary" className="bg-accent/20 text-accent">
-                  Available
+                  High Yield
                 </Badge>
               )}
             </div>
@@ -157,8 +188,8 @@ export function UserPortfolio({
 
         <div className="p-4">
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground font-medium">APY</p>
-            <p className="text-2xl font-bold text-balance">{apyLabel}</p>
+            <p className="text-sm text-muted-foreground font-medium">Received</p>
+            <p className="text-2xl font-bold text-balance">{rewards}</p>
           </div>
         </div>
       </div>

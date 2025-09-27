@@ -2,7 +2,7 @@
 
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
 import type { ValidatorSummary } from '@/lib/api/models';
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils';
 
 interface ValidatorCardProps {
   readonly validator: ValidatorSummary;
