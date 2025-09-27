@@ -14,6 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { WalletConnectButton } from '@/app/components/wallet-connect-button';
 import { ClientOnly } from '@/app/components/client-only';
+import { ThemeToggle } from '@/app/components/theme-toggle';
 
 interface NavigationLink {
   href: Route;
@@ -83,6 +84,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <ThemeToggle />
           <div className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs uppercase tracking-wide text-primary-foreground">
             Beta Access
           </div>
@@ -127,6 +129,7 @@ export function SiteHeader() {
                 );
               })}
             </nav>
+            <ThemeToggle />
             <ClientOnly
               fallback={
                 <div className="rounded-lg border border-border/60 bg-card/60 px-4 py-2 text-sm text-muted-foreground">
