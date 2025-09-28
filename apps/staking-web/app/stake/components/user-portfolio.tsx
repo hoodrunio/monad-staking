@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { Badge } from '@/app/components/ui/badge';
 import { Card } from '@/app/components/ui/card';
 import { Info } from 'lucide-react';
@@ -10,9 +11,10 @@ interface UserPortfolioProps {
   readonly unstaked: string;
   readonly rewards: string;
   readonly apyLabel: string;
+  readonly children?: ReactNode;
 }
 
-export function UserPortfolio({ staked, locked, unstaked, rewards, apyLabel }: UserPortfolioProps) {
+export function UserPortfolio({ staked, locked, unstaked, rewards, apyLabel, children }: UserPortfolioProps) {
   const displayApy = apyLabel === 'Coming soon' ? '24.8%' : apyLabel;
 
   return (
@@ -44,6 +46,8 @@ export function UserPortfolio({ staked, locked, unstaked, rewards, apyLabel }: U
           <span className="text-2xl font-semibold text-foreground">{rewards}</span>
         </div>
       </div>
+
+      {children}
 
       <footer className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-muted-foreground">
         <span className="inline-flex items-center gap-2">

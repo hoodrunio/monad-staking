@@ -311,8 +311,8 @@ function StakeScreen() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-          <div className="order-1 xl:order-none xl:col-span-4">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <div className="order-1 xl:order-none">
             <QuickActions
               stakedValue={formattedMon(totals.staked)}
               rewardsValue={formattedMon(totals.rewards)}
@@ -329,20 +329,18 @@ function StakeScreen() {
             />
           </div>
 
-          <div className="order-3 xl:order-none xl:col-span-4">
-            <div className="h-full rounded-xl border border-white/10 bg-white/5 p-6">
-              <StakingChart />
-            </div>
-          </div>
-
-          <div className="order-2 xl:order-none xl:col-span-4">
+          <div className="order-2 xl:order-none">
             <UserPortfolio
               staked={formattedMon(totals.staked)}
               locked={formattedMon(totals.pendingWithdraw)}
               unstaked={formattedMon(totals.readyWithdraw)}
               rewards={formattedMon(totals.rewards)}
               apyLabel={apyLabel}
-            />
+            >
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                <StakingChart />
+              </div>
+            </UserPortfolio>
           </div>
         </div>
       </ShellSection>

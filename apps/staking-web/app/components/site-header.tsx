@@ -77,7 +77,6 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          <Badge variant="accent">Beta access</Badge>
           <ClientOnly
             fallback={
               <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-2 text-sm text-muted-foreground">
