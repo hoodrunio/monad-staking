@@ -15,6 +15,7 @@ import { normalizeCursor } from '@/lib/validators-utils';
 import { formatCompactMonFromDecimal } from '@/lib/format';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { cn } from '@/lib/utils';
+import { ShellSection } from '@/app/components/layout/shell';
 
 function ValidatorsPageContent() {
   const searchParams = useSearchParams();
@@ -33,41 +34,45 @@ function ValidatorsPageContent() {
 
   if (enabledNetworks.length === 0) {
     return (
-      <Card className="border-dashed border-white/20">
-        <CardHeader>
-          <CardTitle className="text-2xl">Validator explorer unavailable</CardTitle>
-          <CardDescription>
-            Provide at least one network RPC URL and chain ID to inspect validators.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 text-sm">
-            {MONAD_NETWORK_KEYS.map((key) => (
-              <div key={key} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-xs text-muted-foreground">
-                <div>{key.toUpperCase().replace(/-/g, '_')}_RPC_URL</div>
-                <div>{key.toUpperCase().replace(/-/g, '_')}_CHAIN_ID</div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <ShellSection width="wide">
+        <Card className="border-dashed border-white/20">
+          <CardHeader>
+            <CardTitle className="text-2xl">Validator explorer unavailable</CardTitle>
+            <CardDescription>
+              Provide at least one network RPC URL and chain ID to inspect validators.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 text-sm">
+              {MONAD_NETWORK_KEYS.map((key) => (
+                <div key={key} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-xs text-muted-foreground">
+                  <div>{key.toUpperCase().replace(/-/g, '_')}_RPC_URL</div>
+                  <div>{key.toUpperCase().replace(/-/g, '_')}_CHAIN_ID</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </ShellSection>
     );
   }
 
   if (!selectedNetwork || !resolved) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Network not ready</CardTitle>
-          <CardDescription>Selected network is missing configuration. Update your environment variables and retry.</CardDescription>
-        </CardHeader>
-      </Card>
+      <ShellSection width="wide">
+        <Card>
+          <CardHeader>
+            <CardTitle>Network not ready</CardTitle>
+            <CardDescription>Selected network is missing configuration. Update your environment variables and retry.</CardDescription>
+          </CardHeader>
+        </Card>
+      </ShellSection>
     );
   }
 
   return (
-    <div className="flex flex-col gap-10">
-      <section>
+    <>
+      <ShellSection width="wide">
         <Card>
           <CardHeader className="gap-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -113,9 +118,9 @@ function ValidatorsPageContent() {
             </div>
           </CardHeader>
         </Card>
-      </section>
+      </ShellSection>
 
-      <section className="space-y-6">
+      <ShellSection as="section" className="space-y-6" width="wide">
         {error ? (
           <Card className="border border-destructive/40 bg-destructive/10 text-destructive-foreground">
             <CardHeader>
@@ -144,8 +149,8 @@ function ValidatorsPageContent() {
             <PaginationControls prevCursor={pageData.cursor.prev} nextCursor={pageData.cursor.next} />
           </div>
         ) : null}
-      </section>
-    </div>
+      </ShellSection>
+    </>
   );
 }
 
@@ -153,10 +158,10 @@ export default function ValidatorsPage() {
   return (
     <ClientOnly
       fallback={
-        <div className="space-y-6">
+        <ShellSection as="div" className="space-y-6" width="wide">
           <h1 className="text-3xl font-semibold">Validator explorer</h1>
           <p className="text-muted-foreground">Loading...</p>
-        </div>
+        </ShellSection>
       }
     >
       <ValidatorsPageContent />

@@ -12,6 +12,7 @@ import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { useDelegationsQuery, useWithdrawalsQuery, useEpochQuery } from '@/lib/queries';
 import { formatMonFromWei } from '@/lib/utils';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { ShellSection } from '@/app/components/layout/shell';
 function AccountPageContent() {
   const searchParams = useSearchParams();
   const { address } = useAccount();
@@ -37,66 +38,38 @@ function AccountPageContent() {
 
   if (!selectedNetwork) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">My account</CardTitle>
-          <CardDescription>No network configured.</CardDescription>
-        </CardHeader>
-      </Card>
+      <ShellSection width="default">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">My account</CardTitle>
+            <CardDescription>No network configured.</CardDescription>
+          </CardHeader>
+        </Card>
+      </ShellSection>
     );
   }
 
   if (!resolved) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">My account</CardTitle>
-          <CardDescription>Selected network is not fully configured.</CardDescription>
-        </CardHeader>
-      </Card>
+      <ShellSection width="default">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">My account</CardTitle>
+            <CardDescription>Selected network is not fully configured.</CardDescription>
+          </CardHeader>
+        </Card>
+      </ShellSection>
     );
   }
 
   if (!address) {
     return (
-      <div className="min-h-screen gradient-bg">
-        <main className="container mx-auto px-4 py-6 space-y-6">
-          <div className="space-y-3">
-            <div>
-              <h1 className="text-3xl font-bold text-balance mb-1">My Assets</h1>
-              <p className="text-muted-foreground text-balance text-sm">
-                Connect your wallet to view your staking positions on {resolved.key}
-              </p>
-            </div>
-            <div className="w-full max-w-xs">
-              <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
-            </div>
-          </div>
-
-          <Card className="border border-amber-300/30 bg-amber-400/10">
-            <CardHeader>
-              <CardTitle className="text-base text-foreground">Wallet required</CardTitle>
-              <CardDescription>Please connect your wallet to continue.</CardDescription>
-            </CardHeader>
-          </Card>
-        </main>
-      </div>
-    );
-  }
-
-  const currentEpoch = epochData ? BigInt(epochData.epoch) : 0n;
-
-  return (
-    <div className="min-h-screen gradient-bg">
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <ShellSection as="div" className="space-y-6" width="wide">
         <div className="space-y-3">
           <div>
-            <h1 className="text-3xl font-bold text-balance mb-1">My Assets</h1>
-            <p className="text-muted-foreground text-balance text-sm">
-              Manage your staked assets, rewards, and delegations on {resolved.key}
-            </p>
-            <p className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-mono text-muted-foreground mt-2">
-              {address}
+            <h1 className="mb-1 text-balance text-3xl font-bold">My Assets</h1>
+            <p className="text-balance text-sm text-muted-foreground">
+              Connect your wallet to view your staking positions on {resolved.key}
             </p>
           </div>
           <div className="w-full max-w-xs">
@@ -104,13 +77,42 @@ function AccountPageContent() {
           </div>
         </div>
 
-        {/* Portfolio Overview */}
-        <div className="bg-background/50 backdrop-blur-sm rounded-lg p-6 border border-border/50">
-          <h2 className="text-lg font-semibold mb-4">Portfolio Overview</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border border-amber-300/30 bg-amber-400/10">
+          <CardHeader>
+            <CardTitle className="text-base text-foreground">Wallet required</CardTitle>
+            <CardDescription>Please connect your wallet to continue.</CardDescription>
+          </CardHeader>
+        </Card>
+      </ShellSection>
+    );
+  }
+
+  const currentEpoch = epochData ? BigInt(epochData.epoch) : 0n;
+
+  return (
+    <>
+      <ShellSection as="div" className="space-y-3" width="wide">
+        <div>
+          <h1 className="mb-1 text-balance text-3xl font-bold">My Assets</h1>
+          <p className="text-balance text-sm text-muted-foreground">
+            Manage your staked assets, rewards, and delegations on {resolved.key}
+          </p>
+          <p className="mt-2 inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-mono text-muted-foreground">
+            {address}
+          </p>
+        </div>
+        <div className="w-full max-w-xs">
+          <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
+        </div>
+      </ShellSection>
+
+      <ShellSection width="wide">
+        <div className="rounded-lg border border-border/50 bg-background/50 p-6 backdrop-blur-sm">
+          <h2 className="mb-4 text-lg font-semibold">Portfolio Overview</h2>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mx-auto mb-2">
-                <span className="text-primary font-bold">Σ</span>
+              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <span className="font-bold text-primary">Σ</span>
               </div>
               <div className="text-2xl font-bold">
                 {delegations?.items.reduce((sum, d) => sum + Number(d.stake.decimal || 0), 0).toFixed(2) || '0.00'}
@@ -120,8 +122,8 @@ function AccountPageContent() {
             </div>
 
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 mx-auto mb-2">
-                <span className="text-accent font-bold">🎁</span>
+              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
+                <span className="font-bold text-accent">🎁</span>
               </div>
               <div className="text-2xl font-bold">
                 {delegations?.items.reduce((sum, d) => sum + Number(d.unclaimedRewards.decimal || 0), 0).toFixed(2) || '0.00'}
@@ -131,8 +133,8 @@ function AccountPageContent() {
             </div>
 
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-secondary/10 mx-auto mb-2">
-                <span className="text-secondary font-bold">⏳</span>
+              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-secondary/10">
+                <span className="font-bold text-secondary">⏳</span>
               </div>
               <div className="text-2xl font-bold">{withdrawals?.items.length || 0}</div>
               <div className="text-sm text-muted-foreground">Pending Withdrawals</div>
@@ -140,8 +142,8 @@ function AccountPageContent() {
             </div>
 
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mx-auto mb-2">
-                <span className="text-primary font-bold">📈</span>
+              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <span className="font-bold text-primary">📈</span>
               </div>
               <div className="text-2xl font-bold">24.8%</div>
               <div className="text-sm text-muted-foreground">APY</div>
@@ -149,9 +151,10 @@ function AccountPageContent() {
             </div>
           </div>
         </div>
+      </ShellSection>
 
-        <section className="space-y-5">
-          <h2 className="text-xl font-semibold text-foreground">My delegations</h2>
+      <ShellSection as="section" className="space-y-5" width="wide">
+        <h2 className="text-xl font-semibold text-foreground">My delegations</h2>
 
         {delegationsError ? (
           <Card className="border border-destructive/40 bg-destructive/10 text-destructive-foreground">
@@ -222,9 +225,9 @@ function AccountPageContent() {
             No delegations found. Start by delegating to a validator.
           </div>
         )}
-      </section>
+      </ShellSection>
 
-      <section className="space-y-5">
+      <ShellSection as="section" className="space-y-5" width="wide">
         <h2 className="text-xl font-semibold text-foreground">Pending withdrawals</h2>
 
         {withdrawalsError ? (
@@ -292,9 +295,8 @@ function AccountPageContent() {
             No pending withdrawals found.
           </div>
         )}
-        </section>
-      </main>
-    </div>
+      </ShellSection>
+    </>
   );
 }
 

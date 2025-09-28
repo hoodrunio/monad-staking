@@ -11,6 +11,7 @@ import { ClientOnly } from '@/app/components/client-only';
 import { useEpochQuery } from '@/lib/queries';
 import { MONAD_NETWORK_KEYS } from '@monad-staking/config';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { ShellSection } from '@/app/components/layout/shell';
 
 function formatEpochStatus(inDelay: boolean): { label: string; tone: string } {
   return inDelay
@@ -81,7 +82,7 @@ function HomePageContent() {
     : null;
 
   return (
-    <div className="flex flex-col gap-10">
+    <ShellSection as="div" className="flex flex-col gap-10">
       <section className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <Card className="relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 bg-monad-grid opacity-60" />
@@ -260,7 +261,7 @@ function HomePageContent() {
           </CardContent>
         </Card>
       </section>
-    </div>
+    </ShellSection>
   );
 }
 
@@ -268,10 +269,10 @@ export default function HomePage() {
   return (
     <ClientOnly
       fallback={
-        <div className="space-y-6">
+        <ShellSection as="div" className="space-y-6">
           <h1 className="text-3xl font-semibold">Monad Staking Dashboard</h1>
           <p className="text-muted-foreground">Loading...</p>
-        </div>
+        </ShellSection>
       }
     >
       <HomePageContent />

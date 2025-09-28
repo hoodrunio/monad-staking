@@ -26,6 +26,7 @@ import { useStakingData } from '@/hooks/useStakingData';
 import { useValidatorsQuery } from '@/lib/queries';
 import { formatMonFromWei, getNextAvailableWithdrawId } from '@/lib/utils';
 import type { ValidatorSummary } from '@/lib/api/models';
+import { ShellSection } from '@/app/components/layout/shell';
 
 export default function StakePage() {
   return (
@@ -290,18 +291,17 @@ function StakeScreen() {
   };
 
   return (
-    <div className="min-h-screen gradient-bg">
-      <main className="container mx-auto px-4 py-8 space-y-8">
-        {/* Header Section */}
+    <>
+      <ShellSection as="div" className="space-y-8" width="wide">
         <div className="space-y-6">
           <div>
-            <h1 className="text-4xl font-bold text-balance mb-2">Stake</h1>
+            <h1 className="mb-2 text-balance text-4xl font-bold">Stake</h1>
             <div className="w-full max-w-xs">
               <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="lg:col-span-1">
               <TokenPriceCard tokenSymbol="MON" priceUsd={null} priceChangeLabel={epoch ? `Epoch ${epoch.epoch}` : undefined} />
             </div>
@@ -311,9 +311,7 @@ function StakeScreen() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-8 gap-8">
-          {/* Left Column - User Portfolio */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-8">
           <div className="lg:col-span-3">
             <UserPortfolio
               staked={formattedMon(totals.staked)}
@@ -333,72 +331,69 @@ function StakeScreen() {
             />
           </div>
 
-          {/* Right Column - Chart */}
           <div className="lg:col-span-5">
             <StakingChart />
           </div>
         </div>
+      </ShellSection>
 
-        {/* Delegations Section */}
-        <section className="space-y-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground">My delegations</h2>
-              <p className="text-sm text-muted-foreground">Manage existing positions, compound rewards, or start undelegation.</p>
-            </div>
+      <ShellSection className="space-y-6" width="wide">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-foreground">My delegations</h2>
+            <p className="text-sm text-muted-foreground">Manage existing positions, compound rewards, or start undelegation.</p>
           </div>
-          {data.isLoading.delegations ? (
-            <DelegationsSkeleton />
-          ) : delegations.length === 0 ? (
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
-              You have no active delegations yet.
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {delegations.map((delegation) => (
-                <DelegationCard
-                  key={delegation.validatorId}
-                  delegation={delegation}
-                  validator={validatorMap.get(delegation.validatorId)}
-                  onUndelegate={(entry) => openUndelegateModal(entry.validatorId)}
-                  onClaim={async (entry) => {
-                    if (!sdk || !account) return;
-                    await claimRewards(entry.validatorId);
-                    data.refetchAll();
-                  }}
-                  onCompound={async (entry) => {
-                    if (!sdk || !account) return;
-                    await compound(entry.validatorId);
-                    data.refetchAll();
-                  }}
-                  busyAction={state.busyAction}
-                  disabled={!sdk || !account || state.busy}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+        </div>
+        {data.isLoading.delegations ? (
+          <DelegationsSkeleton />
+        ) : delegations.length === 0 ? (
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
+            You have no active delegations yet.
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {delegations.map((delegation) => (
+              <DelegationCard
+                key={delegation.validatorId}
+                delegation={delegation}
+                validator={validatorMap.get(delegation.validatorId)}
+                onUndelegate={(entry) => openUndelegateModal(entry.validatorId)}
+                onClaim={async (entry) => {
+                  if (!sdk || !account) return;
+                  await claimRewards(entry.validatorId);
+                  data.refetchAll();
+                }}
+                onCompound={async (entry) => {
+                  if (!sdk || !account) return;
+                  await compound(entry.validatorId);
+                  data.refetchAll();
+                }}
+                busyAction={state.busyAction}
+                disabled={!sdk || !account || state.busy}
+              />
+            ))}
+          </div>
+        )}
+      </ShellSection>
 
-        {/* Withdrawals Section */}
-        <section className="space-y-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground">Withdrawals</h2>
-              <p className="text-sm text-muted-foreground">Track slots that are ready or still pending.</p>
-            </div>
+      <ShellSection className="space-y-6" width="wide">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-foreground">Withdrawals</h2>
+            <p className="text-sm text-muted-foreground">Track slots that are ready or still pending.</p>
           </div>
-          {data.isLoading.withdrawals ? (
-            <WithdrawalsSkeleton />
-          ) : (
-            <WithdrawalsList
-              ready={readyWithdrawals}
-              pending={pendingWithdrawals}
-              busy={!sdk || !account || (state.busy && state.busyAction === 'withdraw')}
-              onWithdraw={(entry) => setWithdrawModal(entry.withdrawalId)}
-            />
-          )}
-        </section>
-      </main>
+        </div>
+        {data.isLoading.withdrawals ? (
+          <WithdrawalsSkeleton />
+        ) : (
+          <WithdrawalsList
+            ready={readyWithdrawals}
+            pending={pendingWithdrawals}
+            busy={!sdk || !account || (state.busy && state.busyAction === 'withdraw')}
+            onWithdraw={(entry) => setWithdrawModal(entry.withdrawalId)}
+          />
+        )}
+      </ShellSection>
 
       <TransactionResult
         txHash={state.txHash}
@@ -561,17 +556,17 @@ function StakeScreen() {
           </div>
         </div>
       </ActionModal>
-    </div>
+    </>
   );
 }
 
 function LoadingFallback() {
   return (
-    <div className="space-y-6">
+    <ShellSection as="div" className="space-y-6" width="wide">
       <div className="h-12 w-2/3 rounded-2xl bg-white/10" />
       <div className="h-48 rounded-3xl border border-white/10 bg-white/5" />
       <div className="h-64 rounded-3xl border border-white/10 bg-white/5" />
-    </div>
+    </ShellSection>
   );
 }
 
