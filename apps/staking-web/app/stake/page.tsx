@@ -15,6 +15,9 @@ import { TokenPriceCard } from '@/app/stake/components/token-price-card';
 import { StakingStatsCard } from '@/app/stake/components/staking-stats-card';
 import { UserPortfolio } from '@/app/stake/components/user-portfolio';
 import { StakingChart } from '@/app/stake/components/staking-chart';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Label } from '@/app/components/ui/label';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { parseNetworkKey } from '@/lib/validators';
 import { useStakingSdk } from '@/hooks/useStakingSdk';
@@ -445,32 +448,25 @@ function StakeScreen() {
               </label>
             }
           />
-          <label className="block text-sm text-muted-foreground">
-            Amount (MON)
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="delegate-amount" className="text-sm text-muted-foreground">
+              Amount (MON)
+            </Label>
+            <Input
+              id="delegate-amount"
               type="text"
               value={delegateModal.amount}
               onChange={(event) => setDelegateModal((prev) => ({ ...prev, amount: event.target.value }))}
               placeholder="0.0"
-              className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
-          </label>
+          </div>
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => closeModals()}
-              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-primary"
-            >
+            <Button variant="outline" onClick={() => closeModals()}>
               Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleDelegateSubmit}
-              disabled={!delegateModal.validatorId || !delegateModal.amount}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-muted-foreground"
-            >
+            </Button>
+            <Button onClick={handleDelegateSubmit} disabled={!delegateModal.validatorId || !delegateModal.amount}>
               Delegate
-            </button>
+            </Button>
           </div>
         </div>
       </ActionModal>
@@ -498,16 +494,18 @@ function StakeScreen() {
             emptyMessage="No active delegations"
             disabled={!sdk || !account || state.busy}
           />
-          <label className="block text-sm text-muted-foreground">
-            Amount (MON)
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="undelegate-amount" className="text-sm text-muted-foreground">
+              Amount (MON)
+            </Label>
+            <Input
+              id="undelegate-amount"
               type="text"
               value={undelegateModal.amount}
               onChange={(event) => setUndelegateModal((prev) => ({ ...prev, amount: event.target.value }))}
               placeholder="0.0"
-              className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
-          </label>
+          </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-muted-foreground">
             {undelegateModal.withdrawalId !== null ? (
               <p>
@@ -520,21 +518,16 @@ function StakeScreen() {
             )}
           </div>
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => closeModals()}
-              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-primary"
-            >
+            <Button variant="outline" onClick={() => closeModals()}>
               Cancel
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              className="bg-amber-400 text-slate-900 hover:bg-amber-300"
               onClick={handleUndelegateSubmit}
               disabled={!undelegateModal.validatorId || !undelegateModal.amount || undelegateModal.withdrawalId === null}
-              className="rounded-xl bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-muted-foreground"
             >
               Undelegate
-            </button>
+            </Button>
           </div>
         </div>
       </ActionModal>
@@ -544,7 +537,6 @@ function StakeScreen() {
         onClose={() => closeModals()}
         title="Withdraw request"
         description="Confirm withdrawal of the selected slot."
-        size="sm"
       >
         <div className="space-y-4 text-sm text-muted-foreground">
           {withdrawModal !== null ? (
@@ -555,23 +547,17 @@ function StakeScreen() {
             </div>
           ) : null}
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => closeModals()}
-              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-primary"
-            >
+            <Button variant="outline" onClick={() => closeModals()}>
               Cancel
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               onClick={() => {
                 if (withdrawModal === null) return;
                 void handleWithdrawSubmit(withdrawModal);
               }}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition hover:bg-primary/90"
             >
               Withdraw
-            </button>
+            </Button>
           </div>
         </div>
       </ActionModal>
