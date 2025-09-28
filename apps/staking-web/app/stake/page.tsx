@@ -8,8 +8,6 @@ import { NetworkSelector } from '@/app/components/network-selector';
 import { ClientOnly } from '@/app/components/client-only';
 import { TransactionResult } from '@/app/components/transaction-result';
 import { ValidatorSelector } from '@/app/components/validator-selector';
-import { DelegationCard } from '@/app/stake/components/delegation-card';
-import { WithdrawalsList } from '@/app/stake/components/withdrawals-list';
 import { ActionModal } from '@/app/stake/components/action-modal';
 import { TokenPriceCard } from '@/app/stake/components/token-price-card';
 import { StakingStatsCard } from '@/app/stake/components/staking-stats-card';
@@ -56,7 +54,7 @@ function StakeScreen() {
 
   const data = useStakingData(selectedNetwork, !!selectedNetwork && !!resolved);
 
-  const { state, delegate, undelegate, withdraw, compound, claimRewards, claimAllRewards, resetState } =
+  const { state, delegate, undelegate, withdraw, claimAllRewards, resetState } =
     useStakeActions({
       sdk,
       account,
@@ -337,64 +335,6 @@ function StakeScreen() {
         </div>
       </ShellSection>
 
-      <ShellSection className="space-y-6" width="wide">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-foreground">My delegations</h2>
-            <p className="text-sm text-muted-foreground">Manage existing positions, compound rewards, or start undelegation.</p>
-          </div>
-        </div>
-        {data.isLoading.delegations ? (
-          <DelegationsSkeleton />
-        ) : delegations.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
-            You have no active delegations yet.
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {delegations.map((delegation) => (
-              <DelegationCard
-                key={delegation.validatorId}
-                delegation={delegation}
-                validator={validatorMap.get(delegation.validatorId)}
-                onUndelegate={(entry) => openUndelegateModal(entry.validatorId)}
-                onClaim={async (entry) => {
-                  if (!sdk || !account) return;
-                  await claimRewards(entry.validatorId);
-                  data.refetchAll();
-                }}
-                onCompound={async (entry) => {
-                  if (!sdk || !account) return;
-                  await compound(entry.validatorId);
-                  data.refetchAll();
-                }}
-                busyAction={state.busyAction}
-                disabled={!sdk || !account || state.busy}
-              />
-            ))}
-          </div>
-        )}
-      </ShellSection>
-
-      <ShellSection className="space-y-6" width="wide">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-foreground">Withdrawals</h2>
-            <p className="text-sm text-muted-foreground">Track slots that are ready or still pending.</p>
-          </div>
-        </div>
-        {data.isLoading.withdrawals ? (
-          <WithdrawalsSkeleton />
-        ) : (
-          <WithdrawalsList
-            ready={readyWithdrawals}
-            pending={pendingWithdrawals}
-            busy={!sdk || !account || (state.busy && state.busyAction === 'withdraw')}
-            onWithdraw={(entry) => setWithdrawModal(entry.withdrawalId)}
-          />
-        )}
-      </ShellSection>
-
       <TransactionResult
         txHash={state.txHash}
         txError={state.txError}
@@ -567,25 +507,5 @@ function LoadingFallback() {
       <div className="h-48 rounded-3xl border border-white/10 bg-white/5" />
       <div className="h-64 rounded-3xl border border-white/10 bg-white/5" />
     </ShellSection>
-  );
-}
-
-function DelegationsSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div key={index} className="h-36 animate-pulse rounded-3xl border border-white/10 bg-white/5" />
-      ))}
-    </div>
-  );
-}
-
-function WithdrawalsSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 2 }).map((_, index) => (
-        <div key={index} className="h-32 animate-pulse rounded-3xl border border-white/10 bg-white/5" />
-      ))}
-    </div>
   );
 }
