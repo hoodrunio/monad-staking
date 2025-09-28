@@ -1,50 +1,42 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Badge } from '@/app/components/ui/badge';
 import { Card } from '@/app/components/ui/card';
 import { Info } from 'lucide-react';
 
 interface UserPortfolioProps {
   readonly staked: string;
-  readonly locked: string;
+  readonly withdrawable: string;
+  readonly claimable: string;
   readonly unstaked: string;
-  readonly rewards: string;
   readonly apyLabel: string;
   readonly children?: ReactNode;
 }
 
-export function UserPortfolio({ staked, locked, unstaked, rewards, apyLabel, children }: UserPortfolioProps) {
+export function UserPortfolio({ staked, withdrawable, claimable, unstaked, apyLabel, children }: UserPortfolioProps) {
   const displayApy = apyLabel === 'Coming soon' ? '24.8%' : apyLabel;
+  const stats = [
+    { label: 'Staked', value: staked, accent: true },
+    { label: 'Withdrawable', value: withdrawable },
+    { label: 'Claimable', value: claimable },
+    { label: 'Unstaked', value: unstaked },
+  ];
 
   return (
     <Card className="h-full space-y-6 p-6">
       <header className="space-y-1">
         <p className="text-sm font-medium text-muted-foreground">Portfolio breakdown</p>
         <h2 className="text-2xl font-semibold text-foreground">My staking position</h2>
+        <p className="text-xs uppercase tracking-wide text-primary">APY {displayApy}</p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {[{ label: 'Staked', value: staked }, { label: 'Locked', value: locked }, { label: 'Unstaked', value: unstaked }].map((item) => (
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map((item) => (
           <div key={item.label} className="rounded-xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">{item.label}</p>
-            <p className={`mt-2 text-2xl font-semibold ${item.label === 'Staked' ? 'text-accent' : 'text-foreground'}`}>{item.value}</p>
+            <p className={`mt-2 text-xl font-semibold ${item.accent ? 'text-accent' : 'text-foreground'}`}>{item.value}</p>
           </div>
         ))}
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/5 p-4">
-          <span className="text-xs uppercase tracking-wide text-muted-foreground">APY</span>
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-semibold text-accent">{displayApy}</span>
-            {apyLabel !== 'Coming soon' ? <Badge variant="accent">High Yield</Badge> : null}
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/5 p-4">
-          <span className="text-xs uppercase tracking-wide text-muted-foreground">Received</span>
-          <span className="text-2xl font-semibold text-foreground">{rewards}</span>
-        </div>
       </div>
 
       {children}

@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/app/components/ui/button';
-import { Badge } from '@/app/components/ui/badge';
 import { Card } from '@/app/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/app/components/ui/tooltip';
 import { Gift, Info, TrendingDown, TrendingUp, Wallet, Zap } from 'lucide-react';
+import { Badge } from '@/app/components/ui/badge';
 
 interface QuickActionsProps {
   readonly stakedValue: string;
@@ -53,7 +53,7 @@ export function QuickActions({
           <Zap className="h-5 w-5 text-accent" />
           Quick Actions
         </h2>
-        <Badge variant="accent">Ready to Stake</Badge>
+        <Badge variant="accent">APY {displayApy}</Badge>
       </header>
 
       <TooltipProvider>

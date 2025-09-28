@@ -332,9 +332,9 @@ function StakeScreen() {
           <div className="order-2 xl:order-none">
             <UserPortfolio
               staked={formattedMon(totals.staked)}
-              locked={formattedMon(totals.pendingWithdraw)}
-              unstaked={formattedMon(totals.readyWithdraw)}
-              rewards={formattedMon(totals.rewards)}
+              withdrawable={formattedMon(totals.readyWithdraw)}
+              claimable={formattedMon(totals.rewards)}
+              unstaked={formattedMon(totals.pendingWithdraw)}
               apyLabel={apyLabel}
             >
               <div className="rounded-xl border border-white/10 bg-white/5 p-4">
