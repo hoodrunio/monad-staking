@@ -74,3 +74,8 @@ export interface WithdrawalApiResponse {
   readonly items: WithdrawalApiItem[];
   readonly nextStartId: number | null;
 }
+
+export interface BalanceApiResponse {
+  readonly available: AmountField;
+  readonly staked: AmountField;
+}

@@ -75,7 +75,7 @@ function StakeScreen() {
   const [selectorHasMore, setSelectorHasMore] = useState(false);
   const [selectorNextCursor, setSelectorNextCursor] = useState<string | null>(null);
 
-  const { validators, delegations, withdrawals, epoch } = data;
+  const { validators, delegations, withdrawals, epoch, balance } = data;
   const withdrawEntry = useMemo(
     () => (withdrawModal !== null ? withdrawals.find((item) => item.withdrawalId === withdrawModal) ?? null : null),
     [withdrawModal, withdrawals],
@@ -174,12 +174,16 @@ function StakeScreen() {
   }, [withdrawals, epoch]);
 
   const totals = useMemo(() => {
-    const staked = delegations.reduce((sum, item) => sum + Number(item.stake.decimal || 0), 0);
     const rewards = delegations.reduce((sum, item) => sum + Number(item.unclaimedRewards.decimal || 0), 0);
     const ready = readyWithdrawals.reduce((sum, item) => sum + Number(item.amount.decimal || 0), 0);
     const pending = pendingWithdrawals.reduce((sum, item) => sum + Number(item.amount.decimal || 0), 0);
-    return { staked, rewards, readyWithdraw: ready, pendingWithdraw: pending };
-  }, [delegations, readyWithdrawals, pendingWithdrawals]);
+
+    // Use balance API data directly
+    const available = balance ? Number(balance.decimal || 0) : 0;
+    const staked = balance ? Number(balance.stakedDecimal || 0) : delegations.reduce((sum, item) => sum + Number(item.stake.decimal || 0), 0);
+
+    return { staked, rewards, readyWithdraw: ready, pendingWithdraw: pending, available };
+  }, [delegations, readyWithdrawals, pendingWithdrawals, balance]);
 
   const activeValidators = validators.filter((validator) => validator.isActive).length;
   const statsFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
@@ -316,6 +320,7 @@ function StakeScreen() {
             <QuickActions
               stakedValue={formattedMon(totals.staked)}
               rewardsValue={formattedMon(totals.rewards)}
+              availableBalance={formattedMon(totals.available)}
               apyLabel={apyLabel}
               onStake={handleStake}
               onUnstake={handleUnstake}

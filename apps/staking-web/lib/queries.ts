@@ -6,14 +6,17 @@ import type {
   ValidatorDetailApiResponse,
   ValidatorListApiResponse,
   WithdrawalApiResponse,
+  BalanceApiResponse,
 } from './api/types';
 import type {
   DelegationPage,
   PaginatedValidators,
   ValidatorDetail,
   WithdrawalPage,
+  Balance,
 } from './api/models';
 import {
+  mapBalance,
   mapDelegations,
   mapValidatorDetail,
   mapValidatorList,
@@ -38,6 +41,7 @@ export const queryKeys = {
     ['delegations', network, address, cursor] as const,
   withdrawals: (network: MonadNetwork, address: string, validatorId?: string) =>
     ['withdrawals', network, address, validatorId] as const,
+  balance: (network: MonadNetwork, address: string) => ['balance', network, address] as const,
 };
 
 export function useEpochQuery(network: MonadNetwork, options?: { enabled?: boolean }) {
@@ -136,6 +140,25 @@ export function useWithdrawalsQuery(
       return mapWithdrawals(response);
     },
     staleTime: 20_000,
+    enabled: options?.enabled !== false && !!address,
+  });
+}
+
+export function useBalanceQuery(
+  network: MonadNetwork,
+  address: string,
+  options?: { enabled?: boolean },
+) {
+  return useQuery({
+    queryKey: queryKeys.balance(network, address),
+    queryFn: async (): Promise<Balance> => {
+      const response = await apiGet<BalanceApiResponse>('/api/balance', {
+        network,
+        address,
+      });
+      return mapBalance(response);
+    },
+    staleTime: 10_000,
     enabled: options?.enabled !== false && !!address,
   });
 }

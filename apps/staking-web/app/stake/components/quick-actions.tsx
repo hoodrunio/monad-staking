@@ -5,10 +5,12 @@ import { Card } from '@/app/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/app/components/ui/tooltip';
 import { Gift, Info, TrendingDown, TrendingUp, Wallet, Zap } from 'lucide-react';
 import { Badge } from '@/app/components/ui/badge';
+import { BalancePieChart } from './balance-pie-chart';
 
 interface QuickActionsProps {
   readonly stakedValue: string;
   readonly rewardsValue: string;
+  readonly availableBalance: string;
   readonly apyLabel: string;
   readonly onStake: () => void;
   readonly onUnstake: () => void;
@@ -31,6 +33,7 @@ function parseAmount(value: string): number {
 export function QuickActions({
   stakedValue,
   rewardsValue,
+  availableBalance,
   apyLabel,
   onStake,
   onUnstake,
@@ -44,7 +47,17 @@ export function QuickActions({
 }: QuickActionsProps) {
   const hasStakedTokens = parseAmount(stakedValue) > 0;
   const hasRewards = parseAmount(rewardsValue) > 0;
+  const availableAmount = parseAmount(availableBalance);
+  const stakedAmount = parseAmount(stakedValue);
   const displayApy = apyLabel === 'Coming soon' ? '24.8%' : apyLabel;
+
+
+  const pieData = [
+    { name: 'Available', value: availableAmount, color: 'oklch(0.6 0.15 264)' },
+    { name: 'Staked', value: stakedAmount, color: 'oklch(0.8 0.18 142)' },
+  ].filter(item => item.value >= 0);
+
+  const totalBalance = (availableAmount + stakedAmount).toFixed(2);
 
   return (
     <Card className="h-full space-y-4 p-4">
@@ -124,6 +137,15 @@ export function QuickActions({
           </Tooltip>
         </div>
       </TooltipProvider>
+
+      {pieData.length > 0 && (
+        <BalancePieChart
+          data={pieData}
+          total={`${totalBalance} MON`}
+          size="md"
+          className="mb-2"
+        />
+      )}
 
       <div className="rounded-lg border border-border/30 bg-muted/30 p-2 text-xs text-muted-foreground">
         <div className="flex items-center gap-1">

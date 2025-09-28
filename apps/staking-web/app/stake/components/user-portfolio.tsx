@@ -24,7 +24,6 @@ export function UserPortfolio({ staked, withdrawable, claimable, unstaked, apyLa
   return (
     <Card className="h-full space-y-4 p-4">
       <header className="space-y-1">
-        <p className="text-sm font-medium text-muted-foreground">Portfolio breakdown</p>
         <h2 className="text-xl font-semibold text-foreground">My staking position</h2>
         <p className="text-xs uppercase tracking-wide text-primary">APY {displayApy}</p>
       </header>

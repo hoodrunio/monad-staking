@@ -1,4 +1,5 @@
 import type {
+  BalanceApiResponse,
   DelegationApiItem,
   DelegationApiResponse,
   ValidatorDetailApiResponse,
@@ -9,6 +10,7 @@ import type {
 } from './types';
 import type {
   AmountDisplay,
+  Balance,
   CommissionDisplay,
   DelegationPage,
   DelegationSummary,
@@ -107,6 +109,19 @@ export function mapWithdrawals(response: WithdrawalApiResponse): WithdrawalPage 
   return {
     items: response.items.map(mapWithdrawal),
     nextStartId: response.nextStartId,
+  };
+}
+
+export function mapBalance(response: BalanceApiResponse): Balance {
+  const availableFormatted = formatAmountField(response.available);
+  const stakedFormatted = formatAmountField(response.staked);
+  return {
+    raw: response.available.raw,
+    decimal: response.available.decimal,
+    formatted: availableFormatted,
+    stakedRaw: response.staked.raw,
+    stakedDecimal: response.staked.decimal,
+    stakedFormatted: stakedFormatted,
   };
 }
 
