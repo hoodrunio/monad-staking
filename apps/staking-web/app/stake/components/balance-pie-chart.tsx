@@ -21,7 +21,6 @@ interface LabelProps {
   cx: number;
   cy: number;
   midAngle: number;
-  innerRadius: number;
   outerRadius: number;
   value: number;
 }
@@ -40,31 +39,62 @@ export function BalancePieChart({
   className = '',
 }: BalancePieChartProps) {
   const chartSize = {
-    sm: { width: 120, height: 120, innerRadius: 30, outerRadius: 50 },
-    md: { width: 160, height: 160, innerRadius: 40, outerRadius: 65 },
-    lg: { width: 200, height: 200, innerRadius: 50, outerRadius: 80 },
+    sm: { width: 140, height: 140, innerRadius: 34, outerRadius: 52 },
+    md: { width: 200, height: 200, innerRadius: 48, outerRadius: 74 },
+    lg: { width: 240, height: 240, innerRadius: 56, outerRadius: 90 },
   }[size];
 
-  const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value }: LabelProps) => {
-    if (!showLabels || value < 0.1) return null;
+  const containerSize = {
+    width: chartSize.width + 120,
+    height: chartSize.height + 80,
+  };
+
+  const CustomLabel = ({ cx, cy, midAngle, outerRadius, value }: LabelProps) => {
+    if (!showLabels || value <= 0) return null;
 
     const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    const cos = Math.cos(-midAngle * RADIAN);
+    const sin = Math.sin(-midAngle * RADIAN);
+    const lineStartX = cx + outerRadius * cos;
+    const lineStartY = cy + outerRadius * sin;
+    const lineEndX = cx + (outerRadius + 24) * cos;
+    const lineEndY = cy + (outerRadius + 24) * sin;
+    const anchorRight = lineEndX >= cx;
+    const textX = lineEndX + (anchorRight ? 12 : -12);
+    const textY = lineEndY;
+    const strokeColor = 'oklch(0.65 0.012 264)';
+    const arrowSize = 4;
+
+    const arrowPoints = [
+      `${lineStartX},${lineStartY}`,
+      `${lineStartX - sin * arrowSize},${lineStartY - cos * arrowSize}`,
+      `${lineStartX + sin * arrowSize},${lineStartY + cos * arrowSize}`,
+    ].join(' ');
+
+    const formattedValue = `${value.toLocaleString('en-US', { maximumFractionDigits: 2 })} MON`;
 
     return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        fontSize={size === 'sm' ? '10' : '12'}
-        fontWeight="600"
-      >
-        {value.toFixed(1)}
-      </text>
+      <g>
+        <polyline
+          points={`${lineStartX},${lineStartY} ${lineEndX},${lineEndY}`}
+          fill="none"
+          stroke={strokeColor}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+        />
+        <polygon points={arrowPoints} fill={strokeColor} />
+        <text
+          x={textX}
+          y={textY}
+          fill="var(--foreground)"
+          fontSize={size === 'sm' ? 10 : 12}
+          fontWeight={600}
+          textAnchor={anchorRight ? 'start' : 'end'}
+          dominantBaseline="middle"
+        >
+          {formattedValue}
+        </text>
+      </g>
     );
   };
 
@@ -87,9 +117,13 @@ export function BalancePieChart({
         ))}
       </div>
 
-      <div className="relative">
-        <ResponsiveContainer width={chartSize.width} height={chartSize.height}>
-          <PieChart>
+      <div className="relative overflow-visible">
+        <ResponsiveContainer
+          width={containerSize.width}
+          height={containerSize.height}
+          style={{ overflow: 'visible' }}
+        >
+          <PieChart margin={{ top: 40, right: 52, bottom: 40, left: 52 }}>
             <Pie
               data={data as PieDataItem[]}
               cx="50%"
@@ -108,9 +142,11 @@ export function BalancePieChart({
           </PieChart>
         </ResponsiveContainer>
         {total && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="text-xs text-muted-foreground">Total</div>
-            <div className="text-lg font-bold text-foreground">{total}</div>
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+            <div className="rounded-full border border-white/10 bg-background/90 px-4 py-2 text-center shadow-lg shadow-black/20">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Total</div>
+              <div className="text-lg font-semibold text-foreground">{total}</div>
+            </div>
           </div>
         )}
       </div>
