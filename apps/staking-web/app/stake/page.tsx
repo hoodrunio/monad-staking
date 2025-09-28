@@ -13,6 +13,7 @@ import { TokenPriceCard } from '@/app/stake/components/token-price-card';
 import { StakingStatsCard } from '@/app/stake/components/staking-stats-card';
 import { UserPortfolio } from '@/app/stake/components/user-portfolio';
 import { StakingChart } from '@/app/stake/components/staking-chart';
+import { QuickActions } from '@/app/stake/components/quick-actions';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
@@ -269,6 +270,7 @@ function StakeScreen() {
   }
 
   const formattedMon = (value: number) => `${statsFormatter.format(value)} MON`;
+  const apyLabel = 'Coming soon';
   const canStake = !!sdk && !!account && !state.busy;
   const canUnstake = Boolean(firstDelegation) && !!sdk && !!account && !state.busy;
   const canWithdraw = Boolean(firstReadyWithdrawal) && !!sdk && !!account && !state.busy;
@@ -309,14 +311,12 @@ function StakeScreen() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-8">
-          <div className="lg:col-span-3">
-            <UserPortfolio
-              staked={formattedMon(totals.staked)}
-              locked={formattedMon(totals.pendingWithdraw)}
-              unstaked={formattedMon(totals.readyWithdraw)}
-              rewards={formattedMon(totals.rewards)}
-              apyLabel="Coming soon"
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+          <div className="order-1 xl:order-none xl:col-span-4">
+            <QuickActions
+              stakedValue={formattedMon(totals.staked)}
+              rewardsValue={formattedMon(totals.rewards)}
+              apyLabel={apyLabel}
               onStake={handleStake}
               onUnstake={handleUnstake}
               onWithdraw={handleWithdraw}
@@ -329,8 +329,20 @@ function StakeScreen() {
             />
           </div>
 
-          <div className="lg:col-span-5">
-            <StakingChart />
+          <div className="order-3 xl:order-none xl:col-span-4">
+            <div className="h-full rounded-xl border border-white/10 bg-white/5 p-6">
+              <StakingChart />
+            </div>
+          </div>
+
+          <div className="order-2 xl:order-none xl:col-span-4">
+            <UserPortfolio
+              staked={formattedMon(totals.staked)}
+              locked={formattedMon(totals.pendingWithdraw)}
+              unstaked={formattedMon(totals.readyWithdraw)}
+              rewards={formattedMon(totals.rewards)}
+              apyLabel={apyLabel}
+            />
           </div>
         </div>
       </ShellSection>
