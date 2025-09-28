@@ -47,7 +47,7 @@ export function QuickActions({
   const displayApy = apyLabel === 'Coming soon' ? '24.8%' : apyLabel;
 
   return (
-    <Card className="h-full space-y-6 p-6">
+    <Card className="h-full space-y-4 p-4">
       <header className="flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-lg font-semibold">
           <Zap className="h-5 w-5 text-accent" />
@@ -57,13 +57,13 @@ export function QuickActions({
       </header>
 
       <TooltipProvider>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 onClick={onStake}
                 disabled={!canStake}
-                className={`h-12 gap-2 bg-accent text-accent-foreground transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
+                className={`h-10 gap-2 bg-accent text-accent-foreground transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
                 <TrendingUp className="h-4 w-4" />
                 {busyAction === 'stake' ? 'Opening…' : 'Stake MON'}
@@ -78,7 +78,7 @@ export function QuickActions({
                 variant="outline"
                 onClick={onUnstake}
                 disabled={!canUnstake}
-                className={`h-12 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
+                className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
                 <TrendingDown className="h-4 w-4" />
                 {busyAction === 'unstake' ? 'Processing…' : 'Unstake'}
@@ -95,7 +95,7 @@ export function QuickActions({
                 variant="outline"
                 onClick={onClaim}
                 disabled={!canClaim}
-                className={`h-12 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
+                className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
                 <Gift className="h-4 w-4" />
                 {busyAction === 'claim' ? 'Claiming…' : 'Claim Rewards'}
@@ -112,7 +112,7 @@ export function QuickActions({
                 variant="outline"
                 onClick={onWithdraw}
                 disabled={!canWithdraw}
-                className={`h-12 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
+                className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
                 <Wallet className="h-4 w-4" />
                 {busyAction === 'withdraw' ? 'Withdrawing…' : 'Withdraw'}
@@ -125,9 +125,9 @@ export function QuickActions({
         </div>
       </TooltipProvider>
 
-      <div className="rounded-lg border border-border/30 bg-muted/30 p-3 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <Info className="h-4 w-4" />
+      <div className="rounded-lg border border-border/30 bg-muted/30 p-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1">
+          <Info className="h-3 w-3" />
           <span>
             {hasStakedTokens
               ? `You're currently earning ${displayApy} APY on your staked tokens`
