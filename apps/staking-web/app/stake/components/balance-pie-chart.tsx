@@ -80,7 +80,9 @@ export function BalancePieChart({
               />
               <span className="text-muted-foreground">{item.name}</span>
             </div>
-            <span className="font-medium text-foreground">{item.value.toFixed(2)} MON</span>
+            <span className="font-medium text-foreground">
+              {item.value.toLocaleString('en-US', { maximumFractionDigits: 2 })} MON
+            </span>
           </div>
         ))}
       </div>

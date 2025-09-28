@@ -186,7 +186,7 @@ function StakeScreen() {
   }, [delegations, readyWithdrawals, pendingWithdrawals, balance]);
 
   const activeValidators = validators.filter((validator) => validator.isActive).length;
-  const statsFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
+  const statsFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
   const stats = [
     {
       label: 'Total staked',

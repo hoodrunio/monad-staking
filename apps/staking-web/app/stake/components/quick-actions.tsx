@@ -52,6 +52,7 @@ export function QuickActions({
   const displayApy = apyLabel === 'Coming soon' ? '24.8%' : apyLabel;
 
 
+
   const pieData = [
     { name: 'Available', value: availableAmount, color: 'oklch(0.6 0.15 264)' },
     { name: 'Staked', value: stakedAmount, color: 'oklch(0.8 0.18 142)' },
