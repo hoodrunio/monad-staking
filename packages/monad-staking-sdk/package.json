@@ -1,6 +1,22 @@
 {
   "name": "@monad-staking/sdk",
   "version": "0.1.0",
+  "description": "TypeScript SDK for interacting with Monad blockchain staking precompile",
+  "author": "HoodRun",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hoodrunio/monad-staking.git",
+    "directory": "packages/monad-staking-sdk"
+  },
+  "homepage": "https://github.com/hoodrunio/monad-staking#readme",
+  "bugs": {
+    "url": "https://github.com/hoodrunio/monad-staking/issues"
+  },
+  "keywords": ["monad", "blockchain", "staking", "sdk", "ethereum", "viem"],
+  "publishConfig": {
+    "access": "public"
+  },
   "private": false,
   "type": "module",
   "main": "dist/index.js",
