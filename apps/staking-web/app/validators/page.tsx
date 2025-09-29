@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MONAD_NETWORK_KEYS } from '@monad-staking/config';
-import { NetworkSelector } from '@/app/components/network-selector';
 import { PaginationControls } from '@/app/components/pagination-controls';
 import { ValidatorTable } from '@/app/components/validator-table';
 import { ValidatorTableSkeleton } from '@/app/components/loading-skeleton';
@@ -81,9 +80,6 @@ function ValidatorsPageContent() {
                 <CardDescription className="text-base">
                   Browse validator performance on {resolved.label}. Toggle filters to focus on active operators.
                 </CardDescription>
-              </div>
-              <div className="w-full max-w-xs">
-                <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">

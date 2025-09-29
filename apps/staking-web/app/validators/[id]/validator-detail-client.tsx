@@ -8,7 +8,6 @@ import { getSelectedNetwork } from '@/lib/page-utils';
 import { getValidatorDisplayName, hasValidatorMetadata } from '@/lib/validator-detail-utils';
 import { ValidatorDetailSkeleton } from '@/app/components/loading-skeleton';
 import { ExplorerLink } from '@/app/components/explorer-link';
-import { NetworkSelector } from '@/app/components/network-selector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 
 interface ValidatorDetailClientProps {
@@ -107,9 +106,6 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
             <h1 className="text-3xl font-semibold text-foreground">{displayName}</h1>
             <p className="text-sm text-muted-foreground">Validator #{validatorId} on {resolved.label}</p>
           </div>
-        </div>
-        <div className="w-full max-w-xs">
-          <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
         </div>
       </div>
 

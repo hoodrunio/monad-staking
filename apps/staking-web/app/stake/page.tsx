@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useSearchParams } from 'next/navigation';
 import type { MonadNetwork } from '@monad-staking/config';
-import { NetworkSelector } from '@/app/components/network-selector';
 import { ClientOnly } from '@/app/components/client-only';
 import { TransactionResult } from '@/app/components/transaction-result';
 import { ValidatorSelector } from '@/app/components/validator-selector';
@@ -300,9 +299,6 @@ function StakeScreen() {
         <div className="space-y-6">
           <div>
             <h1 className="mb-2 text-balance text-4xl font-bold">Stake</h1>
-            <div className="w-full max-w-xs">
-              <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
-            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

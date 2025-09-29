@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import { ArrowTopRightOnSquareIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';
-import { NetworkSelector } from '@/app/components/network-selector';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { ClientOnly } from '@/app/components/client-only';
 import { useEpochQuery } from '@/lib/queries';
@@ -103,7 +102,6 @@ function HomePageContent() {
                 <span className="text-xs uppercase tracking-wide text-muted-foreground">Active network</span>
                 <span className="text-sm font-semibold text-foreground">{resolved.label}</span>
               </div>
-              <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
             </div>
           </CardHeader>
         </Card>

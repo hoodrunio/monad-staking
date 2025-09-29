@@ -6,7 +6,6 @@ import { useSearchParams } from 'next/navigation';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';
 import { formatDelegationRow, formatWithdrawalRow } from '@/lib/account-utils';
-import { NetworkSelector } from '@/app/components/network-selector';
 import { ClientOnly } from '@/app/components/client-only';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { useDelegationsQuery, useWithdrawalsQuery, useEpochQuery } from '@/lib/queries';
@@ -72,9 +71,6 @@ function AccountPageContent() {
               Connect your wallet to view your staking positions on {resolved.key}
             </p>
           </div>
-          <div className="w-full max-w-xs">
-            <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
-          </div>
         </div>
 
         <Card>
@@ -100,9 +96,6 @@ function AccountPageContent() {
           <p className="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-mono text-muted-foreground">
             {address}
           </p>
-        </div>
-        <div className="w-full max-w-xs">
-          <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
         </div>
       </ShellSection>
 
