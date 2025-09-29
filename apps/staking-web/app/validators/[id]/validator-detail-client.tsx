@@ -69,7 +69,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
     return (
       <div className="space-y-6">
         {backLink}
-        <Card className="border border-destructive/40 bg-destructive/10 text-destructive-foreground">
+        <Card className="text-destructive-foreground">
           <CardHeader>
             <CardTitle className="text-base">Failed to load validator</CardTitle>
             <CardDescription className="text-destructive-foreground/80">

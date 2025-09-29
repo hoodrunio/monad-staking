@@ -38,7 +38,7 @@ export function Providers({
           <Toaster
             position="top-right"
             toastOptions={{
-              className: 'border border-white/10 bg-white/10 text-foreground backdrop-blur',
+              className: 'bg-background/80 text-foreground backdrop-blur',
               duration: 4000,
             }}
           />

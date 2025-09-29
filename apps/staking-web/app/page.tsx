@@ -34,7 +34,7 @@ function HomePageContent() {
   if (enabledNetworks.length === 0) {
     return (
       <div className="flex flex-col gap-8">
-        <Card className="border-dashed border-white/20">
+        <Card>
           <CardHeader>
             <CardTitle className="text-2xl">Configure a Monad network</CardTitle>
             <CardDescription>
@@ -46,7 +46,7 @@ function HomePageContent() {
               {MONAD_NETWORK_KEYS.map((key) => (
                 <div
                   key={key}
-                  className="flex flex-col rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-xs text-muted-foreground"
+                  className="flex flex-col rounded-2xl px-4 py-3 font-mono text-xs text-muted-foreground"
                 >
                   <span>{key.toUpperCase().replace(/-/g, '_')}_RPC_URL</span>
                   <span>{key.toUpperCase().replace(/-/g, '_')}_CHAIN_ID</span>
@@ -88,7 +88,7 @@ function HomePageContent() {
           <div className="pointer-events-none absolute inset-0 bg-monad-grid opacity-60" />
           <CardHeader className="relative z-10 gap-6">
             <div className="flex flex-col gap-4">
-              <div className="inline-flex items-center gap-2 self-start rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary-foreground">
+              <div className="inline-flex items-center gap-2 self-start rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary-foreground">
                 Live network insights
               </div>
               <CardTitle className="text-3xl leading-tight">
@@ -98,7 +98,7 @@ function HomePageContent() {
                 Monitor epochs, validator performance, and activation windows for {resolved.label}. Use network filters to pivot across Monad deployments.
               </CardDescription>
             </div>
-            <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-col">
                 <span className="text-xs uppercase tracking-wide text-muted-foreground">Active network</span>
                 <span className="text-sm font-semibold text-foreground">{resolved.label}</span>
@@ -122,20 +122,20 @@ function HomePageContent() {
             <dl className="space-y-4">
               <div>
                 <dt className="text-xs uppercase tracking-wide">RPC URL</dt>
-                <dd className="mt-1 break-words rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-foreground/80">
+                <dd className="mt-1 break-words rounded-xl px-4 py-2 text-foreground/80">
                   {resolved.rpcUrl}
                 </dd>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <dt className="text-xs uppercase tracking-wide">Chain ID</dt>
-                  <dd className="mt-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 font-mono text-sm text-foreground">
+                  <dd className="mt-1 rounded-xl px-3 py-2 font-mono text-sm text-foreground">
                     {resolved.chainId}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-xs uppercase tracking-wide">Epoch length</dt>
-                  <dd className="mt-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 font-mono text-sm text-foreground">
+                  <dd className="mt-1 rounded-xl px-3 py-2 font-mono text-sm text-foreground">
                     {resolved.epochLength.toLocaleString()} blocks
                   </dd>
                 </div>
@@ -148,13 +148,13 @@ function HomePageContent() {
                       href={resolved.explorerBaseUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground transition hover:border-primary/40 hover:text-primary-foreground"
+                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground transition hover:text-primary"
                     >
                       Visit explorer
                       <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                     </a>
                   ) : (
-                    <span className="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
+                    <span className="rounded-lg px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
                       Not configured
                     </span>
                   )}
@@ -176,7 +176,7 @@ function HomePageContent() {
         </div>
 
         {error ? (
-          <Card className="border border-destructive/40 bg-destructive/10 text-destructive-foreground">
+          <Card className="text-destructive-foreground">
             <CardHeader>
               <CardTitle>Failed to load epoch information</CardTitle>
               <CardDescription className="text-destructive-foreground/80">
@@ -187,7 +187,7 @@ function HomePageContent() {
         ) : isLoading ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <Card key={index} className="border border-white/5 bg-white/5">
+              <Card key={index}>
                 <CardContent>
                   <LoadingSkeleton className="mb-2 h-3 w-20 rounded-full bg-white/10" />
                   <LoadingSkeleton className="h-8 w-24 rounded-full bg-white/10" />
@@ -242,15 +242,15 @@ function HomePageContent() {
           <CardContent>
             {epochData ? (
               <div className="grid gap-6 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="rounded-2xl p-4">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Delegations active</p>
                   <p className="mt-2 text-xl font-semibold text-foreground">Epoch {nextActivationEpoch}</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="rounded-2xl p-4">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Undelegations inactive</p>
                   <p className="mt-2 text-xl font-semibold text-foreground">Epoch {nextActivationEpoch}</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="rounded-2xl p-4">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Withdrawals available</p>
                   <p className="mt-2 text-xl font-semibold text-foreground">Epoch {withdrawableEpoch}</p>
                 </div>

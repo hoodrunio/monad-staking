@@ -31,11 +31,11 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur">
-      <div className="relative w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-6 text-foreground shadow-[0_45px_80px_-45px_rgba(56,189,248,0.55)]">
+      <div className="relative w-full max-w-md rounded-3xl bg-background/90 p-6 text-foreground shadow-[0_45px_80px_-45px_rgba(56,189,248,0.55)]">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/10 text-muted-foreground transition hover:border-primary/40 hover:text-primary"
+          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition hover:text-primary"
           aria-label="Close"
         >
           <XMarkIcon className="h-5 w-5" />
@@ -43,7 +43,7 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
 
         <div className="space-y-5">
           <div className="flex items-start gap-3">
-            <div className={isError ? 'rounded-full border border-red-400/40 bg-red-400/10 p-2' : 'rounded-full border border-primary/40 bg-primary/15 p-2'}>
+            <div className={isError ? 'rounded-full bg-red-400/15 p-2' : 'rounded-full bg-primary/15 p-2'}>
               {isError ? <ExclamationTriangleIcon className="h-6 w-6 text-red-300" /> : <CheckCircleIcon className="h-6 w-6 text-primary" />}
             </div>
             <div className="space-y-2">
@@ -58,7 +58,7 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
           </div>
 
           {txHash ? (
-            <div className={isError ? 'rounded-2xl border border-red-400/40 bg-red-400/10 p-4 text-sm' : 'rounded-2xl border border-primary/40 bg-primary/15 p-4 text-sm'}>
+            <div className={isError ? 'rounded-2xl bg-red-400/10 p-4 text-sm' : 'rounded-2xl bg-primary/15 p-4 text-sm'}>
               <p className="font-medium">Explorer link</p>
               <ExplorerLink
                 config={networkConfig}
@@ -74,7 +74,7 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
           <button
             type="button"
             onClick={onClose}
-            className={isError ? 'w-full rounded-xl border border-red-400/40 bg-red-400/15 px-4 py-2 text-sm font-semibold text-red-50 transition hover:border-red-300 hover:text-white' : 'w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition hover:bg-primary/90'}
+            className={isError ? 'w-full rounded-xl bg-red-400/20 px-4 py-2 text-sm font-semibold text-red-50 transition hover:text-white' : 'w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition hover:bg-primary/90'}
           >
             {isError ? 'Dismiss' : 'Close'}
           </button>

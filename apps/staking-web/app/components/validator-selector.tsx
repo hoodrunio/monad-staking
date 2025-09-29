@@ -65,7 +65,7 @@ export function ValidatorSelector({
           onChange={(event) => setQuery(event.target.value)}
           placeholder={filterPlaceholder}
           disabled={disabled}
-          className="w-full rounded-xl border border-white/10 bg-white/10 pl-11 pr-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-xl pl-11 pr-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
         />
       </div>
 
@@ -75,11 +75,11 @@ export function ValidatorSelector({
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-16 animate-pulse rounded-2xl border border-white/10 bg-white/5" />
+              <div key={index} className="h-16 animate-pulse rounded-2xl bg-white/10" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-muted-foreground">
+          <div className="rounded-2xl p-4 text-sm text-muted-foreground">
             {emptyMessage}
           </div>
         ) : (
@@ -92,10 +92,10 @@ export function ValidatorSelector({
                 onClick={() => onChange(option.value)}
                 disabled={disabled}
                 className={cn(
-                  'w-full rounded-2xl border px-4 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-0',
+                  'w-full rounded-2xl px-4 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-0',
                   selected
-                    ? 'border-primary/50 bg-primary/10 text-foreground'
-                    : 'border-white/10 bg-white/5 text-foreground hover:border-primary/30',
+                    ? 'bg-primary/10 text-foreground ring-1 ring-primary/40'
+                    : 'text-foreground hover:bg-primary/5',
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -116,7 +116,7 @@ export function ValidatorSelector({
                   </div>
                   <div className="flex items-center gap-2">
                     {option.badge ? (
-                      <span className="rounded-full border border-primary/40 bg-primary/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-primary-foreground">
+                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-primary-foreground">
                         {option.badge}
                       </span>
                     ) : null}
@@ -135,7 +135,7 @@ export function ValidatorSelector({
             type="button"
             onClick={onLoadMore}
             disabled={loadingMore || disabled}
-            className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm font-medium text-foreground transition hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-xl px-3 py-2 text-sm font-medium text-foreground transition hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loadingMore ? 'Loading...' : 'Load more validators'}
           </button>

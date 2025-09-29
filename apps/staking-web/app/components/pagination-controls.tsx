@@ -31,14 +31,14 @@ export function PaginationControls({ prevCursor, nextCursor }: PaginationControl
   };
 
   return (
-    <div className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-3xl p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
       <div className="font-mono text-xs">
         {prevCursor ? `Cursor ${prevCursor}` : 'Beginning of result set'}
       </div>
       <div className="flex items-center gap-3">
         <button
           type="button"
-          className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 font-medium text-foreground transition hover:border-primary/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-xl px-4 py-2 font-medium text-foreground transition hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-40"
           onClick={() => updateCursor(prevCursor)}
           disabled={prevCursor === null || isPending}
         >
@@ -46,7 +46,7 @@ export function PaginationControls({ prevCursor, nextCursor }: PaginationControl
         </button>
         <button
           type="button"
-          className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 font-medium text-foreground transition hover:border-primary/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-xl px-4 py-2 font-medium text-foreground transition hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-40"
           onClick={() => updateCursor(nextCursor)}
           disabled={nextCursor === null || isPending}
         >

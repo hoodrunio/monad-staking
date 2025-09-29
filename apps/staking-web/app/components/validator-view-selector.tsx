@@ -42,10 +42,10 @@ export function ValidatorViewSelector({ selected }: ValidatorViewSelectorProps) 
             onClick={() => updateView(view)}
             disabled={isPending}
             className={cn(
-              'rounded-xl border px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50',
+              'rounded-xl px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
               isActive
-                ? 'border-primary/40 bg-primary/15 text-primary-foreground shadow-glow'
-                : 'border-white/10 bg-white/10 text-muted-foreground hover:border-primary/40 hover:text-primary',
+                ? 'bg-primary/15 text-primary-foreground shadow-glow'
+                : 'text-muted-foreground hover:text-primary',
             )}
           >
             {getValidatorViewLabel(view)}

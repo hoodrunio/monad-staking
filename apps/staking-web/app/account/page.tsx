@@ -77,7 +77,7 @@ function AccountPageContent() {
           </div>
         </div>
 
-        <Card className="border border-amber-300/30 bg-amber-400/10">
+        <Card>
           <CardHeader>
             <CardTitle className="text-base text-foreground">Wallet required</CardTitle>
             <CardDescription>Please connect your wallet to continue.</CardDescription>
@@ -97,7 +97,7 @@ function AccountPageContent() {
           <p className="text-balance text-sm text-muted-foreground">
             Manage your staked assets, rewards, and delegations on {resolved.key}
           </p>
-          <p className="mt-2 inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-mono text-muted-foreground">
+          <p className="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-mono text-muted-foreground">
             {address}
           </p>
         </div>
@@ -107,7 +107,7 @@ function AccountPageContent() {
       </ShellSection>
 
       <ShellSection width="wide">
-        <div className="rounded-lg border border-border/50 bg-background/50 p-6 backdrop-blur-sm">
+        <div className="rounded-lg p-6 backdrop-blur-sm">
           <h2 className="mb-4 text-lg font-semibold">Portfolio Overview</h2>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <div className="text-center">
@@ -157,7 +157,7 @@ function AccountPageContent() {
         <h2 className="text-xl font-semibold text-foreground">My delegations</h2>
 
         {delegationsError ? (
-          <Card className="border border-destructive/40 bg-destructive/10 text-destructive-foreground">
+          <Card className="text-destructive-foreground">
             <CardHeader>
               <CardTitle className="text-base">Failed to load delegations</CardTitle>
               <CardDescription className="text-destructive-foreground/80">
@@ -168,7 +168,7 @@ function AccountPageContent() {
         ) : delegationsLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="rounded-3xl border border-white/10 bg-white/5 p-4">
+              <div key={index} className="rounded-3xl p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <LoadingSkeleton className="h-4 w-32" />
                   <LoadingSkeleton className="h-4 w-24" />
@@ -186,7 +186,7 @@ function AccountPageContent() {
             {delegations.items.map((delegation) => {
               const formatted = formatDelegationRow(delegation);
               return (
-                <div key={formatted.validatorId} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                <div key={formatted.validatorId} className="rounded-3xl p-5">
                   <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h3 className="text-lg font-semibold text-foreground">Validator {formatted.validatorId}</h3>
                     <span className="text-sm text-muted-foreground">Stake: {formatted.stake}</span>
@@ -221,7 +221,7 @@ function AccountPageContent() {
             })}
           </div>
         ) : (
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
+          <div className="rounded-3xl p-6 text-sm text-muted-foreground">
             No delegations found. Start by delegating to a validator.
           </div>
         )}
@@ -231,7 +231,7 @@ function AccountPageContent() {
         <h2 className="text-xl font-semibold text-foreground">Pending withdrawals</h2>
 
         {withdrawalsError ? (
-          <Card className="border border-destructive/40 bg-destructive/10 text-destructive-foreground">
+          <Card className="text-destructive-foreground">
             <CardHeader>
               <CardTitle className="text-base">Failed to load withdrawals</CardTitle>
               <CardDescription className="text-destructive-foreground/80">
@@ -242,7 +242,7 @@ function AccountPageContent() {
         ) : withdrawalsLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 2 }).map((_, index) => (
-              <div key={index} className="rounded-3xl border border-white/10 bg-white/5 p-4">
+              <div key={index} className="rounded-3xl p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <LoadingSkeleton className="h-4 w-32" />
                   <LoadingSkeleton className="h-4 w-20" />
@@ -263,7 +263,7 @@ function AccountPageContent() {
               return (
                 <div
                   key={`${formatted.validatorId}-${formatted.withdrawalId}`}
-                  className="rounded-3xl border border-white/10 bg-white/5 p-5"
+                  className="rounded-3xl p-5"
                 >
                   <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h3 className="text-lg font-semibold text-foreground">
@@ -272,11 +272,11 @@ function AccountPageContent() {
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">{formatted.amount}</span>
                       {canWithdraw ? (
-                        <span className="inline-flex items-center rounded-full border border-emerald-300/40 bg-emerald-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-100">
+                        <span className="inline-flex items-center rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-100">
                           Ready
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-full border border-amber-300/40 bg-amber-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100">
+                        <span className="inline-flex items-center rounded-full bg-amber-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100">
                           Pending
                         </span>
                       )}
@@ -291,7 +291,7 @@ function AccountPageContent() {
             })}
           </div>
         ) : (
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
+          <div className="rounded-3xl p-6 text-sm text-muted-foreground">
             No pending withdrawals found.
           </div>
         )}

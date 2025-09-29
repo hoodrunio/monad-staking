@@ -35,7 +35,7 @@ function ValidatorsPageContent() {
   if (enabledNetworks.length === 0) {
     return (
       <ShellSection width="wide">
-        <Card className="border-dashed border-white/20">
+        <Card>
           <CardHeader>
             <CardTitle className="text-2xl">Validator explorer unavailable</CardTitle>
             <CardDescription>
@@ -45,7 +45,7 @@ function ValidatorsPageContent() {
           <CardContent>
             <div className="grid gap-3 text-sm">
               {MONAD_NETWORK_KEYS.map((key) => (
-                <div key={key} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-xs text-muted-foreground">
+                <div key={key} className="rounded-2xl px-4 py-3 font-mono text-xs text-muted-foreground">
                   <div>{key.toUpperCase().replace(/-/g, '_')}_RPC_URL</div>
                   <div>{key.toUpperCase().replace(/-/g, '_')}_CHAIN_ID</div>
                 </div>
@@ -87,13 +87,13 @@ function ValidatorsPageContent() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
+              <div className="inline-flex items-center gap-2 rounded-xl px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
                 50 rows per page
               </div>
-              <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
+              <div className="inline-flex items-center gap-2 rounded-xl px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
                 Cursor {cursor ?? 'none'}
               </div>
-              <div className="inline-flex overflow-hidden rounded-xl border border-white/10 bg-white/10 p-1 text-xs font-medium text-muted-foreground">
+              <div className="inline-flex overflow-hidden rounded-xl p-1 text-xs font-medium text-muted-foreground">
                 <button
                   type="button"
                   className={cn(
@@ -122,7 +122,7 @@ function ValidatorsPageContent() {
 
       <ShellSection as="section" className="space-y-6" width="wide">
         {error ? (
-          <Card className="border border-destructive/40 bg-destructive/10 text-destructive-foreground">
+          <Card className="text-destructive-foreground">
             <CardHeader>
               <CardTitle>Unable to load validators</CardTitle>
               <CardDescription className="text-destructive-foreground/80">
