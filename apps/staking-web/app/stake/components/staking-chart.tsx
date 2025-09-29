@@ -41,7 +41,7 @@ export function StakingChart({ data = DEFAULT_DATA }: StakingChartProps) {
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">Total Amount of MON Staked Over Time</h2>
-      <div className="h-[200px] w-full overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/5 via-white/0 to-white/0">
+      <div className="h-[200px] w-full overflow-hidden rounded-xl">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 20, right: 24, left: 0, bottom: 0 }}>
             <defs>
