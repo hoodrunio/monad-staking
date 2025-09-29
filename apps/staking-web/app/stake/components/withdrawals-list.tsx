@@ -11,18 +11,18 @@ interface WithdrawalsListProps {
 
 export function WithdrawalsList({ ready, pending, onWithdraw, busy }: WithdrawalsListProps) {
   return (
-    <div className="space-y-4">
-      <section className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
-        <header className="mb-4 flex items-center justify-between">
+    <div className="space-y-5">
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+        <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-100">Ready withdrawals</h2>
-            <p className="text-sm text-slate-500">Claim slots that have completed the waiting period.</p>
+            <h2 className="text-lg font-semibold text-foreground">Ready withdrawals</h2>
+            <p className="text-sm text-muted-foreground">Slots that have cleared the withdrawal delay.</p>
           </div>
-          <span className="text-xs uppercase tracking-wide text-slate-500">{ready.length} ready</span>
+          <span className="text-xs uppercase tracking-wide text-muted-foreground">{ready.length} ready</span>
         </header>
 
         {ready.length === 0 ? (
-          <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4 text-sm text-slate-300">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-muted-foreground">
             No withdrawals are ready yet.
           </div>
         ) : (
@@ -30,21 +30,21 @@ export function WithdrawalsList({ ready, pending, onWithdraw, busy }: Withdrawal
             {ready.map((withdrawal) => (
               <div
                 key={`${withdrawal.validatorId}-${withdrawal.withdrawalId}`}
-                className="flex items-center justify-between gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm text-emerald-100"
+                className="flex flex-col gap-3 rounded-2xl border border-emerald-300/40 bg-emerald-400/10 p-4 text-sm text-foreground md:flex-row md:items-center md:justify-between"
               >
-                <div>
-                  <p className="font-semibold">
+                <div className="space-y-1">
+                  <p className="font-semibold text-foreground">
                     Validator {withdrawal.validatorId} · Slot #{withdrawal.withdrawalId}
                   </p>
-                  <p className="text-xs text-emerald-300">Amount {withdrawal.amount.formatted}</p>
+                  <p className="text-xs text-emerald-100">Amount {withdrawal.amount.formatted}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => onWithdraw(withdrawal)}
                   disabled={busy}
-                  className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-700"
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-muted-foreground md:w-auto"
                 >
-                  {busy ? 'Withdrawing…' : 'Withdraw'}
+                  {busy ? 'Withdrawing...' : 'Withdraw'}
                 </button>
               </div>
             ))}
@@ -52,28 +52,31 @@ export function WithdrawalsList({ ready, pending, onWithdraw, busy }: Withdrawal
         )}
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
-        <header className="mb-3 flex items-center justify-between">
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+        <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-100">Pending withdrawals</h2>
-            <p className="text-sm text-slate-500">These become available after the waiting period.</p>
+            <h2 className="text-lg font-semibold text-foreground">Pending withdrawals</h2>
+            <p className="text-sm text-muted-foreground">These slots are still cooling down before funds unlock.</p>
           </div>
-          <span className="text-xs uppercase tracking-wide text-slate-500">{pending.length} pending</span>
+          <span className="text-xs uppercase tracking-wide text-muted-foreground">{pending.length} pending</span>
         </header>
         {pending.length === 0 ? (
-          <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4 text-sm text-slate-300">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-muted-foreground">
             No withdrawals pending.
           </div>
         ) : (
-          <ul className="space-y-2 text-sm text-slate-300">
+          <ul className="space-y-3 text-sm">
             {pending.map((withdrawal) => (
-              <li key={`${withdrawal.validatorId}-${withdrawal.withdrawalId}`} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-                <div className="flex items-center justify-between">
+              <li
+                key={`${withdrawal.validatorId}-${withdrawal.withdrawalId}`}
+                className="rounded-2xl border border-white/10 bg-white/5 p-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="font-medium text-slate-200">Validator {withdrawal.validatorId}</p>
-                    <p className="text-xs text-slate-500">Slot #{withdrawal.withdrawalId}</p>
+                    <p className="font-medium text-foreground">Validator {withdrawal.validatorId}</p>
+                    <p className="text-xs text-muted-foreground">Slot #{withdrawal.withdrawalId}</p>
                   </div>
-                  <div className="text-right text-xs text-slate-400">
+                  <div className="text-right text-xs text-muted-foreground">
                     <p>Amount {withdrawal.amount.formatted}</p>
                     <p>Unlock epoch {withdrawal.withdrawEpoch}</p>
                   </div>

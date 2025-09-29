@@ -5,6 +5,7 @@ import { validatorRoutes } from './http/routes/validators';
 import { epochRoutes } from './http/routes/epoch';
 import { delegationsRoutes } from './http/routes/delegations';
 import { withdrawalsRoutes } from './http/routes/withdrawals';
+import { balanceRoutes } from './http/routes/balance';
 import { ingestAllValidators } from './services/ingest';
 import { getResolvedNetworks } from './infra/clients';
 import { logger } from './infra/logger';
@@ -115,6 +116,7 @@ app.route('/api/epoch', epochRoutes);
 app.route('/api/validators', validatorRoutes);
 app.route('/api/delegations', delegationsRoutes);
 app.route('/api/withdrawals', withdrawalsRoutes);
+app.route('/api/balance', balanceRoutes);
 
 const port = serverConfig.port;
 logger.info('staking-api starting', { port });
@@ -146,6 +148,7 @@ function canonicalRoute(path: string): string {
   if (path.startsWith('/api/delegations')) return '/api/delegations';
   if (path.startsWith('/api/withdrawals')) return '/api/withdrawals';
   if (path.startsWith('/api/epoch')) return '/api/epoch';
+  if (path.startsWith('/api/balance')) return '/api/balance';
   return path;
 }
 

@@ -1,15 +1,16 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import { Providers } from './providers';
-import { WalletConnectButton } from '@/app/components/wallet-connect-button';
-import { ClientOnly } from '@/app/components/client-only';
 import './globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+import { Providers } from './providers';
+import { SiteHeader } from '@/app/components/site-header';
+import { ThemeProvider } from '@/app/theme-provider';
+import { Shell, ShellMain, ShellSection } from '@/app/components/layout/shell';
 
 export const metadata: Metadata = {
   title: 'Monad Staking Dashboard',
-  description:
-    'Monitor validator epochs, delegations, and rewards across Monad networks.',
+  description: 'Monitor validator epochs, delegations, and rewards across Monad networks.',
 };
 
 export default function RootLayout({
@@ -18,88 +19,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-slate-950 text-slate-100">
-        <Providers>
-          <div className="border-b border-slate-800 bg-slate-950/80">
-            <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold text-slate-100">
-                  Monad Staking
-                </span>
-                <span className="rounded-full bg-emerald-900/30 px-2 py-0.5 text-xs text-emerald-300">
-                  dApp
-                </span>
-                <div className="hidden items-center gap-4 text-sm text-slate-300 md:flex">
-                  <Link
-                    href="/"
-                    className="rounded-md px-3 py-2 transition hover:bg-slate-800/60 hover:text-slate-100"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/validators"
-                    className="rounded-md px-3 py-2 transition hover:bg-slate-800/60 hover:text-slate-100"
-                  >
-                    Validators
-                  </Link>
-                  <Link
-                    href="/stake"
-                    className="rounded-md px-3 py-2 transition hover:bg-slate-800/60 hover:text-slate-100"
-                  >
-                    Stake
-                  </Link>
-                  <Link
-                    href="/account"
-                    className="rounded-md px-3 py-2 transition hover:bg-slate-800/60 hover:text-slate-100"
-                  >
-                    Account
-                  </Link>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-4 text-sm text-slate-300 md:hidden">
-                  <Link
-                    href="/"
-                    className="rounded-md px-3 py-2 transition hover:bg-slate-800/60 hover:text-slate-100"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/validators"
-                    className="rounded-md px-3 py-2 transition hover:bg-slate-800/60 hover:text-slate-100"
-                  >
-                    Validators
-                  </Link>
-                  <Link
-                    href="/stake"
-                    className="rounded-md px-3 py-2 transition hover:bg-slate-800/60 hover:text-slate-100"
-                  >
-                    Stake
-                  </Link>
-                  <Link
-                    href="/account"
-                    className="rounded-md px-3 py-2 transition hover:bg-slate-800/60 hover:text-slate-100"
-                  >
-                    Account
-                  </Link>
-                </div>
-                <ClientOnly
-                  fallback={
-                    <div className="rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-400">
-                      Loading...
-                    </div>
-                  }
+    <html lang="en" suppressHydrationWarning>
+      <body className={`bg-background font-sans text-foreground antialiased ${GeistSans.variable} ${GeistMono.variable}`}>
+        <ThemeProvider>
+          <Providers>
+            <Shell>
+              <SiteHeader />
+              <ShellMain>
+                {children}
+              </ShellMain>
+              <footer className="border-t border-border/60 py-6 text-xs text-muted-foreground">
+                <ShellSection
+                  as="div"
+                  className="flex items-center justify-between"
                 >
-                  <WalletConnectButton />
-                </ClientOnly>
-              </div>
-            </nav>
-          </div>
-          <main className="mx-auto flex min-h-[calc(100vh-80px)] max-w-6xl flex-col px-6 py-10">
-            {children}
-          </main>
-        </Providers>
+                  <span>Monad Staking &copy; {new Date().getFullYear()}</span>
+                  <span className="hidden items-center gap-2 sm:inline-flex">
+                    <span className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-primary" />
+                    Securing the network together
+                  </span>
+                </ShellSection>
+              </footer>
+            </Shell>
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

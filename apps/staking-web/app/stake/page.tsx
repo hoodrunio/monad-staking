@@ -4,14 +4,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useSearchParams } from 'next/navigation';
 import type { MonadNetwork } from '@monad-staking/config';
-import { NetworkSelector } from '@/app/components/network-selector';
 import { ClientOnly } from '@/app/components/client-only';
 import { TransactionResult } from '@/app/components/transaction-result';
 import { ValidatorSelector } from '@/app/components/validator-selector';
-import { PortfolioSummary } from '@/app/stake/components/portfolio-summary';
-import { DelegationCard } from '@/app/stake/components/delegation-card';
-import { WithdrawalsList } from '@/app/stake/components/withdrawals-list';
 import { ActionModal } from '@/app/stake/components/action-modal';
+import { TokenPriceCard } from '@/app/stake/components/token-price-card';
+import { StakingStatsCard } from '@/app/stake/components/staking-stats-card';
+import { UserPortfolio } from '@/app/stake/components/user-portfolio';
+import { StakingChart } from '@/app/stake/components/staking-chart';
+import { QuickActions } from '@/app/stake/components/quick-actions';
+import { WithdrawModal } from '@/app/stake/components/withdraw-modal';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Label } from '@/app/components/ui/label';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { parseNetworkKey } from '@/lib/validators';
 import { useStakingSdk } from '@/hooks/useStakingSdk';
@@ -20,6 +25,7 @@ import { useStakingData } from '@/hooks/useStakingData';
 import { useValidatorsQuery } from '@/lib/queries';
 import { formatMonFromWei, getNextAvailableWithdrawId } from '@/lib/utils';
 import type { ValidatorSummary } from '@/lib/api/models';
+import { ShellSection } from '@/app/components/layout/shell';
 
 export default function StakePage() {
   return (
@@ -49,7 +55,7 @@ function StakeScreen() {
 
   const data = useStakingData(selectedNetwork, !!selectedNetwork && !!resolved);
 
-  const { state, delegate, undelegate, withdraw, compound, claimRewards, claimAllRewards, resetState } =
+  const { state, delegate, undelegate, withdraw, claimAllRewards, resetState } =
     useStakeActions({
       sdk,
       account,
@@ -62,18 +68,14 @@ function StakeScreen() {
     amount: string;
     withdrawalId: number | null;
   }>({ validatorId: null, amount: '', withdrawalId: null });
-  const [withdrawModal, setWithdrawModal] = useState<number | null>(null);
+  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [selectorActiveOnly, setSelectorActiveOnly] = useState(true);
   const [selectorCursor, setSelectorCursor] = useState('');
   const [selectorItems, setSelectorItems] = useState<ValidatorSummary[]>([]);
   const [selectorHasMore, setSelectorHasMore] = useState(false);
   const [selectorNextCursor, setSelectorNextCursor] = useState<string | null>(null);
 
-  const { validators, delegations, withdrawals, epoch } = data;
-  const withdrawEntry = useMemo(
-    () => (withdrawModal !== null ? withdrawals.find((item) => item.withdrawalId === withdrawModal) ?? null : null),
-    [withdrawModal, withdrawals],
-  );
+  const { validators, delegations, withdrawals, epoch, balance } = data;
 
   const delegateModalOpen = delegateModal.validatorId !== null;
 
@@ -117,7 +119,7 @@ function StakeScreen() {
       subtitle: `${validator.commission.formatted} commission • Stake ${validator.stake.formatted}`,
       stats: [
         { label: 'Rewards', value: validator.unclaimedRewards.formatted },
-        { label: 'Flags', value: validator.flagsRaw || '—' },
+        { label: 'Flags', value: validator.flagsRaw || 'None' },
       ],
       badge: validator.isActive ? 'Active' : undefined,
     }));
@@ -168,18 +170,48 @@ function StakeScreen() {
   }, [withdrawals, epoch]);
 
   const totals = useMemo(() => {
-    const staked = delegations.reduce((sum, item) => sum + Number(item.stake.decimal || 0), 0);
     const rewards = delegations.reduce((sum, item) => sum + Number(item.unclaimedRewards.decimal || 0), 0);
     const ready = readyWithdrawals.reduce((sum, item) => sum + Number(item.amount.decimal || 0), 0);
     const pending = pendingWithdrawals.reduce((sum, item) => sum + Number(item.amount.decimal || 0), 0);
-    return { staked, rewards, readyWithdraw: ready, pendingWithdraw: pending };
-  }, [delegations, readyWithdrawals, pendingWithdrawals]);
 
-  const canClaimAll = totals.rewards > 0 && !state.busy && !!account && !!sdk;
+    // Use balance API data directly
+    const available = balance ? Number(balance.decimal || 0) : 0;
+    const staked = balance ? Number(balance.stakedDecimal || 0) : delegations.reduce((sum, item) => sum + Number(item.stake.decimal || 0), 0);
 
-  if (!selectedNetwork || !resolved) {
-    return <LoadingFallback />;
-  }
+    return { staked, rewards, readyWithdraw: ready, pendingWithdraw: pending, available };
+  }, [delegations, readyWithdrawals, pendingWithdrawals, balance]);
+
+  const activeValidators = validators.filter((validator) => validator.isActive).length;
+  const statsFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+  const stats = [
+    {
+      label: 'Total staked',
+      value: `${statsFormatter.format(totals.staked)} MON`,
+      change: `+${statsFormatter.format(totals.rewards)} rewards`,
+      trend: 'up' as const,
+    },
+    {
+      label: 'Validators',
+      value: validators.length.toString(),
+      change: `${activeValidators} active`,
+      trend: activeValidators > 0 ? ('up' as const) : ('down' as const),
+    },
+    {
+      label: 'Delegations',
+      value: delegations.length.toString(),
+      change: `${readyWithdrawals.length} ready withdrawals`,
+      trend: readyWithdrawals.length > 0 ? ('up' as const) : ('down' as const),
+    },
+    {
+      label: 'Pending withdraw',
+      value: pendingWithdrawals.length.toString(),
+      change: `${statsFormatter.format(totals.pendingWithdraw)} MON`,
+      trend: pendingWithdrawals.length > 0 ? ('down' as const) : ('up' as const),
+    },
+  ];
+
+  const firstDelegation = delegations[0] ?? null;
+  const firstReadyWithdrawal = readyWithdrawals[0] ?? null;
 
   const openDelegateModal = (validatorId: string | null = null) => {
     const initial = validatorId ? validatorMap.get(validatorId) : undefined;
@@ -204,7 +236,7 @@ function StakeScreen() {
   const closeModals = (reset = true) => {
     setDelegateModal({ validatorId: null, amount: '' });
     setUndelegateModal({ validatorId: null, amount: '', withdrawalId: null });
-    setWithdrawModal(null);
+    setWithdrawModalOpen(false);
     setSelectorCursor('');
     setSelectorNextCursor(null);
     setSelectorHasMore(false);
@@ -226,94 +258,95 @@ function StakeScreen() {
     closeModals(false);
   };
 
-  const handleWithdrawSubmit = async (withdrawal: number) => {
-    const target = withdrawals.find((item) => item.withdrawalId === withdrawal);
-    if (!target || !sdk || !account) return;
-    await withdraw(target.validatorId, target.withdrawalId);
+  const handleWithdrawSelected = async (withdrawals: typeof readyWithdrawals) => {
+    if (!sdk || !account) return;
+    
+    // Process withdrawals sequentially
+    for (const withdrawal of withdrawals) {
+      await withdraw(withdrawal.validatorId, withdrawal.withdrawalId);
+    }
+    
+    // Close modal after all withdrawals
     closeModals(false);
   };
 
+  if (!selectedNetwork || !resolved) {
+    return <LoadingFallback />;
+  }
+
+  const formattedMon = (value: number) => `${statsFormatter.format(value)} MON`;
+  const apyLabel = 'Coming soon';
+  const canStake = !!sdk && !!account && !state.busy;
+  const canUnstake = Boolean(firstDelegation) && !!sdk && !!account && !state.busy;
+  const canWithdraw = Boolean(firstReadyWithdrawal) && !!sdk && !!account && !state.busy;
+  const canClaim = totals.rewards > 0 && !!account && !!sdk && !state.busy;
+
+  const handleStake = () => openDelegateModal(null);
+  const handleUnstake = () => {
+    if (!firstDelegation) return;
+    openUndelegateModal(firstDelegation.validatorId);
+  };
+  const handleWithdraw = () => {
+    if (!firstReadyWithdrawal) return;
+    setWithdrawModalOpen(true);
+  };
+  const handleClaim = () => {
+    if (!sdk || !account) return;
+    void claimAllRewards();
+  };
+
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-emerald-400">Staking dashboard</p>
-          <h1 className="text-4xl font-semibold text-white">Stake MON</h1>
-          <p className="text-slate-400">Manage your delegations, rewards, and withdrawals on {resolved.label}.</p>
-        </div>
-        <NetworkSelector networks={enabledNetworks} selectedKey={selectedNetwork} />
-      </header>
-
-      <PortfolioSummary
-        totals={{
-          staked: totals.staked,
-          rewards: totals.rewards,
-          pendingWithdraw: totals.pendingWithdraw,
-          readyWithdraw: totals.readyWithdraw,
-        }}
-        onClaimAll={() => {
-          if (!sdk || !account) return;
-          void claimAllRewards();
-        }}
-        onStake={() => openDelegateModal(null)}
-        claiming={state.busy && state.busyAction === 'claim-all'}
-        canClaim={canClaimAll}
-        stakeDisabled={!sdk || !account || state.busy}
-      />
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-slate-100">My delegations</h2>
-          <p className="text-sm text-slate-500">Manage existing positions, compound rewards, or start undelegation.</p>
-        </div>
-        {data.isLoading.delegations ? (
-          <DelegationsSkeleton />
-        ) : delegations.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-6 text-sm text-slate-300">
-            You have no active delegations yet.
+    <>
+      <ShellSection as="div" className="space-y-8" width="wide">
+        <div className="space-y-6">
+          <div>
+            <h1 className="mb-2 text-balance text-4xl font-bold">Stake</h1>
           </div>
-        ) : (
-          <div className="grid gap-4">
-            {delegations.map((delegation) => (
-              <DelegationCard
-                key={delegation.validatorId}
-                delegation={delegation}
-                validator={validatorMap.get(delegation.validatorId)}
-                onUndelegate={(entry) => openUndelegateModal(entry.validatorId)}
-                onClaim={async (entry) => {
-                  if (!sdk || !account) return;
-                  await claimRewards(entry.validatorId);
-                  data.refetchAll();
-                }}
-                onCompound={async (entry) => {
-                  if (!sdk || !account) return;
-                  await compound(entry.validatorId);
-                  data.refetchAll();
-                }}
-                busyAction={state.busyAction}
-                disabled={!sdk || !account || state.busy}
-              />
-            ))}
-          </div>
-        )}
-      </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-slate-100">Withdrawals</h2>
-          <p className="text-sm text-slate-500">Track slots that are ready or still pending.</p>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-1">
+              <TokenPriceCard tokenSymbol="MON" priceUsd={null} priceChangeLabel={epoch ? `Epoch ${epoch.epoch}` : undefined} />
+            </div>
+            <div className="lg:col-span-2">
+              <StakingStatsCard stats={stats} />
+            </div>
+          </div>
         </div>
-        {data.isLoading.withdrawals ? (
-          <WithdrawalsSkeleton />
-        ) : (
-          <WithdrawalsList
-            ready={readyWithdrawals}
-            pending={pendingWithdrawals}
-            busy={!sdk || !account || (state.busy && state.busyAction === 'withdraw')}
-            onWithdraw={(entry) => setWithdrawModal(entry.withdrawalId)}
-          />
-        )}
-      </section>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="flex flex-col gap-4">
+            <QuickActions
+              stakedValue={formattedMon(totals.staked)}
+              rewardsValue={formattedMon(totals.rewards)}
+              availableBalance={formattedMon(totals.available)}
+              apyLabel={apyLabel}
+              onStake={handleStake}
+              onUnstake={handleUnstake}
+              onWithdraw={handleWithdraw}
+              onClaim={handleClaim}
+              canStake={canStake}
+              canUnstake={canUnstake}
+              canWithdraw={canWithdraw}
+              canClaim={canClaim}
+              busyAction={state.busyAction}
+            />
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <UserPortfolio
+              staked={formattedMon(totals.staked)}
+              withdrawable={formattedMon(totals.readyWithdraw)}
+              claimable={formattedMon(totals.rewards)}
+              unstaked={formattedMon(totals.pendingWithdraw)}
+              apyLabel={apyLabel}
+            >
+              <div className="flex-1">
+                <StakingChart />
+              </div>
+            </UserPortfolio>
+          </div>
+        </div>
+      </ShellSection>
 
       <TransactionResult
         txHash={state.txHash}
@@ -343,10 +376,10 @@ function StakeScreen() {
             loadingMore={selectorQuery.isFetching && selectorItems.length > 0}
             disabled={!sdk || !account || state.busy}
             toolbar={
-              <label className="flex items-center gap-2 text-slate-400">
+              <label className="flex items-center gap-2 text-muted-foreground">
                 <input
                   type="checkbox"
-                  className="h-3 w-3"
+                  className="h-4 w-4 rounded border-white/20 bg-white/10 text-primary focus:ring-primary/40 focus:ring-offset-0"
                   checked={selectorActiveOnly}
                   onChange={(event) => {
                     const next = event.target.checked;
@@ -363,32 +396,25 @@ function StakeScreen() {
               </label>
             }
           />
-          <label className="block text-sm text-slate-300">
-            Amount (MON)
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="delegate-amount" className="text-sm text-muted-foreground">
+              Amount (MON)
+            </Label>
+            <Input
+              id="delegate-amount"
               type="text"
               value={delegateModal.amount}
               onChange={(event) => setDelegateModal((prev) => ({ ...prev, amount: event.target.value }))}
               placeholder="0.0"
-              className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
-          </label>
+          </div>
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => closeModals()}
-              className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-600"
-            >
+            <Button variant="outline" onClick={() => closeModals()}>
               Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleDelegateSubmit}
-              disabled={!delegateModal.validatorId || !delegateModal.amount}
-              className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-700"
-            >
+            </Button>
+            <Button onClick={handleDelegateSubmit} disabled={!delegateModal.validatorId || !delegateModal.amount}>
               Delegate
-            </button>
+            </Button>
           </div>
         </div>
       </ActionModal>
@@ -416,115 +442,62 @@ function StakeScreen() {
             emptyMessage="No active delegations"
             disabled={!sdk || !account || state.busy}
           />
-          <label className="block text-sm text-slate-300">
-            Amount (MON)
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="undelegate-amount" className="text-sm text-muted-foreground">
+              Amount (MON)
+            </Label>
+            <Input
+              id="undelegate-amount"
               type="text"
               value={undelegateModal.amount}
               onChange={(event) => setUndelegateModal((prev) => ({ ...prev, amount: event.target.value }))}
               placeholder="0.0"
-              className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
-          </label>
-          <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3 text-xs text-slate-300">
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-muted-foreground">
             {undelegateModal.withdrawalId !== null ? (
               <p>
-                Withdrawal slot <span className="font-semibold text-emerald-300">#{undelegateModal.withdrawalId}</span> will be used for this request.
+                Withdrawal slot <span className="font-semibold text-primary">#{undelegateModal.withdrawalId}</span> will be used for this request.
               </p>
             ) : (
-              <p className="text-amber-300">
+              <p className="text-amber-200">
                 All withdrawal slots for this validator are in use. Complete or cancel an existing withdrawal first.
               </p>
             )}
           </div>
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => closeModals()}
-              className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-600"
-            >
+            <Button variant="outline" onClick={() => closeModals()}>
               Cancel
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              className="bg-amber-400 text-slate-900 hover:bg-amber-300"
               onClick={handleUndelegateSubmit}
               disabled={!undelegateModal.validatorId || !undelegateModal.amount || undelegateModal.withdrawalId === null}
-              className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
             >
               Undelegate
-            </button>
+            </Button>
           </div>
         </div>
       </ActionModal>
 
-      <ActionModal
-        open={withdrawModal !== null}
+      <WithdrawModal
+        open={withdrawModalOpen}
         onClose={() => closeModals()}
-        title="Withdraw request"
-        description="Confirm withdrawal of the selected slot."
-        size="sm"
-      >
-        <div className="space-y-4 text-sm text-slate-300">
-          {withdrawModal !== null && (
-            <div>
-              <p className="font-medium text-slate-200">Validator {withdrawEntry?.validatorId ?? '—'}</p>
-              <p className="text-xs text-slate-500">Slot #{withdrawModal}</p>
-              {withdrawEntry && (
-                <p className="mt-2 text-slate-300">Amount {withdrawEntry.amount.formatted}</p>
-              )}
-            </div>
-          )}
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => closeModals()}
-              className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-600"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (withdrawModal === null) return;
-                void handleWithdrawSubmit(withdrawModal);
-              }}
-              className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
-            >
-              Withdraw
-            </button>
-          </div>
-        </div>
-      </ActionModal>
-    </div>
+        readyWithdrawals={readyWithdrawals}
+        pendingWithdrawals={pendingWithdrawals}
+        onWithdrawSelected={handleWithdrawSelected}
+        busy={state.busy}
+      />
+    </>
   );
 }
 
 function LoadingFallback() {
   return (
-    <div className="space-y-6">
-      <div className="h-12 w-2/3 rounded bg-slate-800" />
-      <div className="h-48 rounded-xl bg-slate-900/60" />
-      <div className="h-64 rounded-xl bg-slate-900/60" />
-    </div>
-  );
-}
-
-function DelegationsSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div key={index} className="h-36 animate-pulse rounded-2xl border border-slate-800 bg-slate-950/60" />
-      ))}
-    </div>
-  );
-}
-
-function WithdrawalsSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 2 }).map((_, index) => (
-        <div key={index} className="h-32 animate-pulse rounded-2xl border border-slate-800 bg-slate-950/60" />
-      ))}
-    </div>
+    <ShellSection as="div" className="space-y-6" width="wide">
+      <div className="h-12 w-2/3 rounded-2xl bg-white/10" />
+      <div className="h-48 rounded-3xl border border-white/10 bg-white/5" />
+      <div className="h-64 rounded-3xl border border-white/10 bg-white/5" />
+    </ShellSection>
   );
 }

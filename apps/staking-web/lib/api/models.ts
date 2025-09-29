@@ -63,3 +63,9 @@ export interface WithdrawalPage {
   readonly items: WithdrawalSummary[];
   readonly nextStartId: number | null;
 }
+
+export interface Balance extends AmountDisplay {
+  readonly stakedRaw: string;
+  readonly stakedDecimal: string;
+  readonly stakedFormatted: string;
+}
