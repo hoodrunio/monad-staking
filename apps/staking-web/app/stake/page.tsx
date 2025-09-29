@@ -13,6 +13,7 @@ import { StakingStatsCard } from '@/app/stake/components/staking-stats-card';
 import { UserPortfolio } from '@/app/stake/components/user-portfolio';
 import { StakingChart } from '@/app/stake/components/staking-chart';
 import { QuickActions } from '@/app/stake/components/quick-actions';
+import { WithdrawModal } from '@/app/stake/components/withdraw-modal';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
@@ -67,7 +68,7 @@ function StakeScreen() {
     amount: string;
     withdrawalId: number | null;
   }>({ validatorId: null, amount: '', withdrawalId: null });
-  const [withdrawModal, setWithdrawModal] = useState<number | null>(null);
+  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [selectorActiveOnly, setSelectorActiveOnly] = useState(true);
   const [selectorCursor, setSelectorCursor] = useState('');
   const [selectorItems, setSelectorItems] = useState<ValidatorSummary[]>([]);
@@ -75,10 +76,6 @@ function StakeScreen() {
   const [selectorNextCursor, setSelectorNextCursor] = useState<string | null>(null);
 
   const { validators, delegations, withdrawals, epoch, balance } = data;
-  const withdrawEntry = useMemo(
-    () => (withdrawModal !== null ? withdrawals.find((item) => item.withdrawalId === withdrawModal) ?? null : null),
-    [withdrawModal, withdrawals],
-  );
 
   const delegateModalOpen = delegateModal.validatorId !== null;
 
@@ -239,7 +236,7 @@ function StakeScreen() {
   const closeModals = (reset = true) => {
     setDelegateModal({ validatorId: null, amount: '' });
     setUndelegateModal({ validatorId: null, amount: '', withdrawalId: null });
-    setWithdrawModal(null);
+    setWithdrawModalOpen(false);
     setSelectorCursor('');
     setSelectorNextCursor(null);
     setSelectorHasMore(false);
@@ -261,10 +258,15 @@ function StakeScreen() {
     closeModals(false);
   };
 
-  const handleWithdrawSubmit = async (withdrawal: number) => {
-    const target = withdrawals.find((item) => item.withdrawalId === withdrawal);
-    if (!target || !sdk || !account) return;
-    await withdraw(target.validatorId, target.withdrawalId);
+  const handleWithdrawSelected = async (withdrawals: typeof readyWithdrawals) => {
+    if (!sdk || !account) return;
+    
+    // Process withdrawals sequentially
+    for (const withdrawal of withdrawals) {
+      await withdraw(withdrawal.validatorId, withdrawal.withdrawalId);
+    }
+    
+    // Close modal after all withdrawals
     closeModals(false);
   };
 
@@ -286,7 +288,7 @@ function StakeScreen() {
   };
   const handleWithdraw = () => {
     if (!firstReadyWithdrawal) return;
-    setWithdrawModal(firstReadyWithdrawal.withdrawalId);
+    setWithdrawModalOpen(true);
   };
   const handleClaim = () => {
     if (!sdk || !account) return;
@@ -478,35 +480,14 @@ function StakeScreen() {
         </div>
       </ActionModal>
 
-      <ActionModal
-        open={withdrawModal !== null}
+      <WithdrawModal
+        open={withdrawModalOpen}
         onClose={() => closeModals()}
-        title="Withdraw request"
-        description="Confirm withdrawal of the selected slot."
-      >
-        <div className="space-y-4 text-sm text-muted-foreground">
-          {withdrawModal !== null ? (
-            <div>
-              <p className="font-medium text-foreground">Validator {withdrawEntry?.validatorId ?? '-'}</p>
-              <p className="text-xs text-muted-foreground">Slot #{withdrawModal}</p>
-              {withdrawEntry ? <p className="mt-2 text-muted-foreground">Amount {withdrawEntry.amount.formatted}</p> : null}
-            </div>
-          ) : null}
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => closeModals()}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (withdrawModal === null) return;
-                void handleWithdrawSubmit(withdrawModal);
-              }}
-            >
-              Withdraw
-            </Button>
-          </div>
-        </div>
-      </ActionModal>
+        readyWithdrawals={readyWithdrawals}
+        pendingWithdrawals={pendingWithdrawals}
+        onWithdrawSelected={handleWithdrawSelected}
+        busy={state.busy}
+      />
     </>
   );
 }
