@@ -130,12 +130,14 @@ export function useWithdrawalsQuery(
   return useQuery({
     queryKey: queryKeys.withdrawals(network, address, validatorId),
     queryFn: async (): Promise<WithdrawalListResult> => {
+      // Fetch all withdrawals by increasing stopAfterMisses to scan entire range
       const response = await apiGet<WithdrawalApiResponse>('/api/withdrawals', {
         network,
         address,
         ...(validatorId ? { validatorId } : {}),
         startId: 1,
-        limit: 64,
+        limit: 255, // Max possible withdrawal IDs per validator
+        stopAfterMisses: 4, // Scan through gaps - max allowed by backend
       });
       return mapWithdrawals(response);
     },
