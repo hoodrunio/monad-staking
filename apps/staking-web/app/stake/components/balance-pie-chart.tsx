@@ -54,20 +54,31 @@ export function BalancePieChart({
                 contentStyle={{
                   backgroundColor: 'hsl(var(--popover))',
                   border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                  minWidth: '180px',
                 }}
                 labelStyle={{
                   color: 'hsl(var(--popover-foreground))',
                   fontWeight: 600,
-                  marginBottom: '4px',
+                  fontSize: '14px',
+                  marginBottom: '6px',
+                  display: 'block',
                 }}
                 itemStyle={{
-                  color: 'hsl(var(--popover-foreground))',
-                  padding: '2px 0',
+                  color: 'hsl(var(--muted-foreground))',
+                  fontSize: '13px',
+                  padding: '4px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
                 }}
-                formatter={(value: number) => [`${value.toLocaleString()} MON`]}
+                formatter={(value: number) => [
+                  <span key="value" style={{ fontWeight: 600, color: 'hsl(var(--popover-foreground))' }}>
+                    {value.toLocaleString()} MON
+                  </span>
+                ]}
               />
               <Pie
                 data={chartData}
