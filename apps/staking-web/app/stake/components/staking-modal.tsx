@@ -196,7 +196,7 @@ export function StakingModal({
                 {availableBalance && (
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Available Balance:</span>
-                    <span className="font-mono">{availableBalance} MON</span>
+                    <span className="font-mono">{availableBalance}</span>
                   </div>
                 )}
                 
