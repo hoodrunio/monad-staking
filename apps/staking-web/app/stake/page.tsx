@@ -330,6 +330,7 @@ function StakeScreen() {
               canWithdraw={canWithdraw}
               canClaim={canClaim}
               busyAction={state.busyAction}
+              isConnected={!!account}
             />
           </div>
 
@@ -409,12 +410,23 @@ function StakeScreen() {
               onChange={(event) => setDelegateModal((prev) => ({ ...prev, amount: event.target.value }))}
               placeholder="0.0"
             />
+            <p className="text-xs text-muted-foreground">
+              Available: {formattedMon(totals.available)}
+            </p>
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => closeModals()}>
               Cancel
             </Button>
-            <Button onClick={handleDelegateSubmit} disabled={!delegateModal.validatorId || !delegateModal.amount}>
+            <Button 
+              onClick={handleDelegateSubmit} 
+              disabled={
+                !delegateModal.validatorId || 
+                !delegateModal.amount || 
+                Number(sanitizeAmount(delegateModal.amount)) <= 0 ||
+                Number(sanitizeAmount(delegateModal.amount)) > totals.available
+              }
+            >
               Delegate
             </Button>
           </div>
@@ -455,6 +467,15 @@ function StakeScreen() {
               onChange={(event) => setUndelegateModal((prev) => ({ ...prev, amount: event.target.value }))}
               placeholder="0.0"
             />
+            {undelegateModal.validatorId && (() => {
+              const delegation = delegations.find(d => d.validatorId === undelegateModal.validatorId);
+              const maxAmount = delegation ? Number(sanitizeAmount(delegation.stake.formatted)) : 0;
+              return (
+                <p className="text-xs text-muted-foreground">
+                  Staked: {delegation ? delegation.stake.formatted : '0 MON'} • Max: {formattedMon(maxAmount)}
+                </p>
+              );
+            })()}
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-muted-foreground">
             {undelegateModal.withdrawalId !== null ? (
@@ -474,7 +495,15 @@ function StakeScreen() {
             <Button
               className="bg-amber-400 text-slate-900 hover:bg-amber-300"
               onClick={handleUndelegateSubmit}
-              disabled={!undelegateModal.validatorId || !undelegateModal.amount || undelegateModal.withdrawalId === null}
+              disabled={(() => {
+                if (!undelegateModal.validatorId || !undelegateModal.amount || undelegateModal.withdrawalId === null) {
+                  return true;
+                }
+                const delegation = delegations.find(d => d.validatorId === undelegateModal.validatorId);
+                const maxAmount = delegation ? Number(sanitizeAmount(delegation.stake.formatted)) : 0;
+                const requestedAmount = Number(sanitizeAmount(undelegateModal.amount));
+                return requestedAmount <= 0 || requestedAmount > maxAmount;
+              })()}
             >
               Undelegate
             </Button>

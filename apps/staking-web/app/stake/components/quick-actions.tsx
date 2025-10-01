@@ -21,6 +21,7 @@ interface QuickActionsProps {
   readonly canWithdraw: boolean;
   readonly canClaim: boolean;
   readonly busyAction?: string | null;
+  readonly isConnected: boolean;
 }
 
 const disabledClass = 'disabled:cursor-not-allowed disabled:opacity-40';
@@ -44,12 +45,20 @@ export function QuickActions({
   canWithdraw,
   canClaim,
   busyAction,
+  isConnected,
 }: QuickActionsProps) {
   const hasStakedTokens = parseAmount(stakedValue) > 0;
   const hasRewards = parseAmount(rewardsValue) > 0;
   const availableAmount = parseAmount(availableBalance);
   const stakedAmount = parseAmount(stakedValue);
   const displayApy = apyLabel === 'Coming soon' ? '24.8%' : apyLabel;
+  
+  // Enhanced validation
+  const hasAvailableBalance = availableAmount > 0;
+  const canActuallyStake = canStake && hasAvailableBalance && isConnected;
+  const canActuallyUnstake = canUnstake && hasStakedTokens && isConnected;
+  const canActuallyClaim = canClaim && hasRewards && isConnected;
+  const canActuallyWithdraw = canWithdraw && isConnected;
 
 
 
@@ -76,14 +85,20 @@ export function QuickActions({
             <TooltipTrigger asChild>
               <Button
                 onClick={onStake}
-                disabled={!canStake}
+                disabled={!canActuallyStake}
                 className={`h-10 gap-2 bg-accent text-accent-foreground transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
                 <TrendingUp className="h-4 w-4" />
                 {busyAction === 'stake' ? 'Opening…' : 'Stake MON'}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Stake your MON tokens to earn rewards</TooltipContent>
+            <TooltipContent>
+              {!isConnected
+                ? 'Connect wallet to stake'
+                : !hasAvailableBalance
+                  ? 'Insufficient balance to stake'
+                  : 'Stake your MON tokens to earn rewards'}
+            </TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -91,7 +106,7 @@ export function QuickActions({
               <Button
                 variant="outline"
                 onClick={onUnstake}
-                disabled={!canUnstake}
+                disabled={!canActuallyUnstake}
                 className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
                 <TrendingDown className="h-4 w-4" />
@@ -99,7 +114,11 @@ export function QuickActions({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {hasStakedTokens ? 'Unstake your MON tokens' : 'No staked tokens to unstake'}
+              {!isConnected
+                ? 'Connect wallet to unstake'
+                : !hasStakedTokens
+                  ? 'No staked tokens to unstake'
+                  : 'Unstake your MON tokens'}
             </TooltipContent>
           </Tooltip>
 
@@ -108,7 +127,7 @@ export function QuickActions({
               <Button
                 variant="outline"
                 onClick={onClaim}
-                disabled={!canClaim}
+                disabled={!canActuallyClaim}
                 className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
                 <Gift className="h-4 w-4" />
@@ -116,7 +135,11 @@ export function QuickActions({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {hasRewards ? 'Claim your staking rewards' : 'No rewards available to claim'}
+              {!isConnected
+                ? 'Connect wallet to claim rewards'
+                : !hasRewards
+                  ? 'No rewards available to claim'
+                  : 'Claim your staking rewards'}
             </TooltipContent>
           </Tooltip>
 
@@ -125,7 +148,7 @@ export function QuickActions({
               <Button
                 variant="outline"
                 onClick={onWithdraw}
-                disabled={!canWithdraw}
+                disabled={!canActuallyWithdraw}
                 className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
                 <Wallet className="h-4 w-4" />
@@ -133,7 +156,11 @@ export function QuickActions({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {canWithdraw ? 'Withdraw your unstaked tokens' : 'No unstaked tokens to withdraw'}
+              {!isConnected
+                ? 'Connect wallet to withdraw'
+                : !canWithdraw
+                  ? 'No unstaked tokens ready to withdraw'
+                  : 'Withdraw your unstaked tokens'}
             </TooltipContent>
           </Tooltip>
         </div>
