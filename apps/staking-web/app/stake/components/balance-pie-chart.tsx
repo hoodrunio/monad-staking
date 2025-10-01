@@ -19,6 +19,50 @@ interface BalancePieChartProps {
   readonly className?: string;
 }
 
+interface CustomTooltipProps {
+  readonly active?: boolean;
+  readonly payload?: Array<{
+    name: string;
+    value: number;
+    payload: { fill: string };
+  }>;
+}
+
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
+  if (!active || !payload || !payload.length) return null;
+
+  const data = payload[0];
+
+  return (
+    <div
+      className="animate-in fade-in-0 zoom-in-95 slide-in-from-left-2 pointer-events-none rounded-xl border bg-popover px-4 py-3 text-popover-foreground shadow-lg duration-200"
+      style={{
+        borderColor: data.payload.fill,
+        boxShadow: `0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 0 0 1px ${data.payload.fill}33`,
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className="h-3 w-3 shrink-0 rounded-sm"
+          style={{ backgroundColor: data.payload.fill }}
+        />
+        <div>
+          <p className="text-xs font-medium text-muted-foreground">{data.name}</p>
+          <p className="text-sm font-bold">{data.value.toLocaleString()} MON</p>
+        </div>
+      </div>
+      <div
+        className="absolute right-full top-1/2 h-0 w-0 -translate-y-1/2"
+        style={{
+          borderTop: '6px solid transparent',
+          borderBottom: '6px solid transparent',
+          borderRight: `6px solid ${data.payload.fill}`,
+        }}
+      />
+    </div>
+  );
+}
+
 export function BalancePieChart({
   data,
   title = 'Balance Distribution',
@@ -47,47 +91,18 @@ export function BalancePieChart({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-1 justify-center pb-4">
-        <div className="mx-auto aspect-square w-full max-w-[300px]">
+        <div className="mx-auto aspect-square w-full max-w-[250px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--popover))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '12px',
-                  padding: '12px 16px',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                  minWidth: '180px',
-                }}
-                labelStyle={{
-                  color: 'hsl(var(--popover-foreground))',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  marginBottom: '6px',
-                  display: 'block',
-                }}
-                itemStyle={{
-                  color: 'hsl(var(--muted-foreground))',
-                  fontSize: '13px',
-                  padding: '4px 0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-                formatter={(value: number) => [
-                  <span key="value" style={{ fontWeight: 600, color: 'hsl(var(--popover-foreground))' }}>
-                    {value.toLocaleString()} MON
-                  </span>
-                ]}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <Pie
                 data={chartData}
                 dataKey="value"
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={80}
+                innerRadius={50}
+                outerRadius={70}
                 strokeWidth={5}
                 activeIndex={activeIndex}
                 activeShape={({ outerRadius = 0, ...props }: PieSectorDataItem) => (
