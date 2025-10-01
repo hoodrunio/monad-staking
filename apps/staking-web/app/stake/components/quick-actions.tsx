@@ -3,7 +3,8 @@
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/app/components/ui/tooltip';
-import { Gift, Info, TrendingDown, TrendingUp, Wallet, Zap } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { GiftIcon, InformationCircleIcon, ArrowDownIcon, ArrowUpIcon, Wallet02Icon, FlashIcon } from '@hugeicons/core-free-icons';
 import { Badge } from '@/app/components/ui/badge';
 import { BalancePieChart } from './balance-pie-chart';
 
@@ -73,7 +74,7 @@ export function QuickActions({
     <Card className="h-full space-y-4 p-4">
       <header className="flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-lg font-semibold">
-          <Zap className="h-5 w-5 text-accent" />
+          <HugeiconsIcon icon={FlashIcon} size={20} className="text-accent" />
           Quick Actions
         </h2>
         <Badge variant="accent">APY {displayApy}</Badge>
@@ -88,7 +89,7 @@ export function QuickActions({
                 disabled={!canActuallyStake}
                 className={`h-10 gap-2 bg-accent text-accent-foreground transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
-                <TrendingUp className="h-4 w-4" />
+                <HugeiconsIcon icon={ArrowUpIcon} size={16} />
                 {busyAction === 'stake' ? 'Opening…' : 'Stake MON'}
               </Button>
             </TooltipTrigger>
@@ -109,7 +110,7 @@ export function QuickActions({
                 disabled={!canActuallyUnstake}
                 className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
-                <TrendingDown className="h-4 w-4" />
+                <HugeiconsIcon icon={ArrowDownIcon} size={16} />
                 {busyAction === 'unstake' ? 'Processing…' : 'Unstake'}
               </Button>
             </TooltipTrigger>
@@ -130,7 +131,7 @@ export function QuickActions({
                 disabled={!canActuallyClaim}
                 className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
-                <Gift className="h-4 w-4" />
+                <HugeiconsIcon icon={GiftIcon} size={16} />
                 {busyAction === 'claim' ? 'Claiming…' : 'Claim Rewards'}
               </Button>
             </TooltipTrigger>
@@ -151,7 +152,7 @@ export function QuickActions({
                 disabled={!canActuallyWithdraw}
                 className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
-                <Wallet className="h-4 w-4" />
+                <HugeiconsIcon icon={Wallet02Icon} size={16} />
                 {busyAction === 'withdraw' ? 'Withdrawing…' : 'Withdraw'}
               </Button>
             </TooltipTrigger>
@@ -177,7 +178,7 @@ export function QuickActions({
 
       <div className="rounded-lg border border-border/30 bg-muted/30 p-2 text-xs text-muted-foreground">
         <div className="flex items-center gap-1">
-          <Info className="h-3 w-3" />
+          <HugeiconsIcon icon={InformationCircleIcon} size={12} />
           <span>
             {hasStakedTokens
               ? `You're currently earning ${displayApy} APY on your staked tokens`

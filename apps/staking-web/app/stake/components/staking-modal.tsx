@@ -7,7 +7,8 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { formatEther, parseEther } from 'viem';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { AlertCircleIcon, Loading01Icon } from '@hugeicons/core-free-icons';
 
 export type ValidatorOption = {
   value: string;
@@ -216,7 +217,7 @@ export function StakingModal({
 
                 {isEstimating && (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground animate-pulse">
-                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <HugeiconsIcon icon={Loading01Icon} size={12} className="animate-spin" />
                     <span>Calculating gas cost...</span>
                   </div>
                 )}
@@ -224,7 +225,7 @@ export function StakingModal({
                 {/* Warning if amount exceeds max */}
                 {amount && maxAmount !== null && parseEther(sanitizeAmount(amount) || '0') > maxAmount && (
                   <div className="flex items-center gap-2 rounded-md bg-amber-500/10 border border-amber-500/20 p-2 text-xs text-amber-400">
-                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    <HugeiconsIcon icon={AlertCircleIcon} size={12} className="flex-shrink-0" />
                     <span>Amount exceeds maximum stakeable (gas fees required)</span>
                   </div>
                 )}

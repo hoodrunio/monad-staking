@@ -88,6 +88,12 @@ importers:
       '@heroicons/react':
         specifier: ^2.0.18
         version: 2.2.0(react@18.3.1)
+      '@hugeicons/core-free-icons':
+        specifier: ^1.1.0
+        version: 1.1.0
+      '@hugeicons/react':
+        specifier: ^1.1.1
+        version: 1.1.1(react@18.3.1)
       '@monad-staking/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -452,6 +458,14 @@ packages:
     resolution: {integrity: sha512-LMcepvRaS9LYHJGsF0zzmgKCUim/X3N/DQKc4jepAXJ7l8QxJ1PmxJzqplF2Z3FE4PqBAIGyJAQ/w4B5dsqbtQ==}
     peerDependencies:
       react: '>= 16 || ^19.0.0-rc'
+
+  '@hugeicons/core-free-icons@1.1.0':
+    resolution: {integrity: sha512-xLLQcIiLKvazXjjhnO2qZ/piOo9yxAFQ5A67XP+HNpvFrO5hVEGv1qebHSHPK1tbSST9dZF3fhH4AfdyumqJsg==}
+
+  '@hugeicons/react@1.1.1':
+    resolution: {integrity: sha512-BAbFVtx0XZ/yF2poPLFn0N9Ji6ebV/MpI5+WRqooFp3smQDwpL+72m+BBs4KAM5djgWUpg12weyc5SJtTsOwsw==}
+    peerDependencies:
+      react: '>=16.0.0'
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -4540,6 +4554,12 @@ snapshots:
       - supports-color
 
   '@heroicons/react@2.2.0(react@18.3.1)':
+    dependencies:
+      react: 18.3.1
+
+  '@hugeicons/core-free-icons@1.1.0': {}
+
+  '@hugeicons/react@1.1.1(react@18.3.1)':
     dependencies:
       react: 18.3.1
 

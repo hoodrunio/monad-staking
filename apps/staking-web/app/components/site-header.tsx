@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
-import { Activity, BarChart3, Coins, Menu, ShieldCheck, Wallet, X } from 'lucide-react';
+import { HugeiconsIcon, IconSvgElement } from '@hugeicons/react';
+import { Activity02Icon, BarChartIcon, Coins01Icon, Menu01Icon, ShieldKeyIcon, Wallet02Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 import { WalletConnectButton } from '@/app/components/wallet-connect-button';
 import { ClientOnly } from '@/app/components/client-only';
 import { ThemeToggle } from '@/app/components/theme-toggle';
@@ -14,15 +15,15 @@ import { Badge } from '@/app/components/ui/badge';
 interface NavigationLink {
   href: Route;
   label: string;
-  icon: typeof BarChart3;
+  icon: IconSvgElement;
   badge?: string;
 }
 
 const navigationLinks: NavigationLink[] = [
-  { href: '/' as Route, label: 'Overview', icon: ShieldCheck },
-  { href: '/stake' as Route, label: 'Stake', icon: Coins },
-  { href: '/validators' as Route, label: 'Validators', icon: BarChart3 },
-  { href: '/account' as Route, label: 'Account', icon: Wallet },
+  { href: '/' as Route, label: 'Overview', icon: ShieldKeyIcon },
+  { href: '/stake' as Route, label: 'Stake', icon: Coins01Icon },
+  { href: '/validators' as Route, label: 'Validators', icon: BarChartIcon },
+  { href: '/account' as Route, label: 'Account', icon: Wallet02Icon },
 ];
 
 export function SiteHeader() {
@@ -46,14 +47,13 @@ export function SiteHeader() {
         <div className="flex items-center gap-8">
           <Link href="/" onClick={closeMobile} className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-glow">
-              <Activity className="h-5 w-5" />
+              <HugeiconsIcon icon={Activity02Icon} size={20} />
             </span>
             <span className="text-xl font-semibold text-foreground">Monad Stake</span>
           </Link>
           <nav className="flex items-center gap-1">
             {navigationLinks.map((link) => {
               const active = activeHref === link.href;
-              const Icon = link.icon;
               return (
                 <Link key={link.href} href={link.href} onClick={closeMobile} className="relative">
                   <Button
@@ -61,7 +61,7 @@ export function SiteHeader() {
                     size="sm"
                     className={`gap-2 text-sm ${active ? 'bg-accent/10 text-accent' : 'text-muted-foreground hover:text-foreground'}`}
                   >
-                    <Icon className="h-4 w-4" />
+                    <HugeiconsIcon icon={link.icon} size={16} />
                     {link.label}
                   </Button>
                   {link.badge ? (
@@ -92,7 +92,7 @@ export function SiteHeader() {
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:hidden">
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Activity className="h-5 w-5" />
+            <HugeiconsIcon icon={Activity02Icon} size={20} />
           </span>
           <span className="text-lg font-semibold text-foreground">Monad Stake</span>
         </div>
@@ -105,7 +105,7 @@ export function SiteHeader() {
             aria-label="Toggle navigation"
             onClick={toggleMobile}
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <HugeiconsIcon icon={mobileOpen ? Cancel01Icon : Menu01Icon} size={20} />
           </Button>
         </div>
       </div>
@@ -116,14 +116,13 @@ export function SiteHeader() {
             <nav className="flex flex-col gap-2">
               {navigationLinks.map((link) => {
                 const active = activeHref === link.href;
-                const Icon = link.icon;
                 return (
                   <Link key={link.href} href={link.href} onClick={closeMobile} className="relative">
                     <Button
                       variant="ghost"
                       className={`w-full justify-start gap-3 ${active ? 'bg-accent/10 text-accent' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                      <Icon className="h-4 w-4" />
+                      <HugeiconsIcon icon={link.icon} size={16} />
                       {link.label}
                     </Button>
                     {link.badge ? <Badge variant="accent" className="absolute right-3 top-2">{link.badge}</Badge> : null}
