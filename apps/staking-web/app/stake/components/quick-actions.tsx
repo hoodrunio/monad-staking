@@ -3,8 +3,7 @@
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/app/components/ui/tooltip';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { GiftIcon, InformationCircleIcon, ArrowDownIcon, ArrowUpIcon, Wallet02Icon, FlashIcon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon, GiftIcon, InformationCircleIcon, ArrowDownIcon, ArrowUpIcon, Wallet02Icon, FlashIcon } from '@/app/components/icons';
 import { Badge } from '@/app/components/ui/badge';
 import { BalancePieChart } from './balance-pie-chart';
 

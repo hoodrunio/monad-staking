@@ -7,8 +7,7 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { formatEther, parseEther } from 'viem';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { AlertCircleIcon, Loading01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon, AlertCircleIcon, Loading01Icon } from '@/app/components/icons';
 
 export type ValidatorOption = {
   value: string;

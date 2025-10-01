@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { ArrowLeft01Icon, Coins01Icon, ArrowUpIcon, ShieldKeyIcon, KeyIcon, FlagIcon, Link01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon, ArrowLeft01Icon, Coins01Icon, ArrowUpIcon, ShieldKeyIcon, KeyIcon, FlagIcon, Link01Icon } from '@/app/components/icons';
 import { useValidatorQuery } from '@/lib/queries';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';

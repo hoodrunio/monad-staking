@@ -3,8 +3,7 @@
 import { useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { useSearchParams } from 'next/navigation';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { Coins01Icon, ArrowUpIcon, Clock01Icon, Wallet02Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon, Coins01Icon, ArrowUpIcon, Clock01Icon, Wallet02Icon } from '@/app/components/icons';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';
 import { formatDelegationRow, formatWithdrawalRow } from '@/lib/account-utils';

@@ -1,7 +1,6 @@
 'use client';
 
-import { HugeiconsIcon } from '@hugeicons/react';
-import { Moon02Icon, SunIcon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon, Moon02Icon, SunIcon } from '@/app/components/icons';
 import { Button } from '@/app/components/ui/button';
 import { useTheme } from '@/app/theme-provider';
 

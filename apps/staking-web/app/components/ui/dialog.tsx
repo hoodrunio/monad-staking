@@ -1,8 +1,7 @@
 'use client';
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { Cancel01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon, Cancel01Icon } from '@/app/components/icons';
 import type { ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
