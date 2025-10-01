@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Coins, TrendingUp, Shield, Key, Flag, ExternalLink } from 'lucide-react';
+import { HugeiconsIcon, ArrowLeft01Icon, Coins01Icon, ArrowUpIcon, ShieldKeyIcon, KeyIcon, FlagIcon, Link01Icon } from '@/app/components/icons';
 import { useValidatorQuery } from '@/lib/queries';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';
@@ -64,7 +64,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
       href={`/validators?network=${selectedNetwork}`}
       className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/30 hover:text-foreground"
     >
-      <ArrowLeft className="h-4 w-4" />
+      <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
       Back to validators
     </Link>
   );
@@ -116,7 +116,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
             <div className="mb-4 flex items-start justify-between">
               <div>
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-background/80 px-3 py-1 text-xs font-medium">
-                  <Shield className="h-3.5 w-3.5 text-primary" />
+                  <HugeiconsIcon icon={ShieldKeyIcon} size={14} className="text-primary" />
                   <span className="uppercase tracking-wider text-muted-foreground/80">
                     Validator #{validatorId}
                   </span>
@@ -159,11 +159,11 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
           {/* Total Stake */}
           <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/5 to-transparent p-6">
             <div className="absolute right-4 top-4 opacity-20 transition-opacity group-hover:opacity-30">
-              <Coins className="h-12 w-12" />
+              <HugeiconsIcon icon={Coins01Icon} size={48} />
             </div>
             <div className="relative">
               <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground/70">
-                <Coins className="h-3.5 w-3.5" />
+                <HugeiconsIcon icon={Coins01Icon} size={14} />
                 Total Stake
               </div>
               <div className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
@@ -176,11 +176,11 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
           {/* Commission */}
           <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-accent/5 to-transparent p-6">
             <div className="absolute right-4 top-4 opacity-20 transition-opacity group-hover:opacity-30">
-              <TrendingUp className="h-12 w-12" />
+              <HugeiconsIcon icon={ArrowUpIcon} size={48} />
             </div>
             <div className="relative">
               <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground/70">
-                <TrendingUp className="h-3.5 w-3.5" />
+                <HugeiconsIcon icon={ArrowUpIcon} size={14} />
                 Commission
               </div>
               <div className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
@@ -195,11 +195,11 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
           {/* Unclaimed Rewards */}
           <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/5 to-transparent p-6">
             <div className="absolute right-4 top-4 opacity-20 transition-opacity group-hover:opacity-30">
-              <TrendingUp className="h-12 w-12" />
+              <HugeiconsIcon icon={ArrowUpIcon} size={48} />
             </div>
             <div className="relative">
               <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground/70">
-                <TrendingUp className="h-3.5 w-3.5" />
+                <HugeiconsIcon icon={ArrowUpIcon} size={14} />
                 Unclaimed Rewards
               </div>
               <div className="mt-3 text-3xl font-semibold tracking-tight text-accent">
@@ -226,7 +226,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
             {/* Basic Info */}
             <div className="rounded-xl border border-border/50 bg-muted/5 p-6">
               <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold tracking-tight">
-                <Shield className="h-5 w-5 text-primary" />
+                <HugeiconsIcon icon={ShieldKeyIcon} size={20} className="text-primary" />
                 Basic Information
               </h3>
               <div className="space-y-4">
@@ -255,7 +255,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
                     Status Flags
                   </div>
                   <div className="mt-1 flex items-center gap-2">
-                    <Flag className="h-4 w-4 text-muted-foreground/50" />
+                    <HugeiconsIcon icon={FlagIcon} size={16} className="text-muted-foreground/50" />
                     <span className="font-mono text-sm text-foreground">
                       {validator.flagsRaw}
                     </span>
@@ -267,7 +267,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
             {/* Auth Address */}
             <div className="rounded-xl border border-border/50 bg-muted/5 p-6">
               <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold tracking-tight">
-                <ExternalLink className="h-5 w-5 text-primary" />
+                <HugeiconsIcon icon={Link01Icon} size={20} className="text-primary" />
                 Authorization Address
               </h3>
               <div className="space-y-3">
@@ -282,7 +282,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
                     className="inline-flex items-center gap-2 break-all rounded-lg bg-background/50 px-3 py-2 font-mono text-xs text-primary transition-colors hover:bg-background/70 hover:text-primary/80"
                   >
                     {validator.authAddress}
-                    <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                    <HugeiconsIcon icon={Link01Icon} size={12} className="flex-shrink-0" />
                   </ExplorerLink>
                 </div>
                 <p className="text-xs text-muted-foreground/70">
@@ -307,7 +307,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
             <div className="rounded-xl border border-border/50 bg-muted/5 p-6">
               <div className="mb-4 flex items-center gap-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Key className="h-5 w-5 text-primary" />
+                  <HugeiconsIcon icon={KeyIcon} size={20} className="text-primary" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold tracking-tight">SECP256K1</h3>
@@ -325,7 +325,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
             <div className="rounded-xl border border-border/50 bg-muted/5 p-6">
               <div className="mb-4 flex items-center gap-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
-                  <Key className="h-5 w-5 text-accent" />
+                  <HugeiconsIcon icon={KeyIcon} size={20} className="text-accent" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold tracking-tight">BLS</h3>

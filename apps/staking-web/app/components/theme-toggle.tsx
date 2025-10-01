@@ -1,6 +1,6 @@
 'use client';
 
-import { Moon, Sun } from 'lucide-react';
+import { HugeiconsIcon, Moon02Icon, SunIcon } from '@/app/components/icons';
 import { Button } from '@/app/components/ui/button';
 import { useTheme } from '@/app/theme-provider';
 
@@ -16,8 +16,13 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       className="relative text-muted-foreground"
     >
-      <Sun className={`h-4 w-4 transition-transform ${theme === 'light' ? 'rotate-0 scale-100' : '-rotate-90 scale-0'}`} />
-      <Moon className={`absolute h-4 w-4 transition-transform ${theme === 'dark' ? 'rotate-0 scale-100' : 'rotate-90 scale-0'}`} />
+      <HugeiconsIcon
+        icon={SunIcon}
+        altIcon={Moon02Icon}
+        showAlt={theme === 'dark'}
+        size={16}
+        className="transition-transform"
+      />
     </Button>
   );
 }

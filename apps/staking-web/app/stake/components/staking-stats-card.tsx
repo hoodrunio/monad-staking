@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingDown, TrendingUp } from 'lucide-react';
+import { HugeiconsIcon, ArrowDownIcon, ArrowUpIcon } from '@/app/components/icons';
 import { Card } from '@/app/components/ui/card';
 
 interface StatItem {
@@ -18,7 +18,7 @@ export function StakingStatsCard({ stats }: StakingStatsCardProps) {
   return (
     <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
       {stats.map((stat) => {
-        const trendIcon = stat.trend === 'down' ? <TrendingDown className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />;
+        const trendIcon = stat.trend === 'down' ? ArrowDownIcon : ArrowUpIcon;
         const trendColor = stat.trend === 'down' ? 'text-destructive' : 'text-accent';
 
         return (
@@ -29,7 +29,7 @@ export function StakingStatsCard({ stats }: StakingStatsCardProps) {
                 <p className="text-balance text-2xl font-bold">{stat.value}</p>
                 {stat.change ? (
                   <span className={`flex items-center gap-1 text-sm font-medium ${trendColor}`}>
-                    {trendIcon}
+                    <HugeiconsIcon icon={trendIcon} size={16} />
                     {stat.change}
                   </span>
                 ) : null}

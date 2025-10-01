@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp } from 'lucide-react';
+import { HugeiconsIcon, ArrowUpIcon } from '@/app/components/icons';
 import { Card } from '@/app/components/ui/card';
 
 interface TokenPriceCardProps {
@@ -24,7 +24,7 @@ export function TokenPriceCard({ tokenSymbol, priceUsd, priceChangeLabel, descri
           <div className="flex items-baseline gap-3">
             <span className="text-balance text-4xl font-bold text-accent">{formattedPrice}</span>
             <div className="flex items-center gap-1 font-medium text-accent">
-              <TrendingUp className="h-4 w-4" />
+              <HugeiconsIcon icon={ArrowUpIcon} size={16} />
               <span>{changeText}</span>
             </div>
           </div>

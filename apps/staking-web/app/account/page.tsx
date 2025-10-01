@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { useSearchParams } from 'next/navigation';
-import { Coins, TrendingUp, Clock, Wallet } from 'lucide-react';
+import { HugeiconsIcon, Coins01Icon, ArrowUpIcon, Clock01Icon, Wallet02Icon } from '@/app/components/icons';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';
 import { formatDelegationRow, formatWithdrawalRow } from '@/lib/account-utils';
@@ -69,7 +69,7 @@ function AccountPageContent() {
         </div>
         <div className="flex items-center justify-center rounded-lg bg-muted/10 p-12">
           <div className="flex flex-col items-center gap-3 text-center">
-            <Wallet className="h-10 w-10 text-muted-foreground/30" />
+            <HugeiconsIcon icon={Wallet02Icon} size={40} className="text-muted-foreground/30" />
             <p className="text-sm text-muted-foreground">Wallet required</p>
           </div>
         </div>
@@ -94,19 +94,19 @@ function AccountPageContent() {
         </div>
         <div className="flex items-center gap-3 text-sm">
           <div className="flex items-center gap-1.5">
-            <Coins className="h-3.5 w-3.5 text-muted-foreground/50" />
+            <HugeiconsIcon icon={Coins01Icon} size={14} className="text-muted-foreground/50" />
             <span className="text-muted-foreground/70">Staked:</span>
             <span className="font-mono font-semibold text-foreground">{totalStaked.toFixed(2)}</span>
           </div>
           <span className="text-muted-foreground/30">•</span>
           <div className="flex items-center gap-1.5">
-            <TrendingUp className="h-3.5 w-3.5 text-accent/70" />
+            <HugeiconsIcon icon={ArrowUpIcon} size={14} className="text-accent/70" />
             <span className="text-muted-foreground/70">Rewards:</span>
             <span className="font-mono font-semibold text-accent">{totalRewards.toFixed(4)}</span>
           </div>
           <span className="text-muted-foreground/30">•</span>
           <div className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-muted-foreground/50" />
+            <HugeiconsIcon icon={Clock01Icon} size={14} className="text-muted-foreground/50" />
             <span className="text-muted-foreground/70">Pending:</span>
             <span className="font-mono font-semibold text-foreground">{withdrawals?.items.length || 0}</span>
           </div>
