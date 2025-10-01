@@ -9,7 +9,7 @@ import { getSelectedNetwork } from '@/lib/page-utils';
 import { formatDelegationRow, formatWithdrawalRow } from '@/lib/account-utils';
 import { ClientOnly } from '@/app/components/client-only';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
-import { useDelegationsQuery, useWithdrawalsQuery, useEpochQuery } from '@/lib/queries';
+import { useDelegationsQuery, useWithdrawalsQuery, useEpochQuery, useValidatorsQuery } from '@/lib/queries';
 import { formatMonFromWei } from '@/lib/utils';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { ShellSection } from '@/app/components/layout/shell';
@@ -27,6 +27,9 @@ function AccountPageContent() {
   const { data: epochData } = useEpochQuery(selectedNetwork || 'monad-mainnet', {
     enabled: !!selectedNetwork && !!resolved
   });
+  const { data: validators } = useValidatorsQuery(selectedNetwork || 'monad-mainnet', '', 100, {
+    enabled: !!selectedNetwork && !!resolved && !!address
+  });
   const { data: delegations, isLoading: delegationsLoading, error: delegationsError } = 
     useDelegationsQuery(selectedNetwork || 'monad-mainnet', address || '', '0', {
       enabled: !!selectedNetwork && !!resolved && !!address
@@ -35,6 +38,14 @@ function AccountPageContent() {
     useWithdrawalsQuery(selectedNetwork || 'monad-mainnet', address || '', undefined, {
       enabled: !!selectedNetwork && !!resolved && !!address
     });
+
+  const validatorMap = useMemo(() => {
+    const map = new Map<string, { name: string | undefined; isActive: boolean }>();
+    validators?.items.forEach((v) => {
+      map.set(v.validatorId, { name: v.meta?.name, isActive: v.isActive ?? false });
+    });
+    return map;
+  }, [validators]);
 
   if (!selectedNetwork || !resolved) {
     return (
@@ -126,6 +137,8 @@ function AccountPageContent() {
               {delegations.items.map((delegation) => {
                 const formatted = formatDelegationRow(delegation);
                 const hasPending = formatted.pendingChanges.deltaStake !== '0' || formatted.pendingChanges.nextDeltaStake !== '0';
+                const validatorInfo = validatorMap.get(formatted.validatorId);
+                const displayName = validatorInfo?.name ?? `Validator ${formatted.validatorId}`;
                 
                 return (
                   <div
@@ -134,7 +147,12 @@ function AccountPageContent() {
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-foreground">Validator #{formatted.validatorId}</span>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-foreground">{displayName}</span>
+                          {validatorInfo?.name && (
+                            <span className="text-xs text-muted-foreground/70">#{formatted.validatorId}</span>
+                          )}
+                        </div>
                         {hasPending && (
                           <span className="rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-300">
                             Pending
@@ -195,6 +213,8 @@ function AccountPageContent() {
               {withdrawals.items.map((withdrawal) => {
                 const formatted = formatWithdrawalRow(withdrawal);
                 const canWithdraw = formatted.canWithdraw(currentEpoch);
+                const validatorInfo = validatorMap.get(formatted.validatorId);
+                const displayName = validatorInfo?.name ?? `Validator ${formatted.validatorId}`;
 
                 return (
                   <div
@@ -203,7 +223,12 @@ function AccountPageContent() {
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-foreground">Validator #{formatted.validatorId}</span>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-foreground">{displayName}</span>
+                          {validatorInfo?.name && (
+                            <span className="text-xs text-muted-foreground/70">#{formatted.validatorId}</span>
+                          )}
+                        </div>
                         {canWithdraw ? (
                           <span className="flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-300">
                             <div className="h-1 w-1 rounded-full bg-emerald-400" />

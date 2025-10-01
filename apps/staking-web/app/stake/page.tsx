@@ -339,7 +339,6 @@ function StakeScreen() {
               withdrawable={formattedMon(totals.readyWithdraw)}
               claimable={formattedMon(totals.rewards)}
               unstaked={formattedMon(totals.pendingWithdraw)}
-              apyLabel={apyLabel}
             >
               <div className="flex-1">
                 <StakingChart />

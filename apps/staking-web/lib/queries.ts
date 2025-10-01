@@ -64,7 +64,7 @@ export function useEpochQuery(network: MonadNetwork, options?: { enabled?: boole
 export function useValidatorsQuery(
   network: MonadNetwork,
   cursor = '',
-  limit = 50,
+  limit = 300,
   options?: { enabled?: boolean; filters?: ValidatorFilters },
 ) {
   const filters = options?.filters;
