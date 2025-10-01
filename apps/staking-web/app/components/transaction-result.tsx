@@ -35,8 +35,8 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
   const displayValidatorName = validatorName ?? (txContext?.validatorId ? `Validator ${txContext.validatorId}` : null);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur">
-      <div className="relative w-full max-w-md rounded-3xl bg-background/90 p-6 text-foreground shadow-[0_45px_80px_-45px_rgba(56,189,248,0.55)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur overflow-y-auto">
+      <div className="relative w-full max-w-md rounded-3xl bg-background/90 p-6 text-foreground shadow-[0_45px_80px_-45px_rgba(56,189,248,0.55)] my-8">
         <button
           type="button"
           onClick={onClose}
@@ -48,14 +48,14 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
 
         <div className="space-y-5">
           <div className="flex items-start gap-3">
-            <div className={isError ? 'rounded-full bg-red-400/15 p-2' : 'rounded-full bg-primary/15 p-2'}>
+            <div className={isError ? 'flex-shrink-0 rounded-full bg-red-400/15 p-2' : 'flex-shrink-0 rounded-full bg-primary/15 p-2'}>
               {isError ? <ExclamationTriangleIcon className="h-6 w-6 text-red-300" /> : <CheckCircleIcon className="h-6 w-6 text-primary" />}
             </div>
-            <div className="flex-1 space-y-2">
-              <h3 className="text-lg font-semibold">{title}</h3>
-              <p className={isError ? 'text-sm text-red-200' : 'text-sm text-muted-foreground'}>{description}</p>
+            <div className="flex-1 space-y-2 min-w-0">
+              <h3 className="text-lg font-semibold break-words">{title}</h3>
+              <p className={isError ? 'text-sm text-red-200 break-words whitespace-pre-wrap' : 'text-sm text-muted-foreground break-words'}>{description}</p>
               {txCount > 1 ? (
-                <p className="text-xs text-muted-foreground/80">
+                <p className="text-xs text-muted-foreground/80 break-words">
                   {isError ? `${txCount} transactions were attempted; at least one failed.` : `${txCount} transactions were submitted for this action.`}
                 </p>
               ) : null}

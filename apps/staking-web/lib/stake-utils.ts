@@ -61,6 +61,46 @@ export function canPerformTransaction(
   return Boolean(sdk && account && validatorBig > 0n && amountWei > 0n && !busy);
 }
 
+function extractErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) return 'Transaction failed';
+  
+  // Check for Viem error properties (shortMessage, details, etc.)
+  const viemError = error as Error & { 
+    shortMessage?: string; 
+    details?: string;
+    metaMessages?: string[];
+  };
+  
+  // Use shortMessage if available (Viem's user-friendly error message)
+  if (viemError.shortMessage) {
+    return viemError.shortMessage;
+  }
+  
+  const message = error.message;
+  
+  // Extract user-friendly message from common error patterns
+  if (message.includes('User rejected') || message.includes('User denied')) {
+    return 'You rejected the transaction.';
+  }
+  
+  if (message.includes('insufficient funds')) {
+    return 'Insufficient funds to complete this transaction.';
+  }
+  
+  if (message.includes('gas required exceeds')) {
+    return 'Gas estimation failed. The transaction may fail or require more gas.';
+  }
+  
+  // Extract the first line/sentence for other errors
+  const firstLine = message.split('\n')[0];
+  if (firstLine && firstLine.length < 200) {
+    return firstLine;
+  }
+  
+  // Fallback for very long messages
+  return 'Transaction failed. Please check your wallet for more details.';
+}
+
 export async function handleDelegate(
   sdk: MonadStakingSdk<Transport>,
   validatorId: bigint,
@@ -93,7 +133,7 @@ export async function handleDelegate(
     mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted', txCount: 1 });
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Transaction failed';
+    const message = extractErrorMessage(error);
     mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error', txCount: 0 });
   }
 }
@@ -133,7 +173,7 @@ export async function handleUndelegate(
     mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted', txCount: 1 });
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Transaction failed';
+    const message = extractErrorMessage(error);
     mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error', txCount: 0 });
   }
 }
@@ -169,7 +209,7 @@ export async function handleWithdraw(
     mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted', txCount: 1 });
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Transaction failed';
+    const message = extractErrorMessage(error);
     mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error', txCount: 0 });
   }
 }
@@ -202,7 +242,7 @@ export async function handleCompound(
     mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted', txCount: 1 });
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Transaction failed';
+    const message = extractErrorMessage(error);
     mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error', txCount: 0 });
   }
 }
@@ -235,7 +275,7 @@ export async function handleClaimRewards(
     mergeState(setState, { txHash: hash, busy: false, busyAction: null, txStage: 'submitted', txCount: 1 });
     void waitForConfirmation(sdk, hash, setState);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Transaction failed';
+    const message = extractErrorMessage(error);
     mergeState(setState, { txError: message, busy: false, busyAction: null, txStage: 'error', txCount: 0 });
   }
 }
@@ -289,15 +329,12 @@ export async function handleClaimAllRewards(
         );
         mergeState(setState, { txStage: 'confirmed' });
       } catch (confirmationError) {
-        const message =
-          confirmationError instanceof Error
-            ? confirmationError.message
-            : 'Failed to confirm transactions';
+        const message = extractErrorMessage(confirmationError);
         mergeState(setState, { txError: message, txStage: 'error' });
       }
     })();
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Transaction failed';
+    const message = extractErrorMessage(error);
     mergeState(setState, {
       txError: message,
       busy: false,
@@ -320,7 +357,7 @@ async function waitForConfirmation(
       return { ...prev, txStage: 'confirmed' };
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to confirm transaction';
+    const message = extractErrorMessage(error);
     setState((prev) => {
       if (prev.txHash !== hash) return prev;
       return { ...prev, txError: message, txStage: 'error' };
