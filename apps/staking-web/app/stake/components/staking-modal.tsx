@@ -77,15 +77,6 @@ export function StakingModal({
     }
   }, [open]);
 
-  // Auto-advance to step 2 when validator is selected and we're on step 1
-  useEffect(() => {
-    if (selectedValidatorId && step === 1) {
-      // Small delay for UX
-      const timer = setTimeout(() => setStep(2), 200);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedValidatorId, step]);
-
   const isStake = mode === 'stake';
   const title = isStake ? 'Delegate Stake' : 'Start Undelegation';
   const submitLabel = isStake ? 'Delegate' : 'Undelegate';
@@ -112,11 +103,7 @@ export function StakingModal({
           <>
             <ValidatorSelector
               value={selectedValidatorId ?? ''}
-              onChange={(next) => {
-                onValidatorChange(next);
-                // Calculate max when validator changes
-                onCalculateMax();
-              }}
+              onChange={onValidatorChange}
               options={validatorOptions}
               loading={loading}
               emptyMessage="No validators available"
@@ -129,6 +116,17 @@ export function StakingModal({
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={onClose}>
                 Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  if (selectedValidatorId) {
+                    setStep(2);
+                    onCalculateMax();
+                  }
+                }}
+                disabled={!selectedValidatorId || disabled}
+              >
+                Next
               </Button>
             </div>
           </>
