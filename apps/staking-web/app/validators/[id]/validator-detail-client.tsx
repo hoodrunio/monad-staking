@@ -296,7 +296,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
         {/* Cryptographic Keys */}
         <div className="space-y-5">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Cryptographic Keys</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">Keys</h2>
             <p className="mt-1 text-sm text-muted-foreground/80">
               Public keys used for validation and signing
             </p>
