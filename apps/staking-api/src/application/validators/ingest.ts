@@ -4,7 +4,7 @@ import type { IngestRepository } from '../../domain/ingest';
 import type { BlockchainClient } from '../../infrastructure/blockchain/sdk.client';
 import type { GithubClient, NetworkFolder } from '../../infrastructure/external/github.client';
 import type { Network } from '../../domain/types';
-import { logger } from '../../infra/logger';
+import { logger } from '../../infrastructure';
 import { normalizeSecpKey } from '../../lib/key-format';
 import { ingestConfig } from '../../config/env';
 

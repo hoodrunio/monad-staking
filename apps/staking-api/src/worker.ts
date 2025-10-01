@@ -1,5 +1,5 @@
 import { container } from './shared/container';
-import { logger } from './infra/logger';
+import { logger } from './infrastructure';
 import { workerConfig } from './config/env';
 import type { Network } from './domain/types';
 

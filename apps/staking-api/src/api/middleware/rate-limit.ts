@@ -1,7 +1,7 @@
 import type { MiddlewareHandler } from 'hono';
 import type Redis from 'ioredis';
-import { getRedis } from '../../infra/db';
-import { logger } from '../../infra/logger';
+import { getRedis } from '../../infrastructure';
+import { logger } from '../../infrastructure';
 import { TtlCache } from '../../lib/cache';
 
 export type RateLimitOptions = {

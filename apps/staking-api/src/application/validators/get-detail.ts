@@ -4,7 +4,7 @@ import type { CacheService } from '../../infrastructure/cache/cache.service';
 import type { Network } from '../../domain/types';
 import { normalizeAmount, normalizeCommission } from '../../lib/format';
 import { ensure0x, normalizeSecpKey, normalizeHexNo0x } from '../../lib/key-format';
-import { logger } from '../../infra/logger';
+import { logger } from '../../infrastructure';
 
 export interface GetValidatorDetailInput {
   network: Network;

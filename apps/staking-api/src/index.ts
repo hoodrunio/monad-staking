@@ -1,16 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
-import { validatorRoutes } from './presentation/routes/validators';
-import { epochRoutes } from './presentation/routes/epoch';
-import { delegationsRoutes } from './presentation/routes/delegations';
-import { withdrawalsRoutes } from './presentation/routes/withdrawals';
-import { balanceRoutes } from './presentation/routes/balance';
+import { validatorRoutes } from './api/routes/validators';
+import { epochRoutes } from './api/routes/epoch';
+import { delegationsRoutes } from './api/routes/delegations';
+import { withdrawalsRoutes } from './api/routes/withdrawals';
+import { balanceRoutes } from './api/routes/balance';
 import { container } from './shared/container';
-import { logger } from './infra/logger';
-import { createRateLimitMiddleware } from './presentation/middleware/rate-limit';
-import { metricsRegistry, recordHttpMetrics } from './infra/metrics';
-import { getMongo, getRedis } from './infra/db';
+import { logger } from './infrastructure';
+import { createRateLimitMiddleware } from './api/middleware/rate-limit';
+import { metricsRegistry, recordHttpMetrics } from './infrastructure';
+import { getMongo, getRedis } from './infrastructure';
 import { corsConfig, rateLimitConfig, serverConfig } from './config/env';
 
 const app = new Hono<{

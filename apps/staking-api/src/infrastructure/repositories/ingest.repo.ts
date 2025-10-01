@@ -1,7 +1,7 @@
 import type { Collection } from 'mongodb';
 import type { IngestState, IngestRepository } from '../../domain/ingest';
 import type { Network } from '../../domain/types';
-import type { IngestStateDoc } from '../../infra/db';
+import type { IngestStateDoc } from '../../infrastructure';
 
 export class MongoIngestRepository implements IngestRepository {
   constructor(private collection: Collection<IngestStateDoc>) {}

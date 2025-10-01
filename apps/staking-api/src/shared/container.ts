@@ -1,6 +1,6 @@
 import type { ResolvedMonadNetworkConfig } from '@monad-staking/config';
 import { loadMonadNetworkConfig, requireNetworkConfig, MONAD_NETWORK_KEYS } from '@monad-staking/config';
-import { validatorsCol, epochCol, ingestStateCol } from '../infra/db';
+import { validatorsCol, epochCol, ingestStateCol } from '../infrastructure';
 import { MongoValidatorRepository } from '../infrastructure/repositories/validator.repo';
 import { MongoEpochRepository } from '../infrastructure/repositories/epoch.repo';
 import { MongoIngestRepository } from '../infrastructure/repositories/ingest.repo';

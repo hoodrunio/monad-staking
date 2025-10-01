@@ -1,7 +1,7 @@
 import type { Collection } from 'mongodb';
 import type { Validator, ValidatorRepository } from '../../domain/validator';
 import type { Network, Keys, ValidatorMetadata } from '../../domain/types';
-import type { ValidatorDoc } from '../../infra/db';
+import type { ValidatorDoc } from '../../infrastructure';
 import { normalizeSecpKey } from '../../lib/key-format';
 
 export class MongoValidatorRepository implements ValidatorRepository {

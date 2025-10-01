@@ -1,7 +1,7 @@
 import type { Collection } from 'mongodb';
 import type { Epoch, EpochRepository } from '../../domain/epoch';
 import type { Network } from '../../domain/types';
-import type { EpochStateDoc } from '../../infra/db';
+import type { EpochStateDoc } from '../../infrastructure';
 
 export class MongoEpochRepository implements EpochRepository {
   constructor(private collection: Collection<EpochStateDoc>) {}
