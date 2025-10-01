@@ -9,6 +9,7 @@ import type {
   ContractFunctionArgs,
   ContractFunctionReturnType,
   ContractFunctionName,
+  Log,
 } from 'viem';
 import { encodeFunctionData, decodeFunctionResult } from 'viem';
 import { stakingAbi, type MonadStakingAbi } from './abi.js';
@@ -144,6 +145,21 @@ export interface PaginatedDelegators {
   readonly isDone: boolean;
   readonly nextDelegator: Address;
   readonly delegators: readonly Address[];
+}
+
+export interface ActivationEpochInfo {
+  readonly activationEpoch: bigint;
+  readonly currentEpoch: bigint;
+  readonly inEpochDelayPeriod: boolean;
+  readonly reason: string;
+}
+
+export interface WithdrawEpochInfo {
+  readonly withdrawEpoch: bigint;
+  readonly currentEpoch: bigint;
+  readonly inEpochDelayPeriod: boolean;
+  readonly withdrawalDelay: number;
+  readonly reason: string;
 }
 
 export class MonadStakingSdk<TTransport extends Transport> {
@@ -431,21 +447,30 @@ export class MonadStakingSdk<TTransport extends Transport> {
 
   async claimAllRewards(args: { readonly account: Address }): Promise<Hash[]> {
     const walletClient = this.requireWalletClient();
-    const delegations = await this.getDelegations(args.account, 0n);
     const results: Hash[] = [];
-    for (const validatorId of delegations.validatorIds) {
-      const delegator = await this.getDelegator(validatorId, args.account);
-      if (delegator.unclaimedRewards <= 0n) continue;
-      const hash = await walletClient.writeContract({
-        address: this.address,
-        abi: stakingAbi,
-        functionName: 'claimRewards',
-        args: [validatorId],
-        account: args.account,
-        chain: walletClient.chain ?? undefined,
-      });
-      results.push(hash);
+    let startValId = 0n;
+    let isDone = false;
+
+    while (!isDone) {
+      const delegations = await this.getDelegations(args.account, startValId);
+      isDone = delegations.isDone;
+      startValId = delegations.nextValId;
+
+      for (const validatorId of delegations.validatorIds) {
+        const delegator = await this.getDelegator(validatorId, args.account);
+        if (delegator.unclaimedRewards <= 0n) continue;
+        const hash = await walletClient.writeContract({
+          address: this.address,
+          abi: stakingAbi,
+          functionName: 'claimRewards',
+          args: [validatorId],
+          account: args.account,
+          chain: walletClient.chain ?? undefined,
+        });
+        results.push(hash);
+      }
     }
+
     return results;
   }
 
@@ -488,8 +513,258 @@ export class MonadStakingSdk<TTransport extends Transport> {
     return this.walletClient;
   }
 
+  async calculateActivationEpoch(): Promise<ActivationEpochInfo> {
+    const { epoch, inEpochDelayPeriod } = await this.getEpoch();
+    const activationEpoch = epoch + (inEpochDelayPeriod ? 2n : 1n);
+    const reason = inEpochDelayPeriod
+      ? 'Request is in epoch delay period, activation occurs in epoch n+2'
+      : 'Request is before boundary block, activation occurs in epoch n+1';
+
+    return {
+      activationEpoch,
+      currentEpoch: epoch,
+      inEpochDelayPeriod,
+      reason,
+    };
+  }
+
+  async calculateWithdrawEpoch(): Promise<WithdrawEpochInfo> {
+    const { epoch, inEpochDelayPeriod } = await this.getEpoch();
+    const withdrawalDelay = this.options.network.withdrawalDelay;
+    const withdrawEpoch = epoch + (inEpochDelayPeriod ? 2n : 1n) + BigInt(withdrawalDelay);
+    const reason = inEpochDelayPeriod
+      ? `Request is in epoch delay period, stake becomes inactive in epoch n+2, withdrawable after ${withdrawalDelay} epoch(s) in epoch n+${2 + withdrawalDelay}`
+      : `Request is before boundary block, stake becomes inactive in epoch n+1, withdrawable after ${withdrawalDelay} epoch(s) in epoch n+${1 + withdrawalDelay}`;
+
+    return {
+      withdrawEpoch,
+      currentEpoch: epoch,
+      inEpochDelayPeriod,
+      withdrawalDelay,
+      reason,
+    };
+  }
+
   async waitForTransactionReceipt(hash: Hash): Promise<TransactionReceipt> {
     return this.options.publicClient.waitForTransactionReceipt({ hash });
+  }
+
+  watchValidatorCreated(
+    args: {
+      validatorId?: bigint;
+      authAddress?: Address;
+    },
+    onLogs: (logs: Log[]) => void,
+  ) {
+    return this.options.publicClient.watchContractEvent({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'ValidatorCreated',
+      args,
+      onLogs,
+    });
+  }
+
+  watchValidatorStatusChanged(
+    args: {
+      validatorId?: bigint;
+      authAddress?: Address;
+    },
+    onLogs: (logs: Log[]) => void,
+  ) {
+    return this.options.publicClient.watchContractEvent({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'ValidatorStatusChanged',
+      args,
+      onLogs,
+    });
+  }
+
+  watchDelegate(
+    args: {
+      validatorId?: bigint;
+      delegator?: Address;
+    },
+    onLogs: (logs: Log[]) => void,
+  ) {
+    return this.options.publicClient.watchContractEvent({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'Delegate',
+      args,
+      onLogs,
+    });
+  }
+
+  watchUndelegate(
+    args: {
+      validatorId?: bigint;
+      delegator?: Address;
+    },
+    onLogs: (logs: Log[]) => void,
+  ) {
+    return this.options.publicClient.watchContractEvent({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'Undelegate',
+      args,
+      onLogs,
+    });
+  }
+
+  watchWithdraw(
+    args: {
+      validatorId?: bigint;
+      delegator?: Address;
+    },
+    onLogs: (logs: Log[]) => void,
+  ) {
+    return this.options.publicClient.watchContractEvent({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'Withdraw',
+      args,
+      onLogs,
+    });
+  }
+
+  watchClaimRewards(
+    args: {
+      validatorId?: bigint;
+      delegator?: Address;
+    },
+    onLogs: (logs: Log[]) => void,
+  ) {
+    return this.options.publicClient.watchContractEvent({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'ClaimRewards',
+      args,
+      onLogs,
+    });
+  }
+
+  watchCommissionChanged(
+    args: {
+      validatorId?: bigint;
+    },
+    onLogs: (logs: Log[]) => void,
+  ) {
+    return this.options.publicClient.watchContractEvent({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'CommissionChanged',
+      args,
+      onLogs,
+    });
+  }
+
+  async getValidatorCreatedEvents(
+    args: {
+      validatorId?: bigint;
+      authAddress?: Address;
+      fromBlock?: bigint;
+      toBlock?: bigint;
+    } = {},
+  ) {
+    return this.options.publicClient.getContractEvents({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'ValidatorCreated',
+      args: { validatorId: args.validatorId, authAddress: args.authAddress },
+      fromBlock: args.fromBlock,
+      toBlock: args.toBlock,
+    });
+  }
+
+  async getDelegateEvents(
+    args: {
+      validatorId?: bigint;
+      delegator?: Address;
+      fromBlock?: bigint;
+      toBlock?: bigint;
+    } = {},
+  ) {
+    return this.options.publicClient.getContractEvents({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'Delegate',
+      args: { validatorId: args.validatorId, delegator: args.delegator },
+      fromBlock: args.fromBlock,
+      toBlock: args.toBlock,
+    });
+  }
+
+  async getUndelegateEvents(
+    args: {
+      validatorId?: bigint;
+      delegator?: Address;
+      fromBlock?: bigint;
+      toBlock?: bigint;
+    } = {},
+  ) {
+    return this.options.publicClient.getContractEvents({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'Undelegate',
+      args: { validatorId: args.validatorId, delegator: args.delegator },
+      fromBlock: args.fromBlock,
+      toBlock: args.toBlock,
+    });
+  }
+
+  async getWithdrawEvents(
+    args: {
+      validatorId?: bigint;
+      delegator?: Address;
+      fromBlock?: bigint;
+      toBlock?: bigint;
+    } = {},
+  ) {
+    return this.options.publicClient.getContractEvents({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'Withdraw',
+      args: { validatorId: args.validatorId, delegator: args.delegator },
+      fromBlock: args.fromBlock,
+      toBlock: args.toBlock,
+    });
+  }
+
+  async getClaimRewardsEvents(
+    args: {
+      validatorId?: bigint;
+      delegator?: Address;
+      fromBlock?: bigint;
+      toBlock?: bigint;
+    } = {},
+  ) {
+    return this.options.publicClient.getContractEvents({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'ClaimRewards',
+      args: { validatorId: args.validatorId, delegator: args.delegator },
+      fromBlock: args.fromBlock,
+      toBlock: args.toBlock,
+    });
+  }
+
+  async getCommissionChangedEvents(
+    args: {
+      validatorId?: bigint;
+      fromBlock?: bigint;
+      toBlock?: bigint;
+    } = {},
+  ) {
+    return this.options.publicClient.getContractEvents({
+      address: this.address,
+      abi: stakingAbi,
+      eventName: 'CommissionChanged',
+      args: { validatorId: args.validatorId },
+      fromBlock: args.fromBlock,
+      toBlock: args.toBlock,
+    });
   }
 }
 

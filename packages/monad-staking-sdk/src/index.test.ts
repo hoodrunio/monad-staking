@@ -149,3 +149,220 @@ describe('configuration helpers', () => {
     );
   });
 });
+
+describe('validation', () => {
+  const publicClient = {
+    chain: { id: network.chainId },
+    call: vi.fn(),
+    readContract: vi.fn(),
+  } as unknown as PublicClient<TestTransport>;
+
+  const walletClient = {
+    chain: { id: network.chainId },
+    writeContract: vi.fn().mockResolvedValue('0xhash'),
+  } as unknown as WalletClient<TestTransport>;
+
+  it('throws on withdrawal ID 0', async () => {
+    const sdk = new MonadStakingSdk({ network, publicClient, walletClient });
+
+    await expect(
+      sdk.undelegate({
+        validatorId: 1n,
+        amount: 1_000_000_000_000_000_000n,
+        withdrawalId: 0,
+        account: '0x0000000000000000000000000000000000000001',
+      }),
+    ).rejects.toThrow('withdrawalId must be between 1 and 255');
+  });
+
+  it('throws on withdrawal ID 256', async () => {
+    const sdk = new MonadStakingSdk({ network, publicClient, walletClient });
+
+    await expect(
+      sdk.undelegate({
+        validatorId: 1n,
+        amount: 1_000_000_000_000_000_000n,
+        withdrawalId: 256,
+        account: '0x0000000000000000000000000000000000000001',
+      }),
+    ).rejects.toThrow('withdrawalId must be between 1 and 255');
+  });
+
+  it('allows withdrawal ID 1', async () => {
+    const sdk = new MonadStakingSdk({ network, publicClient, walletClient });
+
+    await sdk.undelegate({
+      validatorId: 1n,
+      amount: 1_000_000_000_000_000_000n,
+      withdrawalId: 1,
+      account: '0x0000000000000000000000000000000000000001',
+    });
+
+    expect(walletClient.writeContract).toHaveBeenCalled();
+  });
+
+  it('allows withdrawal ID 255', async () => {
+    const sdk = new MonadStakingSdk({ network, publicClient, walletClient });
+
+    await sdk.undelegate({
+      validatorId: 1n,
+      amount: 1_000_000_000_000_000_000n,
+      withdrawalId: 255,
+      account: '0x0000000000000000000000000000000000000001',
+    });
+
+    expect(walletClient.writeContract).toHaveBeenCalled();
+  });
+
+  it('throws on negative commission', async () => {
+    const sdk = new MonadStakingSdk({ network, publicClient, walletClient });
+
+    await expect(
+      sdk.changeCommission({
+        validatorId: 1n,
+        newCommission: -1n,
+        account: '0x0000000000000000000000000000000000000001',
+      }),
+    ).rejects.toThrow('commission must be expressed in 1e18 units');
+  });
+
+  it('throws on commission > 1e18', async () => {
+    const sdk = new MonadStakingSdk({ network, publicClient, walletClient });
+
+    await expect(
+      sdk.changeCommission({
+        validatorId: 1n,
+        newCommission: 1_000_000_000_000_000_001n,
+        account: '0x0000000000000000000000000000000000000001',
+      }),
+    ).rejects.toThrow('commission must be expressed in 1e18 units');
+  });
+
+  it('allows commission 0', async () => {
+    const sdk = new MonadStakingSdk({ network, publicClient, walletClient });
+
+    await sdk.changeCommission({
+      validatorId: 1n,
+      newCommission: 0n,
+      account: '0x0000000000000000000000000000000000000001',
+    });
+
+    expect(walletClient.writeContract).toHaveBeenCalled();
+  });
+
+  it('allows commission 1e18 (100%)', async () => {
+    const sdk = new MonadStakingSdk({ network, publicClient, walletClient });
+
+    await sdk.changeCommission({
+      validatorId: 1n,
+      newCommission: 1_000_000_000_000_000_000n,
+      account: '0x0000000000000000000000000000000000000001',
+    });
+
+    expect(walletClient.writeContract).toHaveBeenCalled();
+  });
+
+  it('throws on delegate with zero amount', async () => {
+    const sdk = new MonadStakingSdk({ network, publicClient, walletClient });
+
+    await expect(
+      sdk.delegate({
+        validatorId: 1n,
+        amount: 0n,
+        account: '0x0000000000000000000000000000000000000001',
+      }),
+    ).rejects.toThrow('must be greater than zero');
+  });
+
+  it('throws on undelegate with zero amount', async () => {
+    const sdk = new MonadStakingSdk({ network, publicClient, walletClient });
+
+    await expect(
+      sdk.undelegate({
+        validatorId: 1n,
+        amount: 0n,
+        withdrawalId: 1,
+        account: '0x0000000000000000000000000000000000000001',
+      }),
+    ).rejects.toThrow('must be greater than zero');
+  });
+});
+
+describe('helper utilities', () => {
+  const publicClient = {
+    chain: { id: network.chainId },
+    call: vi.fn(),
+  } as unknown as PublicClient<TestTransport>;
+
+  it('calculates activation epoch before boundary block', async () => {
+    publicClient.call = vi.fn().mockResolvedValue({
+      data: encodeFunctionResult({
+        abi: stakingAbi,
+        functionName: 'getEpoch',
+        result: [5n, false],
+      }),
+    });
+
+    const sdk = new MonadStakingSdk({ network, publicClient });
+    const info = await sdk.calculateActivationEpoch();
+
+    expect(info.activationEpoch).toBe(6n);
+    expect(info.currentEpoch).toBe(5n);
+    expect(info.inEpochDelayPeriod).toBe(false);
+    expect(info.reason).toContain('n+1');
+  });
+
+  it('calculates activation epoch during delay period', async () => {
+    publicClient.call = vi.fn().mockResolvedValue({
+      data: encodeFunctionResult({
+        abi: stakingAbi,
+        functionName: 'getEpoch',
+        result: [5n, true],
+      }),
+    });
+
+    const sdk = new MonadStakingSdk({ network, publicClient });
+    const info = await sdk.calculateActivationEpoch();
+
+    expect(info.activationEpoch).toBe(7n);
+    expect(info.currentEpoch).toBe(5n);
+    expect(info.inEpochDelayPeriod).toBe(true);
+    expect(info.reason).toContain('n+2');
+  });
+
+  it('calculates withdraw epoch before boundary block', async () => {
+    publicClient.call = vi.fn().mockResolvedValue({
+      data: encodeFunctionResult({
+        abi: stakingAbi,
+        functionName: 'getEpoch',
+        result: [5n, false],
+      }),
+    });
+
+    const sdk = new MonadStakingSdk({ network, publicClient });
+    const info = await sdk.calculateWithdrawEpoch();
+
+    expect(info.withdrawEpoch).toBe(7n);
+    expect(info.currentEpoch).toBe(5n);
+    expect(info.withdrawalDelay).toBe(1);
+    expect(info.reason).toContain('n+2');
+  });
+
+  it('calculates withdraw epoch during delay period', async () => {
+    publicClient.call = vi.fn().mockResolvedValue({
+      data: encodeFunctionResult({
+        abi: stakingAbi,
+        functionName: 'getEpoch',
+        result: [5n, true],
+      }),
+    });
+
+    const sdk = new MonadStakingSdk({ network, publicClient });
+    const info = await sdk.calculateWithdrawEpoch();
+
+    expect(info.withdrawEpoch).toBe(8n);
+    expect(info.currentEpoch).toBe(5n);
+    expect(info.withdrawalDelay).toBe(1);
+    expect(info.reason).toContain('n+3');
+  });
+});
