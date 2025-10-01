@@ -6,6 +6,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/app/
 import { HugeiconsIcon, GiftIcon, InformationCircleIcon, ArrowDownIcon, ArrowUpIcon, Wallet02Icon, FlashIcon } from '@/app/components/icons';
 import { Badge } from '@/app/components/ui/badge';
 import { BalancePieChart } from './balance-pie-chart';
+import Image from 'next/image';
+import { useTheme } from 'next-themes';
 
 interface QuickActionsProps {
   readonly stakedValue: string;
@@ -47,6 +49,9 @@ export function QuickActions({
   busyAction,
   isConnected,
 }: QuickActionsProps) {
+  const { resolvedTheme } = useTheme();
+  const monLogo = resolvedTheme === 'dark' ? '/mon-logo-light.svg' : '/mon-logo-dark.svg';
+
   const hasStakedTokens = parseAmount(stakedValue) > 0;
   const hasRewards = parseAmount(rewardsValue) > 0;
   const availableAmount = parseAmount(availableBalance);
@@ -89,7 +94,11 @@ export function QuickActions({
                 className={`h-10 gap-2 bg-accent text-accent-foreground transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
               >
                 <HugeiconsIcon icon={ArrowUpIcon} size={16} />
-                {busyAction === 'stake' ? 'Opening…' : 'Stake MON'}
+                {busyAction === 'stake' ? 'Opening…' : (
+                  <span className="inline-flex items-center gap-1">
+                    Stake <Image src={monLogo} alt="MON" width={14} height={14} className="inline" />
+                  </span>
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -170,7 +179,11 @@ export function QuickActions({
         <BalancePieChart
           data={pieData}
           title="Balance Distribution"
-          description={`Total: ${totalBalance} MON`}
+          description={
+            <span className="inline-flex items-center gap-1">
+              Total: {totalBalance} <Image src={monLogo} alt="MON" width={12} height={12} className="inline" />
+            </span>
+          }
         />
       )}
 

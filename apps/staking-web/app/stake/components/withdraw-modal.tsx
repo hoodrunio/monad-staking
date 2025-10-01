@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { ActionModal } from './action-modal';
 import { Button } from '@/app/components/ui/button';
 import type { WithdrawalSummary } from '@/lib/api/models';
+import Image from 'next/image';
+import { useTheme } from 'next-themes';
 
 interface WithdrawModalProps {
   readonly open: boolean;
@@ -23,6 +25,8 @@ export function WithdrawModal({
   busy,
 }: WithdrawModalProps) {
   const [selectedWithdrawals, setSelectedWithdrawals] = useState<Set<string>>(new Set());
+  const { resolvedTheme } = useTheme();
+  const monLogo = resolvedTheme === 'dark' ? '/mon-logo-light.svg' : '/mon-logo-dark.svg';
 
   const handleWithdrawClick = async () => {
     if (selectedWithdrawals.size === 0) return;
@@ -120,7 +124,10 @@ export function WithdrawModal({
                         <p className="text-sm font-semibold text-foreground">Validator {withdrawal.validatorId}</p>
                         <span className="text-xs text-foreground/80">Slot #{withdrawal.withdrawalId}</span>
                       </div>
-                      <p className="text-xs font-medium text-foreground">{withdrawal.amount.formatted}</p>
+                      <p className="text-xs font-medium text-foreground inline-flex items-center gap-1">
+                        <Image src={monLogo} alt="MON" width={12} height={12} className="inline" />
+                        {withdrawal.amount.formatted}
+                      </p>
                     </div>
                   </label>
                 );

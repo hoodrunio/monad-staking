@@ -3,6 +3,8 @@
 import { formatMonFromWei } from '@/lib/utils';
 import type { DelegationSummary, ValidatorSummary } from '@/lib/api/models';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
+import { useTheme } from 'next-themes';
 
 interface DelegationCardProps {
   readonly delegation: DelegationSummary;
@@ -15,6 +17,9 @@ interface DelegationCardProps {
 }
 
 export function DelegationCard({ delegation, validator, onClaim, onCompound, onUndelegate, busyAction, disabled }: DelegationCardProps) {
+  const { resolvedTheme } = useTheme();
+  const monLogo = resolvedTheme === 'dark' ? '/mon-logo-light.svg' : '/mon-logo-dark.svg';
+
   const pendingChange = delegation.deltaStakeRaw === '0' ? '0 MON' : formatMonFromWei(delegation.deltaStakeRaw);
   const nextChange = delegation.nextDeltaStakeRaw === '0' ? '0 MON' : formatMonFromWei(delegation.nextDeltaStakeRaw);
 
@@ -28,10 +33,10 @@ export function DelegationCard({ delegation, validator, onClaim, onCompound, onU
           <h3 className="text-lg font-semibold text-foreground">{validatorName}</h3>
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
-          <Stat label="Stake" value={delegation.stake.formatted} />
-          <Stat label="Rewards" value={delegation.unclaimedRewards.formatted} highlight />
-          <Stat label="Pending change" value={pendingChange} muted />
-          <Stat label="Next change" value={nextChange} muted />
+          <Stat label="Stake" value={delegation.stake.formatted} monLogo={monLogo} />
+          <Stat label="Rewards" value={delegation.unclaimedRewards.formatted} highlight monLogo={monLogo} />
+          <Stat label="Pending change" value={pendingChange} muted monLogo={monLogo} />
+          <Stat label="Next change" value={nextChange} muted monLogo={monLogo} />
         </div>
       </div>
 
@@ -59,12 +64,17 @@ export function DelegationCard({ delegation, validator, onClaim, onCompound, onU
   );
 }
 
-function Stat({ label, value, muted = false, highlight = false }: { label: string; value: string; muted?: boolean; highlight?: boolean }) {
+function Stat({ label, value, muted = false, highlight = false, monLogo }: { label: string; value: string; muted?: boolean; highlight?: boolean; monLogo: string }) {
   return (
     <div>
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className={cn('mt-1', muted ? 'font-mono text-xs text-muted-foreground' : 'text-foreground', highlight && 'text-primary')}>
-        {value}
+      <p className={cn('mt-1 inline-flex items-center gap-1', muted ? 'font-mono text-xs text-muted-foreground' : 'text-foreground', highlight && 'text-primary')}>
+        {value.includes('MON') ? (
+          <>
+            <Image src={monLogo} alt="MON" width={12} height={12} className="inline" />
+            {value}
+          </>
+        ) : value}
       </p>
     </div>
   );

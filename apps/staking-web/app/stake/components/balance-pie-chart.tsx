@@ -15,7 +15,7 @@ interface BalanceData {
 interface BalancePieChartProps {
   readonly data: readonly BalanceData[];
   readonly title?: string;
-  readonly description?: string;
+  readonly description?: React.ReactNode;
   readonly className?: string;
 }
 

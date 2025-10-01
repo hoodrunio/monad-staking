@@ -8,6 +8,8 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { formatEther, parseEther } from 'viem';
 import { HugeiconsIcon, AlertCircleIcon, Loading01Icon } from '@/app/components/icons';
+import Image from 'next/image';
+import { useTheme } from 'next-themes';
 
 export type ValidatorOption = {
   value: string;
@@ -69,6 +71,8 @@ export function StakingModal({
   additionalInfo,
 }: StakingModalProps) {
   const [step, setStep] = useState<1 | 2>(1);
+  const { resolvedTheme } = useTheme();
+  const monLogo = resolvedTheme === 'dark' ? '/mon-logo-light.svg' : '/mon-logo-dark.svg';
 
   // Reset to step 1 when modal closes
   useEffect(() => {
@@ -155,8 +159,11 @@ export function StakingModal({
             {/* Amount Input */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="amount-input" className="text-sm text-muted-foreground">
-                  {amountLabel} (MON)
+                <Label htmlFor="amount-input" className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  {amountLabel}
+                  <span className="inline-flex items-center gap-1">
+                    (<Image src={monLogo} alt="MON" width={14} height={14} className="inline" />MON)
+                  </span>
                 </Label>
                 {maxAmount !== null && !isEstimating && (
                   <Button
@@ -203,14 +210,20 @@ export function StakingModal({
                 {maxAmount !== null && !isEstimating && (
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">Max (after gas fees):</span>
-                    <span className="font-mono text-amber-400">{formatEther(maxAmount)} MON</span>
+                    <span className="font-mono text-amber-400 inline-flex items-center gap-1">
+                      <Image src={monLogo} alt="MON" width={12} height={12} className="inline" />
+                      {formatEther(maxAmount)} MON
+                    </span>
                   </div>
                 )}
 
                 {gasEstimate && (
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Estimated gas cost:</span>
-                    <span className="font-mono">~{gasEstimate} MON</span>
+                    <span className="font-mono inline-flex items-center gap-1">
+                      <Image src={monLogo} alt="MON" width={12} height={12} className="inline" />
+                      ~{gasEstimate} MON
+                    </span>
                   </div>
                 )}
 

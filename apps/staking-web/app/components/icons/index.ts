@@ -1,10 +1,6 @@
-// Centralized icon exports from Hugeicons
-// This barrel file provides a single source for all icon imports across the app
-
 export { HugeiconsIcon } from '@hugeicons/react';
 export type { IconSvgElement } from '@hugeicons/react';
 
-// Core Free Icons
 export {
   Activity02Icon,
   AlertCircleIcon,
