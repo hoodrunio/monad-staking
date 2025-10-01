@@ -242,9 +242,16 @@ async function updateConsensusStatuses(
       cursor = page.nextIndex;
     }
     const validators = await validatorsCol();
+    const activeIdsArray = Array.from(activeIds);
+    
+    await validators.updateMany(
+      { network: networkKey, validatorId: { $nin: activeIdsArray } },
+      { $set: { isActive: false } },
+    );
+    
     if (activeIds.size > 0) {
       await validators.updateMany(
-        { network: networkKey, validatorId: { $in: Array.from(activeIds) } },
+        { network: networkKey, validatorId: { $in: activeIdsArray } },
         { $set: { isActive: true } },
       );
     }

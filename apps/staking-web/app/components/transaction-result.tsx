@@ -3,7 +3,7 @@
 import { CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import type { ResolvedMonadNetworkConfig } from '@monad-staking/config';
 import { ExplorerLink } from './explorer-link';
-import type { TransactionStage } from '@/lib/stake-utils';
+import type { TransactionStage, TransactionContext } from '@/lib/stake-utils';
 
 interface TransactionResultProps {
   txHash: string | null;
@@ -13,21 +13,26 @@ interface TransactionResultProps {
   onClose: () => void;
   stage: TransactionStage;
   txCount: number;
+  txContext?: TransactionContext | null;
+  validatorName?: string;
 }
 
-export function TransactionResult({ txHash, txError, networkConfig, open, onClose, stage, txCount }: TransactionResultProps) {
+export function TransactionResult({ txHash, txError, networkConfig, open, onClose, stage, txCount, txContext, validatorName }: TransactionResultProps) {
   if (!open) return null;
   if (stage === 'idle' || stage === 'pending') return null;
 
   const isError = stage === 'error';
   const isConfirmed = stage === 'confirmed';
 
-  const title = isError ? 'Transaction failed' : isConfirmed ? 'Transaction confirmed' : 'Transaction submitted';
+  const actionLabel = txContext?.action ? txContext.action.charAt(0).toUpperCase() + txContext.action.slice(1) : 'Transaction';
+  const title = isError ? `${actionLabel} failed` : isConfirmed ? `${actionLabel} confirmed` : `${actionLabel} submitted`;
   const description = isError
     ? txError ?? 'The network returned an error while processing your transaction.'
     : isConfirmed
     ? 'Your transaction has been confirmed on-chain.'
     : "We will update the details once the transaction is confirmed on-chain.";
+
+  const displayValidatorName = validatorName ?? (txContext?.validatorId ? `Validator ${txContext.validatorId}` : null);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur">
@@ -46,7 +51,7 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
             <div className={isError ? 'rounded-full bg-red-400/15 p-2' : 'rounded-full bg-primary/15 p-2'}>
               {isError ? <ExclamationTriangleIcon className="h-6 w-6 text-red-300" /> : <CheckCircleIcon className="h-6 w-6 text-primary" />}
             </div>
-            <div className="space-y-2">
+            <div className="flex-1 space-y-2">
               <h3 className="text-lg font-semibold">{title}</h3>
               <p className={isError ? 'text-sm text-red-200' : 'text-sm text-muted-foreground'}>{description}</p>
               {txCount > 1 ? (
@@ -57,17 +62,45 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
             </div>
           </div>
 
+          {txContext && (displayValidatorName || txContext.amount || txContext.withdrawalId !== undefined) ? (
+            <div className="space-y-2 rounded-2xl border border-border bg-muted/30 p-4 text-sm">
+              <p className="font-medium text-foreground">Transaction details</p>
+              <div className="space-y-1.5">
+                {displayValidatorName ? (
+                  <div className="flex justify-between gap-3">
+                    <span className="text-muted-foreground">Validator</span>
+                    <span className="font-medium text-foreground">{displayValidatorName}</span>
+                  </div>
+                ) : null}
+                {txContext.amount ? (
+                  <div className="flex justify-between gap-3">
+                    <span className="text-muted-foreground">Amount</span>
+                    <span className="font-medium text-foreground">{txContext.amount}</span>
+                  </div>
+                ) : null}
+                {txContext.withdrawalId !== undefined ? (
+                  <div className="flex justify-between gap-3">
+                    <span className="text-muted-foreground">Withdrawal ID</span>
+                    <span className="font-medium text-foreground">#{txContext.withdrawalId}</span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
           {txHash ? (
             <div className={isError ? 'rounded-2xl bg-red-400/10 p-4 text-sm' : 'rounded-2xl bg-primary/15 p-4 text-sm'}>
-              <p className="font-medium">Explorer link</p>
-              <ExplorerLink
-                config={networkConfig}
-                type="tx"
-                value={txHash}
-                className="mt-1 inline-flex items-center gap-2 text-primary underline-offset-4 hover:underline"
-              >
-                {txHash}
-              </ExplorerLink>
+              <p className="mb-2 font-medium">Transaction hash</p>
+              <div className="break-all">
+                <ExplorerLink
+                  config={networkConfig}
+                  type="tx"
+                  value={txHash}
+                  className="inline-flex items-center gap-2 text-primary underline-offset-4 hover:underline"
+                >
+                  <span className="break-all font-mono text-xs">{txHash}</span>
+                </ExplorerLink>
+              </div>
             </div>
           ) : null}
 

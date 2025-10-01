@@ -23,7 +23,7 @@ type ShellMainProps<T extends ElementType = 'main'> = {
 export function ShellMain<T extends ElementType = 'main'>({ as, children, className, ...props }: ShellMainProps<T>) {
   const Component = (as ?? 'main') as ElementType;
   return (
-    <Component className={cn('flex flex-1 flex-col gap-12 py-12', className)} {...props}>
+    <Component className={cn('flex flex-1 flex-col gap-10 py-10', className)} {...props}>
       {children}
     </Component>
   );

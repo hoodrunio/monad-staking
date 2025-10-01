@@ -1,12 +1,24 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
+import { Inter } from 'next/font/google';
+import { JetBrains_Mono } from 'next/font/google';
 import { Providers } from './providers';
 import { SiteHeader } from '@/app/components/site-header';
 import { ThemeProvider } from '@/app/theme-provider';
 import { Shell, ShellMain, ShellSection } from '@/app/components/layout/shell';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Monad Staking Dashboard',
@@ -20,7 +32,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`bg-background font-sans text-foreground antialiased ${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className={`bg-background font-sans text-foreground antialiased ${inter.variable} ${jetbrainsMono.variable}`}>
         <ThemeProvider>
           <Providers>
             <Shell>

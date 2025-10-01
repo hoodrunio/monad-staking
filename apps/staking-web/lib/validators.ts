@@ -50,7 +50,7 @@ export const getValidatorSetPage = cache(
     const data = await apiGet<ValidatorListApiResponse>('/api/validators', {
       network: networkKey,
       cursor,
-      limit: 50,
+      limit: 300,
     });
 
     const mapped = mapValidatorList(data);

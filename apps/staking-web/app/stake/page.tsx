@@ -79,7 +79,7 @@ function StakeScreen() {
 
   const delegateModalOpen = delegateModal.validatorId !== null;
 
-  const selectorQuery = useValidatorsQuery(selectedNetwork ?? 'monad-mainnet', selectorCursor, 50, {
+  const selectorQuery = useValidatorsQuery(selectedNetwork ?? 'monad-mainnet', selectorCursor, 300, {
     enabled: delegateModalOpen,
     filters: { activeOnly: selectorActiveOnly },
   });
@@ -298,12 +298,13 @@ function StakeScreen() {
   return (
     <>
       <ShellSection as="div" className="space-y-8" width="wide">
-        <div className="space-y-6">
+        <div className="space-y-5">
           <div>
-            <h1 className="mb-2 text-balance text-4xl font-bold">Stake</h1>
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">Stake</h1>
+            <p className="mt-1.5 text-sm text-muted-foreground/80">Manage your staking positions and rewards</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <div className="lg:col-span-1">
               <TokenPriceCard tokenSymbol="MON" priceUsd={null} priceChangeLabel={epoch ? `Epoch ${epoch.epoch}` : undefined} />
             </div>
@@ -313,8 +314,8 @@ function StakeScreen() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="flex flex-col gap-5">
             <QuickActions
               stakedValue={formattedMon(totals.staked)}
               rewardsValue={formattedMon(totals.rewards)}
@@ -332,13 +333,12 @@ function StakeScreen() {
             />
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
             <UserPortfolio
               staked={formattedMon(totals.staked)}
               withdrawable={formattedMon(totals.readyWithdraw)}
               claimable={formattedMon(totals.rewards)}
               unstaked={formattedMon(totals.pendingWithdraw)}
-              apyLabel={apyLabel}
             >
               <div className="flex-1">
                 <StakingChart />
@@ -356,6 +356,8 @@ function StakeScreen() {
         onClose={resetState}
         stage={state.txStage}
         txCount={state.txCount}
+        txContext={state.txContext}
+        validatorName={state.txContext?.validatorId ? validatorMap.get(state.txContext.validatorId)?.meta?.name : undefined}
       />
 
       <ActionModal

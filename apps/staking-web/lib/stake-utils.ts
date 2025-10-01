@@ -7,6 +7,13 @@ export interface StakeFormData {
   withdrawId: number;
 }
 
+export interface TransactionContext {
+  action: string;
+  validatorId?: string;
+  amount?: string;
+  withdrawalId?: number;
+}
+
 export interface StakeFormState {
   txError: string | null;
   txHash: string | null;
@@ -14,6 +21,7 @@ export interface StakeFormState {
   busyAction: string | null;
   txStage: TransactionStage;
   txCount: number;
+  txContext: TransactionContext | null;
 }
 
 export type TransactionStage = 'idle' | 'pending' | 'submitted' | 'confirmed' | 'error';
@@ -61,6 +69,7 @@ export async function handleDelegate(
   setState: StakeStateSetter,
   busyAction?: string,
 ): Promise<void> {
+  const amountFormatted = `${Number(amount) / 1e18} MON`;
   mergeState(setState, {
     busy: true,
     txError: null,
@@ -68,6 +77,11 @@ export async function handleDelegate(
     busyAction: busyAction ?? 'delegate',
     txStage: 'pending',
     txCount: 0,
+    txContext: {
+      action: busyAction ?? 'delegate',
+      validatorId: validatorId.toString(),
+      amount: amountFormatted,
+    },
   });
   
   try {
@@ -93,6 +107,7 @@ export async function handleUndelegate(
   setState: StakeStateSetter,
   busyAction?: string,
 ): Promise<void> {
+  const amountFormatted = `${Number(amount) / 1e18} MON`;
   mergeState(setState, {
     busy: true,
     txError: null,
@@ -100,6 +115,12 @@ export async function handleUndelegate(
     busyAction: busyAction ?? 'undelegate',
     txStage: 'pending',
     txCount: 0,
+    txContext: {
+      action: busyAction ?? 'undelegate',
+      validatorId: validatorId.toString(),
+      amount: amountFormatted,
+      withdrawalId,
+    },
   });
   
   try {
@@ -132,6 +153,11 @@ export async function handleWithdraw(
     busyAction: busyAction ?? 'withdraw',
     txStage: 'pending',
     txCount: 0,
+    txContext: {
+      action: busyAction ?? 'withdraw',
+      validatorId: validatorId.toString(),
+      withdrawalId,
+    },
   });
   
   try {
@@ -162,6 +188,10 @@ export async function handleCompound(
     busyAction: busyAction ?? 'compound',
     txStage: 'pending',
     txCount: 0,
+    txContext: {
+      action: busyAction ?? 'compound',
+      validatorId: validatorId.toString(),
+    },
   });
   
   try {
@@ -191,6 +221,10 @@ export async function handleClaimRewards(
     busyAction: busyAction ?? 'claim',
     txStage: 'pending',
     txCount: 0,
+    txContext: {
+      action: busyAction ?? 'claim',
+      validatorId: validatorId.toString(),
+    },
   });
   
   try {
@@ -219,6 +253,9 @@ export async function handleClaimAllRewards(
     busyAction: busyAction ?? 'claim-all',
     txStage: 'pending',
     txCount: 0,
+    txContext: {
+      action: busyAction ?? 'claim-all',
+    },
   });
 
   try {
@@ -231,6 +268,7 @@ export async function handleClaimAllRewards(
         txHash: null,
         txError: null,
         txCount: 0,
+        txContext: null,
       });
       return;
     }

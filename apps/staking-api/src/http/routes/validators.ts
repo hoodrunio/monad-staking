@@ -12,7 +12,7 @@ export const validatorRoutes = new Hono();
 const listQuery = z.object({
   network: z.enum(['monad-mainnet', 'monad-testnet-1', 'monad-testnet-2']),
   cursor: z.string().default(''),
-  limit: z.coerce.number().int().positive().max(100).default(50),
+  limit: z.coerce.number().int().positive().max(500).default(100),
   active: z.enum(['true', 'false']).optional(),
 });
 
