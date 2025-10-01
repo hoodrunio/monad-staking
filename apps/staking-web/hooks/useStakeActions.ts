@@ -33,6 +33,7 @@ const INITIAL_STATE: StakeFormState = {
   txHash: null,
   txStage: 'idle',
   txCount: 0,
+  txContext: null,
 };
 
 export function useStakeActions({ sdk, account, onSettled }: StakeActionsOptions) {

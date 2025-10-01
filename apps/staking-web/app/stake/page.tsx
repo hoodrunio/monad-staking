@@ -356,6 +356,8 @@ function StakeScreen() {
         onClose={resetState}
         stage={state.txStage}
         txCount={state.txCount}
+        txContext={state.txContext}
+        validatorName={state.txContext?.validatorId ? validatorMap.get(state.txContext.validatorId)?.meta?.name : undefined}
       />
 
       <ActionModal
