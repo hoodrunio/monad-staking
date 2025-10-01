@@ -40,7 +40,7 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition hover:text-primary"
+          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all duration-150 hover:text-primary hover:bg-muted/50 active:scale-95"
           aria-label="Close"
         >
           <XMarkIcon className="h-5 w-5" />
@@ -107,7 +107,7 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
           <button
             type="button"
             onClick={onClose}
-            className={isError ? 'w-full rounded-xl bg-red-400/20 px-4 py-2 text-sm font-semibold text-red-50 transition hover:text-white' : 'w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition hover:bg-primary/90'}
+            className={isError ? 'w-full rounded-xl bg-red-400/20 px-4 py-2 text-sm font-semibold text-red-50 transition-all duration-150 hover:text-white hover:bg-red-400/30 active:scale-[0.98]' : 'w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition-all duration-150 hover:bg-primary/90 active:scale-[0.98]'}
           >
             {isError ? 'Dismiss' : 'Close'}
           </button>

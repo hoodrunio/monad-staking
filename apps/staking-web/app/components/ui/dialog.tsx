@@ -53,7 +53,7 @@ export function DialogContent({ className, children, showCloseButton = true, ...
         {children}
         {showCloseButton ? (
           <DialogPrimitive.Close
-            className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-muted-foreground transition hover:border-accent hover:text-accent"
+            className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-muted-foreground transition-all duration-150 hover:border-accent hover:text-accent hover:bg-white/20 active:scale-95"
           >
             <X className="h-5 w-5" />
             <span className="sr-only">Close</span>
