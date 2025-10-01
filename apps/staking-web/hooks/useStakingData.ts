@@ -40,7 +40,7 @@ export function useStakingData(network: MonadNetwork | undefined, enabled: boole
   const fallbackNetwork = (network ?? 'monad-mainnet') as MonadNetwork;
 
   const epochQuery = useEpochQuery(fallbackNetwork, { enabled: enabled && !!network });
-  const validatorQuery = useValidatorsQuery(fallbackNetwork, '', 100, { enabled: enabled && !!network });
+  const validatorQuery = useValidatorsQuery(fallbackNetwork, '', 300, { enabled: enabled && !!network });
   const delegationQuery = useDelegationsQuery(fallbackNetwork, account, '0', {
     enabled: enabled && !!network && !!account,
   });

@@ -79,7 +79,7 @@ function StakeScreen() {
 
   const delegateModalOpen = delegateModal.validatorId !== null;
 
-  const selectorQuery = useValidatorsQuery(selectedNetwork ?? 'monad-mainnet', selectorCursor, 50, {
+  const selectorQuery = useValidatorsQuery(selectedNetwork ?? 'monad-mainnet', selectorCursor, 300, {
     enabled: delegateModalOpen,
     filters: { activeOnly: selectorActiveOnly },
   });

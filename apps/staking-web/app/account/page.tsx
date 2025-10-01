@@ -27,7 +27,7 @@ function AccountPageContent() {
   const { data: epochData } = useEpochQuery(selectedNetwork || 'monad-mainnet', {
     enabled: !!selectedNetwork && !!resolved
   });
-  const { data: validators } = useValidatorsQuery(selectedNetwork || 'monad-mainnet', '', 100, {
+  const { data: validators } = useValidatorsQuery(selectedNetwork || 'monad-mainnet', '', 300, {
     enabled: !!selectedNetwork && !!resolved && !!address
   });
   const { data: delegations, isLoading: delegationsLoading, error: delegationsError } = 
