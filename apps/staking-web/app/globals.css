@@ -119,6 +119,32 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  
+  /* Typography improvements */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  h1 {
+    @apply text-3xl sm:text-4xl;
+    line-height: 1.1;
+  }
+  
+  h2 {
+    @apply text-2xl sm:text-3xl;
+    line-height: 1.2;
+  }
+  
+  h3 {
+    @apply text-xl sm:text-2xl;
+    line-height: 1.3;
+  }
+  
+  /* Better spacing rhythm */
+  p {
+    line-height: 1.6;
   }
 }
 

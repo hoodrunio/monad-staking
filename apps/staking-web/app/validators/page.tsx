@@ -73,27 +73,27 @@ function ValidatorsPageContent() {
     <>
       <ShellSection width="wide">
         <Card>
-          <CardHeader className="gap-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <CardHeader className="gap-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <CardTitle className="text-3xl">Validator explorer</CardTitle>
-                <CardDescription className="text-base">
+                <CardTitle className="text-3xl sm:text-4xl">Validator explorer</CardTitle>
+                <CardDescription className="mt-1 text-sm">
                   Browse validator performance on {resolved.label}. Toggle filters to focus on active operators.
                 </CardDescription>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2 rounded-xl px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
+              <div className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs uppercase tracking-wider text-muted-foreground/70">
                 50 rows per page
               </div>
-              <div className="inline-flex items-center gap-2 rounded-xl px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
+              <div className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs uppercase tracking-wider text-muted-foreground/70">
                 Cursor {cursor ?? 'none'}
               </div>
-              <div className="inline-flex overflow-hidden rounded-xl p-1 text-xs font-medium text-muted-foreground">
+              <div className="inline-flex overflow-hidden rounded-lg p-1 text-xs font-medium text-muted-foreground">
                 <button
                   type="button"
                   className={cn(
-                    'rounded-lg px-3 py-1 transition',
+                    'rounded-md px-3 py-1.5 transition-all',
                     showActiveOnly && 'bg-primary/15 text-primary-foreground ring-1 ring-primary/40',
                   )}
                   onClick={() => setShowActiveOnly(true)}
@@ -103,7 +103,7 @@ function ValidatorsPageContent() {
                 <button
                   type="button"
                   className={cn(
-                    'rounded-lg px-3 py-1 transition',
+                    'rounded-md px-3 py-1.5 transition-all',
                     !showActiveOnly && 'bg-primary/15 text-primary-foreground ring-1 ring-primary/40',
                   )}
                   onClick={() => setShowActiveOnly(false)}
@@ -116,7 +116,7 @@ function ValidatorsPageContent() {
         </Card>
       </ShellSection>
 
-      <ShellSection as="section" className="space-y-6" width="wide">
+      <ShellSection as="section" className="space-y-7" width="wide">
         {error ? (
           <Card className="text-destructive-foreground">
             <CardHeader>

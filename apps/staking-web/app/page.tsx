@@ -81,16 +81,16 @@ function HomePageContent() {
     : null;
 
   return (
-    <ShellSection as="div" className="flex flex-col gap-10">
+    <ShellSection as="div" className="flex flex-col gap-12">
       <section className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <Card className="relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 bg-monad-grid opacity-60" />
-          <CardHeader className="relative z-10 gap-6">
-            <div className="flex flex-col gap-4">
-              <CardTitle className="text-3xl leading-tight">
+          <CardHeader className="relative z-10 gap-5">
+            <div className="flex flex-col gap-3">
+              <CardTitle className="text-3xl sm:text-4xl leading-tight">
                 {resolved.label}
               </CardTitle>
-              <CardDescription className="text-base text-muted-foreground">
+              <CardDescription className="text-sm sm:text-base text-muted-foreground">
                 Monitor epochs, validator performance, and activation windows for {resolved.label}.
               </CardDescription>
             </div>
@@ -105,11 +105,11 @@ function HomePageContent() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between text-lg">
+            <CardTitle className="flex items-center justify-between text-xl">
               <span>Network endpoints</span>
               <CloudArrowUpIcon className="h-5 w-5 text-primary" />
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm">
               RPC connectivity details for the selected network.
             </CardDescription>
           </CardHeader>
@@ -160,11 +160,11 @@ function HomePageContent() {
         </Card>
       </section>
 
-      <section className="space-y-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <section className="space-y-7">
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-foreground">Epoch overview</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">Epoch overview</h2>
+            <p className="mt-1 text-sm text-muted-foreground/80">
               Live epoch metrics and staking parameters for {resolved.label}.
             </p>
           </div>
@@ -191,33 +191,33 @@ function HomePageContent() {
             ))}
           </div>
         ) : epochData ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             <Card>
               <CardContent>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Current epoch</p>
-                <p className="mt-3 text-3xl font-semibold text-foreground">{epochData.epoch}</p>
+                <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Current epoch</p>
+                <p className="mt-2.5 text-3xl font-semibold text-foreground tracking-tight">{epochData.epoch}</p>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="flex flex-col gap-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Epoch status</p>
-                <span className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${status?.tone ?? ''}`}>
+              <CardContent className="flex flex-col gap-2.5">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Epoch status</p>
+                <span className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${status?.tone ?? ''}`}>
                   {status?.label ?? 'Unknown'}
                 </span>
               </CardContent>
             </Card>
             <Card>
               <CardContent>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Epoch length</p>
-                <p className="mt-3 text-3xl font-semibold text-foreground">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Epoch length</p>
+                <p className="mt-2.5 text-3xl font-semibold text-foreground tracking-tight">
                   {epochData.epochLength.toLocaleString()} <span className="text-base font-normal text-muted-foreground">blocks</span>
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Withdrawal delay</p>
-                <p className="mt-3 text-3xl font-semibold text-foreground">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Withdrawal delay</p>
+                <p className="mt-2.5 text-3xl font-semibold text-foreground tracking-tight">
                   {epochData.withdrawalDelay} <span className="text-base font-normal text-muted-foreground">epochs</span>
                 </p>
               </CardContent>
@@ -229,25 +229,25 @@ function HomePageContent() {
       <section>
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Activation windows</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl">Activation windows</CardTitle>
+            <CardDescription className="text-sm">
               Understand when delegation changes take effect relative to the current epoch.
             </CardDescription>
           </CardHeader>
           <CardContent>
             {epochData ? (
               <div className="grid gap-6 sm:grid-cols-3">
-                <div className="rounded-2xl p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Delegations active</p>
-                  <p className="mt-2 text-xl font-semibold text-foreground">Epoch {nextActivationEpoch}</p>
+                <div className="rounded-xl p-3.5">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Delegations active</p>
+                  <p className="mt-2 text-xl font-semibold text-foreground tracking-tight">Epoch {nextActivationEpoch}</p>
                 </div>
-                <div className="rounded-2xl p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Undelegations inactive</p>
-                  <p className="mt-2 text-xl font-semibold text-foreground">Epoch {nextActivationEpoch}</p>
+                <div className="rounded-xl p-3.5">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Undelegations inactive</p>
+                  <p className="mt-2 text-xl font-semibold text-foreground tracking-tight">Epoch {nextActivationEpoch}</p>
                 </div>
-                <div className="rounded-2xl p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Withdrawals available</p>
-                  <p className="mt-2 text-xl font-semibold text-foreground">Epoch {withdrawableEpoch}</p>
+                <div className="rounded-xl p-3.5">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Withdrawals available</p>
+                  <p className="mt-2 text-xl font-semibold text-foreground tracking-tight">Epoch {withdrawableEpoch}</p>
                 </div>
               </div>
             ) : (
