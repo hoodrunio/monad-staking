@@ -83,12 +83,14 @@ function ValidatorsPageContent() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex overflow-hidden rounded-lg p-1 text-xs font-medium text-muted-foreground">
+              <div className="inline-flex overflow-hidden rounded-lg border border-border bg-muted/30 p-1 text-xs font-medium">
                 <button
                   type="button"
                   className={cn(
                     'rounded-md px-3 py-1.5 transition-all',
-                    showActiveOnly && 'bg-primary/15 text-primary-foreground ring-1 ring-primary/40',
+                    showActiveOnly
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
                   )}
                   onClick={() => setShowActiveOnly(true)}
                 >
@@ -98,7 +100,9 @@ function ValidatorsPageContent() {
                   type="button"
                   className={cn(
                     'rounded-md px-3 py-1.5 transition-all',
-                    !showActiveOnly && 'bg-primary/15 text-primary-foreground ring-1 ring-primary/40',
+                    !showActiveOnly
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
                   )}
                   onClick={() => setShowActiveOnly(false)}
                 >

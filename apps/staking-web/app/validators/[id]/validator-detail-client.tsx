@@ -130,12 +130,12 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
               </div>
               <div className="flex items-center gap-2">
                 {isActive ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300">
-                    <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
+                    <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-600 dark:bg-emerald-400" />
                     Active
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/30 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-amber-700 dark:bg-muted/30 dark:text-muted-foreground">
                     Inactive
                   </span>
                 )}

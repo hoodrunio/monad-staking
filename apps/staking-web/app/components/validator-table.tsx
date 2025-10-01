@@ -35,9 +35,9 @@ export function ValidatorTable({ validators, networkConfig }: ValidatorTableProp
   }
 
   return (
-    <div className="overflow-hidden rounded-3xl">
-      <table className="min-w-full divide-y divide-white/10 text-sm">
-        <thead className="text-xs uppercase tracking-wide text-muted-foreground">
+    <div className="overflow-hidden rounded-3xl border border-border">
+      <table className="min-w-full divide-y divide-border text-sm">
+        <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
           <tr>
             <th className="px-5 py-4 text-left font-semibold">Validator</th>
             <th className="px-5 py-4 text-left font-semibold">Auth Address</th>
@@ -47,14 +47,14 @@ export function ValidatorTable({ validators, networkConfig }: ValidatorTableProp
             <th className="px-5 py-4 text-left font-semibold">Flags</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5 text-foreground">
+        <tbody className="divide-y divide-border text-foreground">
           {validators.map((validator) => (
-            <tr key={validator.id} className="transition-colors hover:bg-white/10">
+            <tr key={validator.id} className="transition-colors hover:bg-muted/30">
               <td className="px-5 py-4">
                 <div className="flex items-center gap-3">
                   <Link
                     href={{ pathname: `/validators/${validator.id}`, query: { network: currentNetwork } }}
-                    className="font-mono text-xs text-primary hover:text-primary/80"
+                    className="font-mono text-xs text-violet-700 hover:text-violet-800 dark:text-primary dark:hover:text-primary/80"
                   >
                     {validator.id}
                   </Link>
@@ -62,16 +62,21 @@ export function ValidatorTable({ validators, networkConfig }: ValidatorTableProp
                     className={cn(
                       'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
                       validator.isActive
-                        ? 'bg-emerald-500/10 text-emerald-200'
-                        : 'bg-amber-500/10 text-amber-200',
+                        ? 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'
+                        : 'bg-amber-500/15 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200',
                     )}
                   >
                     {validator.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
               </td>
-              <td className="px-5 py-4 font-mono text-xs text-muted-foreground">
-                <ExplorerLink config={networkConfig} type="address" value={validator.authAddress} className="hover:text-primary">
+              <td className="px-5 py-4 font-mono text-xs">
+                <ExplorerLink
+                  config={networkConfig}
+                  type="address"
+                  value={validator.authAddress}
+                  className="text-slate-600 hover:text-violet-700 dark:text-muted-foreground dark:hover:text-primary"
+                >
                   {formatShortAddress(validator.authAddress)}
                 </ExplorerLink>
               </td>
