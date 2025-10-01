@@ -12,18 +12,18 @@ interface StakingChartProps {
 }
 
 const DEFAULT_DATA: DataPoint[] = [
-  { label: 'Jan', value: 250 },
-  { label: 'Feb', value: 280 },
-  { label: 'Mar', value: 320 },
-  { label: 'Apr', value: 380 },
-  { label: 'May', value: 420 },
-  { label: 'Jun', value: 480 },
-  { label: 'Jul', value: 520 },
-  { label: 'Aug', value: 580 },
-  { label: 'Sep', value: 640 },
-  { label: 'Oct', value: 720 },
-  { label: 'Nov', value: 780 },
-  { label: 'Dec', value: 847 },
+  { label: 'Jan', value: 2_500_000_000 },
+  { label: 'Feb', value: 2_800_000_000 },
+  { label: 'Mar', value: 3_200_000_000 },
+  { label: 'Apr', value: 3_800_000_000 },
+  { label: 'May', value: 4_200_000_000 },
+  { label: 'Jun', value: 4_800_000_000 },
+  { label: 'Jul', value: 5_200_000_000 },
+  { label: 'Aug', value: 5_800_000_000 },
+  { label: 'Sep', value: 6_400_000_000 },
+  { label: 'Oct', value: 7_200_000_000 },
+  { label: 'Nov', value: 8_800_000_000 },
+  { label: 'Dec', value: 10_470_000_000 },
 ];
 
 interface RechartDatum {
@@ -33,6 +33,19 @@ interface RechartDatum {
 
 function buildChartData(data: readonly DataPoint[]): RechartDatum[] {
   return data.map((entry) => ({ time: entry.label, staked: entry.value }));
+}
+
+function formatValue(value: number): string {
+  if (value >= 1_000_000_000) {
+    return `${(value / 1_000_000_000).toFixed(1)}B MON`;
+  }
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1)}M MON`;
+  }
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1)}K MON`;
+  }
+  return `${value} MON`;
 }
 
 export function StakingChart({ data = DEFAULT_DATA }: StakingChartProps) {
@@ -55,7 +68,7 @@ export function StakingChart({ data = DEFAULT_DATA }: StakingChartProps) {
               axisLine={false}
               tickLine={false}
               tick={{ fill: 'oklch(0.65 0.012 264)', fontSize: 12 }}
-              tickFormatter={(value: number) => `${value}M`}
+              tickFormatter={formatValue}
             />
             <Tooltip
               cursor={{ stroke: 'oklch(0.45 0.18 340)', strokeWidth: 1, strokeDasharray: '3 3' }}
@@ -65,7 +78,7 @@ export function StakingChart({ data = DEFAULT_DATA }: StakingChartProps) {
                 borderRadius: 12,
                 color: 'oklch(0.95 0.005 264)',
               }}
-              formatter={(value: number) => [`$${value}M`, 'Staked']}
+              formatter={(value: number) => [formatValue(value), 'Staked']}
             />
             <Area type="monotone" dataKey="staked" stroke="oklch(0.8 0.18 142)" strokeWidth={2} fill="url(#stakingGradient)" />
           </AreaChart>
