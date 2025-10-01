@@ -35,12 +35,12 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
   const displayValidatorName = validatorName ?? (txContext?.validatorId ? `Validator ${txContext.validatorId}` : null);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur">
-      <div className="relative w-full max-w-md rounded-3xl bg-background/90 p-6 text-foreground shadow-[0_45px_80px_-45px_rgba(56,189,248,0.55)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur overflow-y-auto">
+      <div className="relative w-full max-w-md rounded-3xl bg-background/90 p-6 text-foreground shadow-[0_45px_80px_-45px_rgba(56,189,248,0.55)] my-8">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition hover:text-primary"
+          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all duration-150 hover:text-primary hover:bg-muted/50 active:scale-95"
           aria-label="Close"
         >
           <XMarkIcon className="h-5 w-5" />
@@ -48,14 +48,14 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
 
         <div className="space-y-5">
           <div className="flex items-start gap-3">
-            <div className={isError ? 'rounded-full bg-red-400/15 p-2' : 'rounded-full bg-primary/15 p-2'}>
+            <div className={isError ? 'flex-shrink-0 rounded-full bg-red-400/15 p-2' : 'flex-shrink-0 rounded-full bg-primary/15 p-2'}>
               {isError ? <ExclamationTriangleIcon className="h-6 w-6 text-red-300" /> : <CheckCircleIcon className="h-6 w-6 text-primary" />}
             </div>
-            <div className="flex-1 space-y-2">
-              <h3 className="text-lg font-semibold">{title}</h3>
-              <p className={isError ? 'text-sm text-red-200' : 'text-sm text-muted-foreground'}>{description}</p>
+            <div className="flex-1 space-y-2 min-w-0">
+              <h3 className="text-lg font-semibold break-words">{title}</h3>
+              <p className={isError ? 'text-sm text-red-200 break-words whitespace-pre-wrap' : 'text-sm text-muted-foreground break-words'}>{description}</p>
               {txCount > 1 ? (
-                <p className="text-xs text-muted-foreground/80">
+                <p className="text-xs text-muted-foreground/80 break-words">
                   {isError ? `${txCount} transactions were attempted; at least one failed.` : `${txCount} transactions were submitted for this action.`}
                 </p>
               ) : null}
@@ -107,7 +107,7 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
           <button
             type="button"
             onClick={onClose}
-            className={isError ? 'w-full rounded-xl bg-red-400/20 px-4 py-2 text-sm font-semibold text-red-50 transition hover:text-white' : 'w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition hover:bg-primary/90'}
+            className={isError ? 'w-full rounded-xl bg-red-400/20 px-4 py-2 text-sm font-semibold text-red-50 transition-all duration-150 hover:text-white hover:bg-red-400/30 active:scale-[0.98]' : 'w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition-all duration-150 hover:bg-primary/90 active:scale-[0.98]'}
           >
             {isError ? 'Dismiss' : 'Close'}
           </button>
