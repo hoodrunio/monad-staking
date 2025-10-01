@@ -1,24 +1,27 @@
-import { getResolvedNetworks, getSdk } from './infra/clients';
-import { epochCol } from './infra/db';
-import { logger } from './infra/logger';
-import { ingestAllValidators } from './services/ingest';
+import { container } from './shared/container';
+import { logger } from './infrastructure';
 import { workerConfig } from './config/env';
+import type { Network } from './domain/types';
 
 const BASE_DELAY_MS = workerConfig.pollMs;
 const MAX_DELAY_MS = workerConfig.pollMaxMs;
 const MIN_DELAY_MS = workerConfig.pollMinMs;
 const INGEST_MAX_RETRIES = workerConfig.ingestMaxRetries;
 
-async function pollNetwork(network: 'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2') {
-  const resolvedMap = getResolvedNetworks();
-  const resolved = resolvedMap[network];
-  if (!resolved) {
+async function pollNetwork(network: Network) {
+  const networkConfig = container.getNetworkConfig(network);
+  if (!networkConfig) {
     logger.warn('worker.skip.network', { network });
     return;
   }
 
-  const sdk = getSdk(resolved);
-  const epochs = await epochCol();
+  const blockchainClient = container.getBlockchainClient(network);
+  if (!blockchainClient) {
+    logger.warn('worker.skip.no_client', { network });
+    return;
+  }
+
+  const epochRepo = container['epochRepo'];
 
   let lastEpoch: string | null = null;
   let backoffMs = BASE_DELAY_MS;
@@ -30,20 +33,16 @@ async function pollNetwork(network: 'monad-mainnet' | 'monad-testnet-1' | 'monad
   while (true) {
     const cycleStart = Date.now();
     try {
-      const epochInfo = await sdk.getEpoch();
-      const epochStr = epochInfo.epoch.toString();
+      const epochInfo = await blockchainClient.getEpoch();
+      const epochBig = epochInfo.epoch;
+      const epochStr = epochBig.toString();
 
-      await epochs.updateOne(
-        { _id: network },
-        {
-          $set: {
-            epoch: epochStr,
-            inEpochDelayPeriod: epochInfo.inEpochDelayPeriod,
-            updatedAt: new Date().toISOString(),
-          },
-        },
-        { upsert: true },
-      );
+      await epochRepo.save({
+        network,
+        epoch: epochBig,
+        inDelayPeriod: epochInfo.inEpochDelayPeriod,
+        updatedAt: new Date(),
+      });
 
       if (epochInfo.inEpochDelayPeriod) {
         if (!delayStateLogged) {
@@ -76,10 +75,11 @@ async function pollNetwork(network: 'monad-mainnet' | 'monad-testnet-1' | 'monad
   }
 }
 
-async function runIngestWithRetry(network: 'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2', epoch: string) {
+async function runIngestWithRetry(network: Network, epoch: string) {
   for (let attempt = 0; attempt <= INGEST_MAX_RETRIES; attempt++) {
     try {
-      await ingestAllValidators(network);
+      const useCase = container.ingestValidators(network);
+      await useCase.execute(network);
       logger.info('worker.ingest.success', { network, epoch, attempt });
       return;
     } catch (error) {
@@ -96,13 +96,18 @@ async function runIngestWithRetry(network: 'monad-mainnet' | 'monad-testnet-1' |
 }
 
 async function main() {
-  const resolved = getResolvedNetworks();
-  const networks = Object.keys(resolved) as Array<'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2'>;
-  if (networks.length === 0) {
+  await container.initialize();
+  logger.info('worker.container_initialized');
+
+  const networks: Network[] = ['monad-mainnet', 'monad-testnet-1', 'monad-testnet-2'];
+  const activeNetworks = networks.filter((n) => container.getNetworkConfig(n) !== null);
+
+  if (activeNetworks.length === 0) {
     logger.warn('worker.no_networks');
     return;
   }
-  await Promise.all(networks.map((network) => pollNetwork(network)));
+
+  await Promise.all(activeNetworks.map((network) => pollNetwork(network)));
 }
 
 main().catch((error) => {

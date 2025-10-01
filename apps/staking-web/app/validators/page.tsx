@@ -36,7 +36,7 @@ function ValidatorsPageContent() {
       <ShellSection width="wide">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Validator explorer unavailable</CardTitle>
+            <CardTitle className="text-2xl">Validator list unavailable</CardTitle>
             <CardDescription>
               Provide at least one network RPC URL and chain ID to inspect validators.
             </CardDescription>
@@ -76,19 +76,13 @@ function ValidatorsPageContent() {
           <CardHeader className="gap-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <CardTitle className="text-3xl sm:text-4xl">Validator explorer</CardTitle>
+                <CardTitle className="text-3xl sm:text-4xl">Validators</CardTitle>
                 <CardDescription className="mt-1 text-sm">
                   Browse validator performance on {resolved.label}. Toggle filters to focus on active operators.
                 </CardDescription>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs uppercase tracking-wider text-muted-foreground/70">
-                50 rows per page
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs uppercase tracking-wider text-muted-foreground/70">
-                Cursor {cursor ?? 'none'}
-              </div>
               <div className="inline-flex overflow-hidden rounded-lg p-1 text-xs font-medium text-muted-foreground">
                 <button
                   type="button"
@@ -155,7 +149,7 @@ export default function ValidatorsPage() {
     <ClientOnly
       fallback={
         <ShellSection as="div" className="space-y-6" width="wide">
-          <h1 className="text-3xl font-semibold">Validator explorer</h1>
+          <h1 className="text-3xl font-semibold">Validators</h1>
           <p className="text-muted-foreground">Loading...</p>
         </ShellSection>
       }

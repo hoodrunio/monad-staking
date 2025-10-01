@@ -1,4 +1,4 @@
-import { logger } from '../infra/logger';
+import { logger } from '../infrastructure';
 
 export type AmountField = {
   raw: string;

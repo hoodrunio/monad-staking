@@ -1,17 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
-import { validatorRoutes } from './http/routes/validators';
-import { epochRoutes } from './http/routes/epoch';
-import { delegationsRoutes } from './http/routes/delegations';
-import { withdrawalsRoutes } from './http/routes/withdrawals';
-import { balanceRoutes } from './http/routes/balance';
-import { ingestAllValidators } from './services/ingest';
-import { getResolvedNetworks } from './infra/clients';
-import { logger } from './infra/logger';
-import { createRateLimitMiddleware } from './http/middleware/rate-limit';
-import { metricsRegistry, recordHttpMetrics } from './infra/metrics';
-import { getMongo, getRedis } from './infra/db';
+import { validatorRoutes } from './api/routes/validators';
+import { epochRoutes } from './api/routes/epoch';
+import { delegationsRoutes } from './api/routes/delegations';
+import { withdrawalsRoutes } from './api/routes/withdrawals';
+import { balanceRoutes } from './api/routes/balance';
+import { container } from './shared/container';
+import { logger } from './infrastructure';
+import { createRateLimitMiddleware } from './api/middleware/rate-limit';
+import { metricsRegistry, recordHttpMetrics } from './infrastructure';
+import { getMongo, getRedis } from './infrastructure';
 import { corsConfig, rateLimitConfig, serverConfig } from './config/env';
 
 const app = new Hono<{
@@ -121,6 +120,10 @@ app.route('/api/balance', balanceRoutes);
 const port = serverConfig.port;
 logger.info('staking-api starting', { port });
 
+// Initialize DI container before starting server
+await container.initialize();
+logger.info('DI container initialized');
+
 export default {
   port,
   fetch: app.fetch,
@@ -129,14 +132,18 @@ export default {
 // Bootstrap one-time ingestion on startup (fire-and-forget)
 (async () => {
   try {
-    const networks = getResolvedNetworks();
-    for (const key of Object.keys(networks) as Array<'monad-mainnet' | 'monad-testnet-1' | 'monad-testnet-2'>) {
-      ingestAllValidators(key).catch((e) =>
-        logger.warn('bootstrap ingest failed', {
-          network: key,
-          error: String(e),
-        }),
-      );
+    const networks = ['monad-mainnet', 'monad-testnet-1', 'monad-testnet-2'] as const;
+    for (const network of networks) {
+      const config = container.getNetworkConfig(network);
+      if (config) {
+        const useCase = container.ingestValidators(network);
+        useCase.execute(network).catch((e) =>
+          logger.warn('bootstrap ingest failed', {
+            network,
+            error: String(e),
+          }),
+        );
+      }
     }
   } catch (e) {
     logger.warn('bootstrap skipped', { error: String(e) });
