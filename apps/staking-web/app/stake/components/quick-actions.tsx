@@ -169,9 +169,8 @@ export function QuickActions({
       {pieData.length > 0 && (
         <BalancePieChart
           data={pieData}
-          total={`${totalBalance} MON`}
-          size="md"
-          className="mb-2"
+          title="Balance Distribution"
+          description={`Total: ${totalBalance} MON`}
         />
       )}
 

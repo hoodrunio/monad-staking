@@ -1,155 +1,147 @@
 'use client';
 
-import { Cell, PieChart, Pie, ResponsiveContainer } from 'recharts';
+import * as React from 'react';
+import { Cell, Label, Pie, PieChart, ResponsiveContainer, Sector, Tooltip } from 'recharts';
+import { PieSectorDataItem } from 'recharts/types/polar/Pie';
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface BalanceData {
   readonly name: string;
   readonly value: number;
   readonly color: string;
-  readonly label?: string;
 }
 
 interface BalancePieChartProps {
   readonly data: readonly BalanceData[];
-  readonly total?: string;
-  readonly showLabels?: boolean;
-  readonly size?: 'sm' | 'md' | 'lg';
+  readonly title?: string;
+  readonly description?: string;
   readonly className?: string;
-}
-
-interface LabelProps {
-  cx: number;
-  cy: number;
-  midAngle: number;
-  outerRadius: number;
-  value: number;
-}
-
-interface PieDataItem {
-  name: string;
-  value: number;
-  color: string;
 }
 
 export function BalancePieChart({
   data,
-  total,
-  showLabels = true,
-  size = 'md',
+  title = 'Balance Distribution',
+  description = 'MON balance breakdown',
   className = '',
 }: BalancePieChartProps) {
-  const chartSize = {
-    sm: { width: 140, height: 140, innerRadius: 34, outerRadius: 52 },
-    md: { width: 200, height: 200, innerRadius: 48, outerRadius: 74 },
-    lg: { width: 240, height: 240, innerRadius: 56, outerRadius: 90 },
-  }[size];
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const chartData = React.useMemo(
+    () => data.map((item) => ({ ...item, fill: item.color })),
+    [data]
+  );
 
-  const containerSize = {
-    width: chartSize.width + 120,
-    height: chartSize.height + 80,
-  };
-
-  const CustomLabel = ({ cx, cy, midAngle, outerRadius, value }: LabelProps) => {
-    if (!showLabels || value <= 0) return null;
-
-    const RADIAN = Math.PI / 180;
-    const cos = Math.cos(-midAngle * RADIAN);
-    const sin = Math.sin(-midAngle * RADIAN);
-    const lineStartX = cx + outerRadius * cos;
-    const lineStartY = cy + outerRadius * sin;
-    const lineEndX = cx + (outerRadius + 24) * cos;
-    const lineEndY = cy + (outerRadius + 24) * sin;
-    const anchorRight = lineEndX >= cx;
-    const textX = lineEndX + (anchorRight ? 12 : -12);
-    const textY = lineEndY;
-    const strokeColor = 'oklch(0.65 0.012 264)';
-    const arrowSize = 4;
-
-    const arrowPoints = [
-      `${lineStartX},${lineStartY}`,
-      `${lineStartX - sin * arrowSize},${lineStartY - cos * arrowSize}`,
-      `${lineStartX + sin * arrowSize},${lineStartY + cos * arrowSize}`,
-    ].join(' ');
-
-    const formattedValue = `${value.toLocaleString('en-US', { maximumFractionDigits: 2 })} MON`;
-
-    return (
-      <g>
-        <polyline
-          points={`${lineStartX},${lineStartY} ${lineEndX},${lineEndY}`}
-          fill="none"
-          stroke={strokeColor}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-        />
-        <polygon points={arrowPoints} fill={strokeColor} />
-        <text
-          x={textX}
-          y={textY}
-          fill="var(--foreground)"
-          fontSize={size === 'sm' ? 10 : 12}
-          fontWeight={600}
-          textAnchor={anchorRight ? 'start' : 'end'}
-          dominantBaseline="middle"
-        >
-          {formattedValue}
-        </text>
-      </g>
-    );
+  // Calculate dynamic font size based on number length
+  const getFontSize = (value: number) => {
+    const strLength = value.toLocaleString().length;
+    if (strLength > 8) return 18;
+    if (strLength > 6) return 22;
+    if (strLength > 4) return 26;
+    return 30;
   };
 
   return (
-    <div className={`flex items-center gap-6 ${className}`}>
-      <div className="flex-1 space-y-2">
-        {data.map((item) => (
-          <div key={item.name} className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              <div
-                className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: item.color }}
+    <Card className={`flex flex-col ${className}`}>
+      <CardHeader className="items-start pb-0">
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-1 justify-center pb-4">
+        <div className="mx-auto aspect-square w-full max-w-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--popover))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                }}
+                labelStyle={{
+                  color: 'hsl(var(--popover-foreground))',
+                  fontWeight: 600,
+                  marginBottom: '4px',
+                }}
+                itemStyle={{
+                  color: 'hsl(var(--popover-foreground))',
+                  padding: '2px 0',
+                }}
+                formatter={(value: number) => [`${value.toLocaleString()} MON`]}
               />
-              <span className="text-muted-foreground">{item.name}</span>
-            </div>
-            <span className="font-medium text-foreground">
-              {item.value.toLocaleString('en-US', { maximumFractionDigits: 2 })} MON
-            </span>
-          </div>
-        ))}
-      </div>
+              <Pie
+                data={chartData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={80}
+                strokeWidth={5}
+                activeIndex={activeIndex}
+                activeShape={({ outerRadius = 0, ...props }: PieSectorDataItem) => (
+                  <g>
+                    <Sector {...props} outerRadius={outerRadius + 10} />
+                    <Sector {...props} outerRadius={outerRadius + 25} innerRadius={outerRadius + 12} />
+                  </g>
+                )}
+                onMouseEnter={(_, index) => setActiveIndex(index)}
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} stroke="hsl(var(--background))" />
+                ))}
+                <Label
+                  content={({ viewBox }) => {
+                    if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                      const currentValue = chartData[activeIndex].value;
+                      const fontSize = getFontSize(currentValue);
 
-      <div className="relative overflow-visible">
-        <ResponsiveContainer
-          width={containerSize.width}
-          height={containerSize.height}
-          style={{ overflow: 'visible' }}
-        >
-          <PieChart margin={{ top: 40, right: 52, bottom: 40, left: 52 }}>
-            <Pie
-              data={data as PieDataItem[]}
-              cx="50%"
-              cy="50%"
-              innerRadius={chartSize.innerRadius}
-              outerRadius={chartSize.outerRadius}
-              paddingAngle={2}
-              dataKey="value"
-              label={showLabels ? CustomLabel : false}
-              labelLine={false}
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-        {total && (
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <div className="rounded-full border border-white/10 bg-background/90 px-4 py-2 text-center shadow-lg shadow-black/20">
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">Total</div>
-              <div className="text-lg font-semibold text-foreground">{total}</div>
+                      return (
+                        <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className="fill-foreground font-bold"
+                            style={{ fontSize: `${fontSize}px` }}
+                          >
+                            {currentValue.toLocaleString()}
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 24}
+                            className="fill-muted-foreground"
+                            style={{ fontSize: '14px' }}
+                          >
+                            MON
+                          </tspan>
+                        </text>
+                      );
+                    }
+                  }}
+                />
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+      <CardContent className="flex flex-col gap-2 border-t pt-4">
+        {chartData.map((item, index) => (
+          <button
+            key={item.name}
+            onClick={() => setActiveIndex(index)}
+            onMouseEnter={() => setActiveIndex(index)}
+            className={`flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-accent ${
+              activeIndex === index ? 'bg-accent' : ''
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span className="flex h-3 w-3 shrink-0 rounded-sm" style={{ backgroundColor: item.fill }} />
+              <span className="text-sm font-medium">{item.name}</span>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
+            <span className="text-sm text-muted-foreground">{item.value.toLocaleString()} MON</span>
+          </button>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
