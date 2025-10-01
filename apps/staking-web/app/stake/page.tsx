@@ -6,17 +6,13 @@ import { useSearchParams } from 'next/navigation';
 import type { MonadNetwork } from '@monad-staking/config';
 import { ClientOnly } from '@/app/components/client-only';
 import { TransactionResult } from '@/app/components/transaction-result';
-import { ValidatorSelector } from '@/app/components/validator-selector';
-import { ActionModal } from '@/app/stake/components/action-modal';
+import { StakingModal } from '@/app/stake/components/staking-modal';
 import { TokenPriceCard } from '@/app/stake/components/token-price-card';
 import { StakingStatsCard } from '@/app/stake/components/staking-stats-card';
 import { UserPortfolio } from '@/app/stake/components/user-portfolio';
 import { StakingChart } from '@/app/stake/components/staking-chart';
 import { QuickActions } from '@/app/stake/components/quick-actions';
 import { WithdrawModal } from '@/app/stake/components/withdraw-modal';
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
-import { Label } from '@/app/components/ui/label';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { parseNetworkKey } from '@/lib/validators';
 import { useStakingSdk } from '@/hooks/useStakingSdk';
@@ -80,7 +76,8 @@ function StakeScreen() {
     validatorId: string | null;
     amount: string;
     withdrawalId: number | null;
-  }>({ validatorId: null, amount: '', withdrawalId: null });
+    maxStakeable: bigint | null;
+  }>({ validatorId: null, amount: '', withdrawalId: null, maxStakeable: null });
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [selectorActiveOnly, setSelectorActiveOnly] = useState(true);
   const [selectorCursor, setSelectorCursor] = useState('');
@@ -252,16 +249,18 @@ function StakeScreen() {
   const openUndelegateModal = (validatorId: string) => {
     const used = withdrawalsByValidator.get(validatorId) ?? [];
     const delegationEntry = delegations.find((item) => item.validatorId === validatorId);
+    const maxAmount = delegationEntry ? parseEther(sanitizeAmount(delegationEntry.stake.formatted)) : null;
     setUndelegateModal({
       validatorId,
-      amount: delegationEntry ? sanitizeAmount(delegationEntry.stake.formatted) : '',
+      amount: '',
       withdrawalId: getNextAvailableWithdrawId(used),
+      maxStakeable: maxAmount,
     });
   };
 
   const closeModals = (reset = true) => {
     setDelegateModal({ validatorId: null, amount: '', maxStakeable: null, gasEstimate: null });
-    setUndelegateModal({ validatorId: null, amount: '', withdrawalId: null });
+    setUndelegateModal({ validatorId: null, amount: '', withdrawalId: null, maxStakeable: null });
     setWithdrawModalOpen(false);
     setSelectorCursor('');
     setSelectorNextCursor(null);
@@ -269,6 +268,25 @@ function StakeScreen() {
     setSelectorItems([]);
     setSelectorActiveOnly(true);
     if (reset) resetState();
+  };
+
+  const handleCalculateMaxDelegate = async () => {
+    if (!delegateModal.validatorId || !balance || !account) return;
+    const balanceWei = parseEther(balance.decimal);
+    const maxStakeable = await calculateMaxStakeable(delegateModal.validatorId, balanceWei);
+    setDelegateModal((prev) => ({ 
+      ...prev, 
+      maxStakeable,
+      gasEstimate: maxStakeable ? formatEther(balanceWei - maxStakeable) : null,
+    }));
+  };
+
+  const handleCalculateMaxUndelegate = async () => {
+    if (!undelegateModal.validatorId) return;
+    const delegation = delegations.find(d => d.validatorId === undelegateModal.validatorId);
+    if (!delegation) return;
+    const maxAmount = parseEther(sanitizeAmount(delegation.stake.formatted));
+    setUndelegateModal((prev) => ({ ...prev, maxStakeable: maxAmount }));
   };
 
   const handleDelegateSubmit = async () => {
@@ -387,189 +405,94 @@ function StakeScreen() {
         validatorName={state.txContext?.validatorId ? validatorMap.get(state.txContext.validatorId)?.meta?.name : undefined}
       />
 
-      <ActionModal
+      <StakingModal
         open={delegateModal.validatorId !== null}
+        mode="stake"
+        validatorOptions={selectorOptions}
+        selectedValidatorId={delegateModal.validatorId}
+        onValidatorChange={(next) => setDelegateModal((prev) => ({ ...prev, validatorId: next }))}
+        amount={delegateModal.amount}
+        onAmountChange={(next) => setDelegateModal((prev) => ({ ...prev, amount: next }))}
+        maxAmount={delegateModal.maxStakeable}
+        gasEstimate={delegateModal.gasEstimate}
+        isEstimating={estimating}
+        onCalculateMax={handleCalculateMaxDelegate}
+        onSubmit={handleDelegateSubmit}
         onClose={() => closeModals()}
-        title="Delegate stake"
-        description="Choose the amount of MON you would like to delegate."
-      >
-        <div className="space-y-4">
-          <ValidatorSelector
-            value={delegateModal.validatorId ?? ''}
-            onChange={(next) => setDelegateModal((prev) => ({ ...prev, validatorId: next }))}
-            options={selectorOptions}
-            loading={selectorQuery.isFetching && selectorItems.length === 0}
-            emptyMessage="No validators available"
-            hasMore={selectorHasMore}
-            onLoadMore={() => selectorNextCursor && setSelectorCursor(selectorNextCursor)}
-            loadingMore={selectorQuery.isFetching && selectorItems.length > 0}
-            disabled={!sdk || !account || state.busy}
-            toolbar={
-              <label className="flex items-center gap-2 text-muted-foreground">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-white/20 bg-white/10 text-primary focus:ring-primary/40 focus:ring-offset-0"
-                  checked={selectorActiveOnly}
-                  onChange={(event) => {
-                    const next = event.target.checked;
-                    const initial = delegateModal.validatorId ? validatorMap.get(delegateModal.validatorId) : undefined;
-                    setSelectorActiveOnly(next);
-                    setSelectorCursor('');
-                    setSelectorNextCursor(null);
-                    setSelectorHasMore(false);
-                    setSelectorItems(initial ? [initial] : []);
-                  }}
-                  disabled={!sdk || !account || state.busy}
-                />
-                Active only
-              </label>
-            }
-          />
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="delegate-amount" className="text-sm text-muted-foreground">
-                Amount (MON)
-              </Label>
-              {delegateModal.maxStakeable !== null && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs"
-                  onClick={() => {
-                    if (delegateModal.maxStakeable) {
-                      setDelegateModal((prev) => ({
-                        ...prev,
-                        amount: formatEther(delegateModal.maxStakeable!),
-                      }));
-                    }
-                  }}
-                  disabled={estimating}
-                >
-                  Max
-                </Button>
-              )}
-            </div>
-            <Input
-              id="delegate-amount"
-              type="text"
-              value={delegateModal.amount}
-              onChange={(event) => setDelegateModal((prev) => ({ ...prev, amount: event.target.value }))}
-              placeholder="0.0"
+        disabled={!sdk || !account || state.busy}
+        loading={selectorQuery.isFetching && selectorItems.length === 0}
+        hasMore={selectorHasMore}
+        onLoadMore={() => selectorNextCursor && setSelectorCursor(selectorNextCursor)}
+        loadingMore={selectorQuery.isFetching && selectorItems.length > 0}
+        availableBalance={formattedMon(totals.available)}
+        toolbar={
+          <label className="flex items-center gap-2 text-muted-foreground">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-white/20 bg-white/10 text-primary focus:ring-primary/40 focus:ring-offset-0"
+              checked={selectorActiveOnly}
+              onChange={(event) => {
+                const next = event.target.checked;
+                const initial = delegateModal.validatorId ? validatorMap.get(delegateModal.validatorId) : undefined;
+                setSelectorActiveOnly(next);
+                setSelectorCursor('');
+                setSelectorNextCursor(null);
+                setSelectorHasMore(false);
+                setSelectorItems(initial ? [initial] : []);
+              }}
+              disabled={!sdk || !account || state.busy}
             />
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Available: {formattedMon(totals.available)}</span>
-              {delegateModal.maxStakeable !== null && (
-                <span className="text-amber-400">
-                  Max (after gas): {formatEther(delegateModal.maxStakeable)} MON
-                </span>
-              )}
-            </div>
-            {estimating && (
-              <p className="text-xs text-muted-foreground animate-pulse">
-                Calculating gas cost...
-              </p>
-            )}
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => closeModals()}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleDelegateSubmit} 
-              disabled={
-                !delegateModal.validatorId || 
-                !delegateModal.amount || 
-                Number(sanitizeAmount(delegateModal.amount)) <= 0 ||
-                Number(sanitizeAmount(delegateModal.amount)) > totals.available ||
-                (delegateModal.maxStakeable !== null && 
-                  parseEther(sanitizeAmount(delegateModal.amount) || '0') > delegateModal.maxStakeable) ||
-                estimating
-              }
-            >
-              {estimating ? 'Calculating...' : 'Delegate'}
-            </Button>
-          </div>
-        </div>
-      </ActionModal>
+            Active only
+          </label>
+        }
+      />
 
-      <ActionModal
+      <StakingModal
         open={undelegateModal.validatorId !== null}
+        mode="unstake"
+        validatorOptions={delegatedOptions}
+        selectedValidatorId={undelegateModal.validatorId}
+        onValidatorChange={(next) => {
+          const used = withdrawalsByValidator.get(next) ?? [];
+          const delegationEntry = delegations.find((item) => item.validatorId === next);
+          const maxAmount = delegationEntry ? parseEther(sanitizeAmount(delegationEntry.stake.formatted)) : null;
+          setUndelegateModal({
+            validatorId: next,
+            amount: '',
+            withdrawalId: getNextAvailableWithdrawId(used),
+            maxStakeable: maxAmount,
+          });
+        }}
+        amount={undelegateModal.amount}
+        onAmountChange={(next) => setUndelegateModal((prev) => ({ ...prev, amount: next }))}
+        maxAmount={undelegateModal.maxStakeable}
+        gasEstimate={null}
+        isEstimating={false}
+        onCalculateMax={handleCalculateMaxUndelegate}
+        onSubmit={handleUndelegateSubmit}
         onClose={() => closeModals()}
-        title="Start undelegation"
-        description="Select the amount to undelegate. A withdrawal slot will be reserved for this request."
-      >
-        <div className="space-y-4">
-          <ValidatorSelector
-            value={undelegateModal.validatorId ?? ''}
-            onChange={(next) => {
-              const used = withdrawalsByValidator.get(next) ?? [];
-              const delegationEntry = delegations.find((item) => item.validatorId === next);
-              setUndelegateModal({
-                validatorId: next,
-                amount: delegationEntry ? sanitizeAmount(delegationEntry.stake.formatted) : '',
-                withdrawalId: getNextAvailableWithdrawId(used),
-              });
-            }}
-            options={delegatedOptions}
-            loading={delegations.length === 0 && data.isLoading.delegations}
-            emptyMessage="No active delegations"
-            disabled={!sdk || !account || state.busy}
-          />
-          <div className="space-y-2">
-            <Label htmlFor="undelegate-amount" className="text-sm text-muted-foreground">
-              Amount (MON)
-            </Label>
-            <Input
-              id="undelegate-amount"
-              type="text"
-              value={undelegateModal.amount}
-              onChange={(event) => setUndelegateModal((prev) => ({ ...prev, amount: event.target.value }))}
-              placeholder="0.0"
-            />
-            {undelegateModal.validatorId && (() => {
-              const delegation = delegations.find(d => d.validatorId === undelegateModal.validatorId);
-              const maxAmount = delegation ? Number(sanitizeAmount(delegation.stake.formatted)) : 0;
-              return (
-                <p className="text-xs text-muted-foreground">
-                  Staked: {delegation ? delegation.stake.formatted : '0 MON'} • Max: {formattedMon(maxAmount)}
-                </p>
-              );
-            })()}
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-muted-foreground">
-            {undelegateModal.withdrawalId !== null ? (
-              <p>
+        disabled={!sdk || !account || state.busy}
+        loading={delegations.length === 0 && data.isLoading.delegations}
+        availableBalance={undelegateModal.validatorId ? (() => {
+          const delegation = delegations.find(d => d.validatorId === undelegateModal.validatorId);
+          return delegation ? delegation.stake.formatted : '0 MON';
+        })() : undefined}
+        additionalInfo={
+          undelegateModal.withdrawalId !== null ? (
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-3 text-xs">
+              <p className="text-muted-foreground">
                 Withdrawal slot <span className="font-semibold text-primary">#{undelegateModal.withdrawalId}</span> will be used for this request.
               </p>
-            ) : (
-              <p className="text-amber-200">
-                All withdrawal slots for this validator are in use. Complete or cancel an existing withdrawal first.
+            </div>
+          ) : (
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-400">
+              <p>
+                All withdrawal slots for this validator are in use. Complete an existing withdrawal first.
               </p>
-            )}
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => closeModals()}>
-              Cancel
-            </Button>
-            <Button
-              className="bg-amber-400 text-slate-900 hover:bg-amber-300"
-              onClick={handleUndelegateSubmit}
-              disabled={(() => {
-                if (!undelegateModal.validatorId || !undelegateModal.amount || undelegateModal.withdrawalId === null) {
-                  return true;
-                }
-                const delegation = delegations.find(d => d.validatorId === undelegateModal.validatorId);
-                const maxAmount = delegation ? Number(sanitizeAmount(delegation.stake.formatted)) : 0;
-                const requestedAmount = Number(sanitizeAmount(undelegateModal.amount));
-                return requestedAmount <= 0 || requestedAmount > maxAmount;
-              })()}
-            >
-              Undelegate
-            </Button>
-          </div>
-        </div>
-      </ActionModal>
+            </div>
+          )
+        }
+      />
 
       <WithdrawModal
         open={withdrawModalOpen}
