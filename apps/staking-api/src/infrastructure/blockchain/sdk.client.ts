@@ -73,7 +73,7 @@ export class MonadSdkClient implements BlockchainClient {
   async getDelegations(address: `0x${string}`, cursor: bigint): Promise<DelegationPage> {
     const page = await this.sdk.getDelegations(address, cursor);
     return {
-      items: [],
+      items: page.validatorIds.map(validatorId => ({ validatorId })),
       nextCursor: page.nextValId,
       isDone: page.isDone,
     };

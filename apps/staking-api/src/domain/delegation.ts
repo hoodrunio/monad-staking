@@ -10,7 +10,7 @@ export interface Delegation {
 }
 
 export interface DelegationPage {
-  items: Delegation[];
+  items: Array<{ validatorId: bigint }>;
   nextCursor: bigint;
   isDone: boolean;
 }
