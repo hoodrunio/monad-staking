@@ -87,14 +87,11 @@ function HomePageContent() {
           <div className="pointer-events-none absolute inset-0 bg-monad-grid opacity-60" />
           <CardHeader className="relative z-10 gap-6">
             <div className="flex flex-col gap-4">
-              <div className="inline-flex items-center gap-2 self-start rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary-foreground">
-                Live network insights
-              </div>
               <CardTitle className="text-3xl leading-tight">
                 {resolved.label}
               </CardTitle>
               <CardDescription className="text-base text-muted-foreground">
-                Monitor epochs, validator performance, and activation windows for {resolved.label}. Use network filters to pivot across Monad deployments.
+                Monitor epochs, validator performance, and activation windows for {resolved.label}.
               </CardDescription>
             </div>
             <div className="flex flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between">
