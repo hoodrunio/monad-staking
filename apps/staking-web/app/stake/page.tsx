@@ -24,6 +24,8 @@ import { useStakeActions } from '@/hooks/useStakeActions';
 import { useStakingData } from '@/hooks/useStakingData';
 import { useValidatorsQuery } from '@/lib/queries';
 import { formatMonFromWei, getNextAvailableWithdrawId } from '@/lib/utils';
+import { useGasEstimation } from '@/hooks/useGasEstimation';
+import { parseEther, formatEther } from 'viem';
 import type { ValidatorSummary } from '@/lib/api/models';
 import { ShellSection } from '@/app/components/layout/shell';
 
@@ -54,6 +56,7 @@ function StakeScreen() {
   const account = address as `0x${string}` | undefined;
 
   const data = useStakingData(selectedNetwork, !!selectedNetwork && !!resolved);
+  const { calculateMaxStakeable, estimating } = useGasEstimation({ sdk, account });
 
   const { state, delegate, undelegate, withdraw, claimAllRewards, resetState } =
     useStakeActions({
@@ -62,7 +65,17 @@ function StakeScreen() {
       onSettled: () => data.refetchAll(),
     });
 
-  const [delegateModal, setDelegateModal] = useState<{ validatorId: string | null; amount: string }>({ validatorId: null, amount: '' });
+  const [delegateModal, setDelegateModal] = useState<{ 
+    validatorId: string | null; 
+    amount: string;
+    maxStakeable: bigint | null;
+    gasEstimate: string | null;
+  }>({ 
+    validatorId: null, 
+    amount: '',
+    maxStakeable: null,
+    gasEstimate: null,
+  });
   const [undelegateModal, setUndelegateModal] = useState<{
     validatorId: string | null;
     amount: string;
@@ -213,14 +226,27 @@ function StakeScreen() {
   const firstDelegation = delegations[0] ?? null;
   const firstReadyWithdrawal = readyWithdrawals[0] ?? null;
 
-  const openDelegateModal = (validatorId: string | null = null) => {
+  const openDelegateModal = async (validatorId: string | null = null) => {
     const initial = validatorId ? validatorMap.get(validatorId) : undefined;
     setSelectorActiveOnly(true);
     setSelectorCursor('');
     setSelectorNextCursor(null);
     setSelectorHasMore(false);
     setSelectorItems(initial ? [initial] : []);
-    setDelegateModal({ validatorId: validatorId ?? '', amount: '' });
+    
+    // Calculate max stakeable amount considering gas
+    let maxStakeable: bigint | null = null;
+    if (validatorId && balance && account) {
+      const balanceWei = parseEther(balance.decimal);
+      maxStakeable = await calculateMaxStakeable(validatorId, balanceWei);
+    }
+    
+    setDelegateModal({ 
+      validatorId: validatorId ?? '', 
+      amount: '',
+      maxStakeable,
+      gasEstimate: null,
+    });
   };
 
   const openUndelegateModal = (validatorId: string) => {
@@ -234,7 +260,7 @@ function StakeScreen() {
   };
 
   const closeModals = (reset = true) => {
-    setDelegateModal({ validatorId: null, amount: '' });
+    setDelegateModal({ validatorId: null, amount: '', maxStakeable: null, gasEstimate: null });
     setUndelegateModal({ validatorId: null, amount: '', withdrawalId: null });
     setWithdrawModalOpen(false);
     setSelectorCursor('');
@@ -400,9 +426,30 @@ function StakeScreen() {
             }
           />
           <div className="space-y-2">
-            <Label htmlFor="delegate-amount" className="text-sm text-muted-foreground">
-              Amount (MON)
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="delegate-amount" className="text-sm text-muted-foreground">
+                Amount (MON)
+              </Label>
+              {delegateModal.maxStakeable !== null && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs"
+                  onClick={() => {
+                    if (delegateModal.maxStakeable) {
+                      setDelegateModal((prev) => ({
+                        ...prev,
+                        amount: formatEther(delegateModal.maxStakeable!),
+                      }));
+                    }
+                  }}
+                  disabled={estimating}
+                >
+                  Max
+                </Button>
+              )}
+            </div>
             <Input
               id="delegate-amount"
               type="text"
@@ -410,9 +457,19 @@ function StakeScreen() {
               onChange={(event) => setDelegateModal((prev) => ({ ...prev, amount: event.target.value }))}
               placeholder="0.0"
             />
-            <p className="text-xs text-muted-foreground">
-              Available: {formattedMon(totals.available)}
-            </p>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Available: {formattedMon(totals.available)}</span>
+              {delegateModal.maxStakeable !== null && (
+                <span className="text-amber-400">
+                  Max (after gas): {formatEther(delegateModal.maxStakeable)} MON
+                </span>
+              )}
+            </div>
+            {estimating && (
+              <p className="text-xs text-muted-foreground animate-pulse">
+                Calculating gas cost...
+              </p>
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => closeModals()}>
@@ -424,10 +481,13 @@ function StakeScreen() {
                 !delegateModal.validatorId || 
                 !delegateModal.amount || 
                 Number(sanitizeAmount(delegateModal.amount)) <= 0 ||
-                Number(sanitizeAmount(delegateModal.amount)) > totals.available
+                Number(sanitizeAmount(delegateModal.amount)) > totals.available ||
+                (delegateModal.maxStakeable !== null && 
+                  parseEther(sanitizeAmount(delegateModal.amount) || '0') > delegateModal.maxStakeable) ||
+                estimating
               }
             >
-              Delegate
+              {estimating ? 'Calculating...' : 'Delegate'}
             </Button>
           </div>
         </div>

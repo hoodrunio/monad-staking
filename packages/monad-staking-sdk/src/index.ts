@@ -13,6 +13,7 @@ export type {
   PaginatedDelegations,
   PaginatedDelegators,
   WithdrawalRequestInfo,
+  GasEstimate,
 } from './types/index.js';
 
 // ABI

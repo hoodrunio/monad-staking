@@ -11,7 +11,9 @@ import type {
   ActivationEpochInfo,
   WithdrawEpochInfo,
 } from './types/index.js';
-import { ReadClient, WriteClient, EventClient } from './client/index.js';
+import { ReadClient, WriteClient, EventClient, type GasEstimate } from './client/index.js';
+
+export type { GasEstimate };
 
 /**
  * Main SDK class that provides a unified interface to interact with the Monad staking precompile.
@@ -261,6 +263,47 @@ export class MonadStakingSdk<TTransport extends Transport> {
     toBlock?: bigint;
   } = {}) {
     return this.eventClient.getCommissionChangedEvents(args);
+  }
+
+  // Gas Estimation Operations
+  async estimateDelegateGas(args: {
+    readonly validatorId: bigint;
+    readonly amount: bigint;
+    readonly account: Address;
+  }): Promise<GasEstimate> {
+    return this.writeClient.estimateDelegateGas(args);
+  }
+
+  async estimateUndelegateGas(args: {
+    readonly validatorId: bigint;
+    readonly amount: bigint;
+    readonly withdrawalId: number;
+    readonly account: Address;
+  }): Promise<GasEstimate> {
+    return this.writeClient.estimateUndelegateGas(args);
+  }
+
+  async estimateWithdrawGas(args: {
+    readonly validatorId: bigint;
+    readonly withdrawalId: number;
+    readonly account: Address;
+  }): Promise<GasEstimate> {
+    return this.writeClient.estimateWithdrawGas(args);
+  }
+
+  async estimateClaimRewardsGas(args: {
+    readonly validatorId: bigint;
+    readonly account: Address;
+  }): Promise<GasEstimate> {
+    return this.writeClient.estimateClaimRewardsGas(args);
+  }
+
+  async calculateMaxStakeableAmount(args: {
+    readonly validatorId: bigint;
+    readonly balance: bigint;
+    readonly account: Address;
+  }): Promise<bigint> {
+    return this.writeClient.calculateMaxStakeableAmount(args);
   }
 }
 
