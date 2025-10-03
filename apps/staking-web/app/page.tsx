@@ -55,8 +55,8 @@ function HudMetric({ icon: Icon, label, value, hint, animate }: HudMetricProps) 
       </span>
       <div className="flex flex-col leading-none">
         <span className="font-display text-[10px] tracking-[0.16em] text-muted-foreground">{label}</span>
-        <span className="font-display text-xl tracking-[0.1em] text-primary">{value}</span>
-        {hint ? <span className="text-[10px] tracking-[0.12em] text-muted-foreground/80">{hint}</span> : null}
+        <span className="font-display text-xl tracking-[0.08em] text-primary">{value}</span>
+        {hint ? <span className="text-sm tracking-[0.06em] text-muted-foreground/80">{hint}</span> : null}
       </div>
     </div>
   );
@@ -281,7 +281,6 @@ function HomePageContent() {
     ? formatMon(walletWithdrawableRaw, 3)
     : '0 MON';
 
-  const hasClaimableRewards = walletClaimableRaw > 0n;
   const hasPendingWithdrawals = walletWithdrawableRaw > 0n;
   const hasAnyStake = walletStakedRaw > 0n;
 
@@ -325,57 +324,6 @@ function HomePageContent() {
       value: totalStakedDisplay,
       hint: walletConnected ? `Your chest: ${walletStakedDisplay}` : 'Treasure secured',
       animate: 'chest',
-    },
-  ];
-  const actionButtons: Array<{
-    readonly href: string;
-    readonly label: string;
-    readonly description: string;
-    readonly icon: PixelIconComponent;
-    readonly animate?: 'coin-drop' | 'chest' | 'chain';
-  }> = [
-    {
-      href: '/stake',
-      label: 'Stake MON',
-      description: walletConnected
-        ? hasAnyStake
-          ? 'Add MON to reinforce your validator squad.'
-          : 'Launch your first delegation quest and earn rewards.'
-        : 'Connect your wallet to begin staking MON.',
-      icon: CoinPixelIcon,
-      animate: 'coin-drop',
-    },
-    {
-      href: '/stake?mode=unstake',
-      label: 'Unstake',
-      description: walletConnected
-        ? hasAnyStake
-          ? 'Issue an Undelegate order and watch the chain break.'
-          : 'Stake first to unlock unstake paths.'
-        : 'Connect wallet to manage delegations.',
-      icon: ChainBreakPixelIcon,
-      animate: 'chain',
-    },
-    {
-      href: '/account#rewards',
-      label: 'Claim Rewards',
-      description: walletConnected
-        ? hasClaimableRewards
-          ? `Sparkling chest holds ${walletClaimableDisplay}.`
-          : 'Chest sparkles once rewards accrue.'
-        : 'Open the treasure chest when rewards overflow.',
-      icon: ChestPixelIcon,
-      animate: 'chest',
-    },
-    {
-      href: '/account#withdrawals',
-      label: 'Pending Withdraw',
-      description: walletConnected
-        ? hasPendingWithdrawals
-          ? `Cooldown stash: ${walletWithdrawableDisplay}.`
-          : 'No pending withdraw queues yet.'
-        : 'Track withdrawal cooldowns and prepare to collect.',
-      icon: HourglassPixelIcon,
     },
   ];
   const fallbackBars = [
@@ -450,12 +398,7 @@ function HomePageContent() {
               Monitor Epoch cadence, Validators on duty, Delegations queued, Pending Withdraw cooldowns, and Claim Rewards opportunities across {resolved.label}.
             </CardDescription>
           </CardHeader>
-          <CardContent className="relative z-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="space-y-2">
-              <span className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Total Staked</span>
-              <span className="font-display text-2xl tracking-[0.12em] text-primary">{totalStakedDisplay}</span>
-              <p className="text-xs tracking-[0.08em] text-muted-foreground">Across all Delegations locking MON on this network.</p>
-            </div>
+          <CardContent className="relative z-10 grid gap-6 lg:grid-cols-3">
             <div className="space-y-2">
               <span className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Network endpoints</span>
               <span className="font-mono text-xs text-primary">{resolved.rpcUrl}</span>
@@ -489,63 +432,22 @@ function HomePageContent() {
               )}
               <p className="text-xs tracking-[0.08em] text-muted-foreground">Inspect Validators and Delegations directly in the chain archive.</p>
             </div>
-            <div className="flex flex-col justify-between gap-3">
-              <div>
-                <span className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Claim Rewards</span>
-                <p className="mt-2 text-xs tracking-[0.08em] text-muted-foreground">
-                  {walletConnected
-                    ? hasClaimableRewards
-                      ? `Chest is brimming with ${walletClaimableDisplay}.`
-                      : 'Chest sparkles when rewards are ready to claim.'
-                    : 'Link a wallet to light up the reward chest.'}
+            <div className="flex flex-col justify-between gap-4 border-2 border-border bg-secondary/40 px-4 py-4">
+              <div className="space-y-2">
+                <span className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Stake command</span>
+                <p className="text-xs tracking-[0.08em] text-muted-foreground">
+                  Jump into the stake console to delegate, manage rewards, and queue withdrawals.
                 </p>
               </div>
-              <Button asChild variant="accent" className="flex w-full items-center justify-between px-5 py-4">
-                <Link href="/account#rewards" className="flex w-full items-center justify-between gap-3">
-                  <span className="flex flex-col gap-1 text-left">
-                    <span>Claim Rewards</span>
-                    {walletConnected ? (
-                      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-primary-foreground/80">
-                        {isWalletDataLoading ? 'Syncing...' : walletClaimableDisplay}
-                      </span>
-                    ) : null}
-                  </span>
-                  <ChestPixelIcon size={20} className="animate-chest-sparkle" />
+              <Button asChild variant="accent" className="inline-flex items-center justify-between gap-2 px-5 py-3 font-display text-xs uppercase tracking-[0.12em]">
+                <Link href="/stake">
+                  Go to Stake HQ
+                  <CoinPixelIcon size={16} className="animate-coin-drop" />
                 </Link>
               </Button>
             </div>
           </CardContent>
         </Card>
-      </section>
-
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {actionButtons.map((action) => (
-          <Button
-            key={action.label}
-            asChild
-            variant="outline"
-            className="flex h-full flex-col items-start gap-3 px-5 py-5 text-left"
-          >
-            <Link href={action.href as '/stake' | '/account'}>
-              <div className="flex w-full items-center justify-between">
-                <span className="font-display text-sm tracking-[0.14em] text-primary">{action.label}</span>
-                <action.icon
-                  size={18}
-                  className={
-                    action.animate === 'coin-drop'
-                      ? 'animate-coin-drop text-primary'
-                      : action.animate === 'chest'
-                      ? 'animate-chest-sparkle text-accent'
-                      : action.animate === 'chain'
-                      ? 'animate-chain-break text-primary'
-                      : 'text-primary'
-                  }
-                />
-              </div>
-              <p className="text-[11px] tracking-[0.12em] text-muted-foreground/80">{action.description}</p>
-            </Link>
-          </Button>
-        ))}
       </section>
 
       <section className="space-y-6">

@@ -29,12 +29,12 @@ export function TokenPriceCard({ tokenSymbol, priceUsd, priceChangeLabel, descri
           </span>
           <div className="flex flex-col gap-1">
             <span className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{tokenSymbol}</span>
-            <span className="font-display text-4xl tracking-[0.1em] text-accent">{formattedPrice}</span>
+            <span className="font-display text-4xl tracking-[0.04em] text-accent">{formattedPrice}</span>
           </div>
         </div>
         <Badge variant="accent">{changeText}</Badge>
       </div>
-      <p className="mt-5 text-xs tracking-[0.08em] text-muted-foreground/90">{summaryText}</p>
+      <p className="mt-5 text-sm tracking-[0.05em] text-muted-foreground/90 leading-relaxed">{summaryText}</p>
     </Card>
   );
 }

@@ -119,13 +119,13 @@ export function QuickActions({
               <Button
                 onClick={handleStake}
                 disabled={!canActuallyStake}
-                className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
+                className={`h-auto w-full flex-col items-start gap-2 px-4 py-4 text-left ${disabledClass}`}
               >
                 <div className="flex w-full items-center justify-between">
                   <span className="font-display text-xs uppercase tracking-[0.14em]">Stake MON</span>
                   <CoinPixelIcon size={16} className="animate-coin-drop text-primary" />
                 </div>
-                <p className="text-[11px] tracking-[0.12em] text-muted-foreground">
+                <p className="w-full text-xs leading-snug tracking-[0.08em] text-muted-foreground">
                   {busyAction === 'stake' ? 'Opening...' : 'Send MON to validators and boost rewards.'}
                 </p>
               </Button>
@@ -145,13 +145,13 @@ export function QuickActions({
                 variant="outline"
                 onClick={handleUnstake}
                 disabled={!canActuallyUnstake}
-                className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
+                className={`h-auto w-full flex-col items-start gap-2 px-4 py-4 text-left ${disabledClass}`}
               >
                 <div className="flex w-full items-center justify-between">
                   <span className="font-display text-xs uppercase tracking-[0.14em]">Unstake</span>
                   <ChainBreakPixelIcon size={16} className="animate-chain-break text-primary" />
                 </div>
-                <p className="text-[11px] tracking-[0.12em] text-muted-foreground">
+                <p className="w-full text-xs leading-snug tracking-[0.08em] text-muted-foreground">
                   {busyAction === 'unstake' ? 'Processing...' : 'Queue an undelegation and start cooldown.'}
                 </p>
               </Button>
@@ -171,13 +171,13 @@ export function QuickActions({
                 variant="outline"
                 onClick={handleClaim}
                 disabled={!canActuallyClaim}
-                className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
+                className={`h-auto w-full flex-col items-start gap-2 px-4 py-4 text-left ${disabledClass}`}
               >
                 <div className="flex w-full items-center justify-between">
                   <span className="font-display text-xs uppercase tracking-[0.14em]">Claim rewards</span>
                   <ChestPixelIcon size={16} className="animate-chest-sparkle text-accent" />
                 </div>
-                <p className="text-[11px] tracking-[0.12em] text-muted-foreground">
+                <p className="w-full text-xs leading-snug tracking-[0.08em] text-muted-foreground">
                   {busyAction === 'claim' ? 'Claiming...' : hasRewards ? `${rewardsValue} ready to collect.` : 'Chest sparkles once rewards accrue.'}
                 </p>
               </Button>
@@ -197,13 +197,13 @@ export function QuickActions({
                 variant="outline"
                 onClick={handleWithdraw}
                 disabled={!canActuallyWithdraw}
-                className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
+                className={`h-auto w-full flex-col items-start gap-2 px-4 py-4 text-left ${disabledClass}`}
               >
                 <div className="flex w-full items-center justify-between">
                   <span className="font-display text-xs uppercase tracking-[0.14em]">Withdraw</span>
                   <HourglassPixelIcon size={16} className="text-primary" />
                 </div>
-                <p className="text-[11px] tracking-[0.12em] text-muted-foreground">
+                <p className="w-full text-xs leading-snug tracking-[0.08em] text-muted-foreground">
                   {busyAction === 'withdraw'
                     ? 'Withdrawing...'
                     : canWithdraw

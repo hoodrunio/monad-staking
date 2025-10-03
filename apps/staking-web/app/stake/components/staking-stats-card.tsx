@@ -31,7 +31,7 @@ export function StakingStatsCard({ stats }: StakingStatsCardProps) {
               {stat.change ? <Badge variant="outline">{stat.change}</Badge> : null}
             </div>
             <div className="flex items-center justify-between">
-              <p className="font-display text-3xl tracking-[0.08em] text-primary">{stat.value}</p>
+              <p className="font-display text-2xl tracking-[0.04em] text-primary">{stat.value}</p>
               {stat.change ? <TrendIcon size={18} className={`${trendTone} ${stat.trend === 'down' ? 'animate-chain-break' : 'animate-chest-sparkle'}`} /> : null}
             </div>
           </Card>
