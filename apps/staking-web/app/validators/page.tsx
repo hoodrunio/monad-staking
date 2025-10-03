@@ -16,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app
 import { ShellSection } from '@/app/components/layout/shell';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
-import { KnightPixelIcon, SparklePixelIcon } from '@/app/components/icons';
+import { ChainBreakPixelIcon, KnightPixelIcon, SparklePixelIcon } from '@/app/components/icons';
 
 function ValidatorsPageContent() {
   const searchParams = useSearchParams();
@@ -120,10 +120,13 @@ function ValidatorsPageContent() {
 
       <ShellSection as="section" className="space-y-7" width="wide">
         {error ? (
-          <Card className="text-destructive-foreground">
-            <CardHeader>
-              <CardTitle>Unable to load validators</CardTitle>
-              <CardDescription className="text-destructive-foreground/80">
+          <Card className="border-2 border-destructive bg-secondary/40 text-destructive shadow-[4px_4px_0_rgba(0,0,0,0.45)]">
+            <CardHeader className="gap-3">
+              <div className="flex items-center gap-3">
+                <ChainBreakPixelIcon size={16} className="text-destructive" />
+                <CardTitle className="font-display text-lg uppercase tracking-[0.14em] text-destructive">Unable to load validators</CardTitle>
+              </div>
+              <CardDescription className="text-sm tracking-[0.06em] text-destructive/80">
                 {error instanceof Error ? error.message : 'Unknown error occurred while fetching validators.'}
               </CardDescription>
             </CardHeader>

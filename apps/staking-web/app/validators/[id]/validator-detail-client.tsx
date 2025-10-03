@@ -85,12 +85,17 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
     return (
       <ShellSection as="div" className="space-y-6" width="wide">
         {backLink}
-        <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-8">
-          <h3 className="text-xl font-semibold text-destructive">Failed to load validator</h3>
-          <p className="mt-2 text-sm text-destructive/80">
-            {error instanceof Error ? error.message : 'Unknown error occurred.'}
-          </p>
-        </div>
+        <Card className="gap-0 border-2 border-destructive bg-secondary/40 text-destructive shadow-[4px_4px_0_rgba(0,0,0,0.45)]">
+          <CardHeader className="gap-3">
+            <div className="flex items-center gap-3">
+              <ChainBreakPixelIcon size={16} className="text-destructive" />
+              <CardTitle className="font-display text-lg uppercase tracking-[0.14em] text-destructive">Failed to load validator</CardTitle>
+            </div>
+            <CardDescription className="text-sm tracking-[0.06em] text-destructive/80">
+              {error instanceof Error ? error.message : 'Unknown error occurred.'}
+            </CardDescription>
+          </CardHeader>
+        </Card>
       </ShellSection>
     );
   }

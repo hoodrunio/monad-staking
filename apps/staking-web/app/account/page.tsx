@@ -132,8 +132,9 @@ function AccountPageContent() {
           </div>
 
           {delegationsError ? (
-            <div className="border-2 border-destructive/50 bg-destructive/10 p-4 font-display text-xs uppercase tracking-[0.12em] text-destructive">
-              Failed to load delegations
+            <div className="flex items-center gap-3 border-2 border-destructive bg-secondary/40 p-4 font-display text-xs uppercase tracking-[0.12em] text-destructive shadow-[4px_4px_0_rgba(0,0,0,0.45)]">
+              <ChainBreakPixelIcon size={14} className="text-destructive" />
+              <span>Failed to load delegations</span>
             </div>
           ) : delegationsLoading ? (
             <div className="space-y-2">
@@ -202,8 +203,9 @@ function AccountPageContent() {
           </div>
 
           {withdrawalsError ? (
-            <div className="border-2 border-destructive/50 bg-destructive/10 p-4 font-display text-xs uppercase tracking-[0.12em] text-destructive">
-              Failed to load withdrawals
+            <div className="flex items-center gap-3 border-2 border-destructive bg-secondary/40 p-4 font-display text-xs uppercase tracking-[0.12em] text-destructive shadow-[4px_4px_0_rgba(0,0,0,0.45)]">
+              <ChainBreakPixelIcon size={14} className="text-destructive" />
+              <span>Failed to load withdrawals</span>
             </div>
           ) : withdrawalsLoading ? (
             <div className="space-y-2">

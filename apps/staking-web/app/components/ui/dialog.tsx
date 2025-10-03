@@ -30,7 +30,7 @@ export const DialogOverlay = forwardRef<
       ref={ref}
       data-slot="dialog-overlay"
       className={cn(
-        'fixed inset-0 z-50 bg-[#020009]/90 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+        'fixed inset-0 z-50 bg-[#0b0320]/75 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         className,
       )}
       {...props}
@@ -54,7 +54,7 @@ export const DialogContent = forwardRef<
         ref={ref}
         data-slot="dialog-content"
         className={cn(
-          'fixed left-1/2 top-1/2 z-[9999] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] border-2 border-border bg-[#100a24] px-8 py-8 shadow-[0_0_40px_rgba(108,246,255,0.35)] duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-2xl',
+          'fixed left-1/2 top-1/2 z-[9999] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] border-2 border-border bg-[#24104a] px-8 py-8 text-foreground shadow-[0_0_45px_rgba(108,246,255,0.45)] duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-2xl',
           className,
         )}
         {...props}

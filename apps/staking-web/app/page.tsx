@@ -328,14 +328,14 @@ function HomePageContent() {
     { label: 'Total Staked', value: '-- MON', progress: 0.15, tone: 'primary' as const },
     { label: 'Withdrawable', value: '-- MON', progress: 0.08, tone: 'accent' as const },
     { label: 'Claimable', value: '-- MON', progress: 0.05, tone: 'accent' as const },
-    { label: 'Unstaked', value: '-- MON', progress: 0.1, tone: 'primary' as const },
+    { label: 'Available', value: '-- MON', progress: 0.1, tone: 'primary' as const },
   ];
   const stakingBars = walletConnected
     ? [
         { label: 'Total Staked', value: walletStakedDisplay, progress: barProgress(walletStakedDecimal), tone: 'primary' as const },
         { label: 'Withdrawable', value: walletWithdrawableDisplay, progress: barProgress(walletWithdrawableDecimal), tone: 'accent' as const },
         { label: 'Claimable', value: walletClaimableDisplay, progress: barProgress(walletClaimableDecimal), tone: 'accent' as const },
-        { label: 'Unstaked', value: walletAvailableDisplay, progress: barProgress(walletAvailableDecimal), tone: 'primary' as const },
+        { label: 'Available', value: walletAvailableDisplay, progress: barProgress(walletAvailableDecimal), tone: 'primary' as const },
       ]
     : fallbackBars;
   const activationTiles = [
@@ -456,10 +456,13 @@ function HomePageContent() {
         </div>
 
         {error ? (
-          <Card className="border-2 border-destructive/70 text-destructive-foreground">
-            <CardHeader className="gap-3">
-              <CardTitle className="font-display text-lg text-destructive-foreground">Failed to load epoch intel</CardTitle>
-              <CardDescription className="text-xs tracking-[0.08em] text-destructive-foreground/80">
+          <Card className="border-2 border-destructive bg-secondary/40 text-destructive-foreground shadow-[4px_4px_0_rgba(0,0,0,0.45)]">
+            <CardHeader className="gap-4">
+              <div className="flex items-center gap-3">
+                <ChainBreakPixelIcon size={18} className="animate-chain-break text-destructive" />
+                <CardTitle className="font-display text-lg uppercase tracking-[0.14em] text-destructive">Epoch load failed</CardTitle>
+              </div>
+              <CardDescription className="text-sm tracking-[0.06em] text-destructive-foreground/80">
                 {error instanceof Error ? error.message : 'Unknown error occurred while fetching epoch data.'}
               </CardDescription>
             </CardHeader>
@@ -467,10 +470,10 @@ function HomePageContent() {
         ) : isLoading ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <Card key={index} className="gap-0">
+              <Card key={index} className="border-2 border-border bg-secondary/40 px-5 py-5">
                 <CardContent className="space-y-3">
-                  <LoadingSkeleton className="h-4 w-20" />
-                  <LoadingSkeleton className="h-10 w-24" />
+                  <LoadingSkeleton className="h-4 w-24" />
+                  <LoadingSkeleton className="h-10 w-32" />
                 </CardContent>
               </Card>
             ))}
