@@ -437,7 +437,7 @@ function HomePageContent() {
               </div>
               <Button asChild variant="accent" className="inline-flex items-center justify-between gap-2 px-5 py-3 font-display text-xs uppercase tracking-[0.12em]">
                 <Link href="/stake">
-                  Go to Stake HQ
+                  Staking console
                   <CoinPixelIcon size={16} className="animate-coin-drop" />
                 </Link>
               </Button>

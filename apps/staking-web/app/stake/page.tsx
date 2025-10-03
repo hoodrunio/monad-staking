@@ -352,7 +352,7 @@ function StakeScreen() {
                 <CoinPixelIcon size={20} className="animate-coin-drop text-primary" />
               </span>
               <div className="flex flex-col gap-1">
-                <h1 className="font-display text-3xl uppercase tracking-[0.14em] text-primary">Stake HQ</h1>
+                <h1 className="font-display text-3xl uppercase tracking-[0.14em] text-primary">YielNad</h1>
                 <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">
                   Manage delegations, rewards, and withdrawals with the retro command console.
                 </p>
