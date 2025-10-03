@@ -54,7 +54,7 @@ export const DialogContent = forwardRef<
         ref={ref}
         data-slot="dialog-content"
         className={cn(
-          'pixel-panel pixel-border fixed left-1/2 top-1/2 z-[100] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] px-8 py-8 shadow-[0_0_40px_rgba(108,246,255,0.35)] duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-2xl',
+          'fixed left-1/2 top-1/2 z-[9999] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] border-2 border-border bg-[#100a24] px-8 py-8 shadow-[0_0_40px_rgba(108,246,255,0.35)] duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-2xl',
           className,
         )}
         {...props}
@@ -62,7 +62,7 @@ export const DialogContent = forwardRef<
         {children}
         {showCloseButton ? (
           <DialogPrimitive.Close
-            className="absolute right-5 top-5 z-[10] inline-flex h-10 w-10 items-center justify-center border-2 border-border bg-secondary/60 text-primary shadow-[4px_4px_0_rgba(0,0,0,0.55)] transition-transform duration-150 hover:border-primary hover:text-accent active:translate-x-[1px] active:translate-y-[1px]"
+            className="absolute right-5 top-5 inline-flex h-10 w-10 items-center justify-center border-2 border-border bg-secondary/60 text-primary shadow-[4px_4px_0_rgba(0,0,0,0.55)] transition-transform duration-150 hover:border-primary hover:text-accent active:translate-x-[1px] active:translate-y-[1px]"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={20} />
             <span className="sr-only">Close</span>
