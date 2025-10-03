@@ -128,11 +128,8 @@ function StakeScreen() {
     return selectorItems.map((validator) => ({
       value: validator.validatorId,
       title: validator.meta?.name ?? `Validator ${validator.validatorId}`,
-      subtitle: `${validator.commission.formatted} commission • Stake ${validator.stake.formatted}`,
-      stats: [
-        { label: 'Rewards', value: validator.unclaimedRewards.formatted },
-        { label: 'Flags', value: validator.flagsRaw || 'None' },
-      ],
+      subtitle: `Total stake: ${validator.stake.formatted}`,
+      commission: validator.commission.formatted,
       badge: validator.isActive ? 'Active' : undefined,
     }));
   }, [selectorItems]);

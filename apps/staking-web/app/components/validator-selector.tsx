@@ -13,8 +13,7 @@ export interface ValidatorSelectorOption {
   value: string;
   title: string;
   subtitle?: string;
-  description?: string;
-  stats?: Array<{ label: string; value: string }>;
+  commission?: string;
   badge?: string;
 }
 
@@ -54,7 +53,7 @@ export function ValidatorSelector({
     const trimmed = query.trim().toLowerCase();
     if (!trimmed) return options;
     return options.filter((option) => {
-      const candidate = `${option.title} ${option.subtitle ?? ''} ${option.description ?? ''}`.toLowerCase();
+      const candidate = `${option.title} ${option.subtitle ?? ''}`.toLowerCase();
       return candidate.includes(trimmed);
     });
   }, [options, query]);
@@ -103,19 +102,14 @@ export function ValidatorSelector({
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
+                  <div className="flex-1 space-y-2">
                     <p className="font-display text-sm uppercase tracking-[0.12em] text-primary">{option.title}</p>
                     {option.subtitle ? <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground">{option.subtitle}</p> : null}
-                    {option.description ? <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground">{option.description}</p> : null}
-                    {option.stats && option.stats.length > 0 ? (
-                      <div className="flex flex-wrap gap-3 font-display text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
-                        {option.stats.map((stat) => (
-                          <span key={stat.label} className="inline-flex items-center gap-1">
-                            <CoinPixelIcon size={10} className="text-primary" />
-                            <span>{stat.label}:</span>
-                            <span className="font-mono text-foreground">{stat.value}</span>
-                          </span>
-                        ))}
+                    {option.commission ? (
+                      <div className="inline-flex items-center gap-2 border-2 border-accent/60 bg-accent/10 px-3 py-1.5">
+                        <CoinPixelIcon size={14} className="text-accent" />
+                        <span className="font-display text-xs uppercase tracking-[0.12em] text-muted-foreground">Commission</span>
+                        <span className="font-mono text-base font-bold text-accent">{option.commission}</span>
                       </div>
                     ) : null}
                   </div>
