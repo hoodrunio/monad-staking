@@ -194,7 +194,7 @@ function HomePageContent() {
   const withdrawableEpoch = epochData
     ? (BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n) + BigInt(epochData.withdrawalDelay)).toString()
     : null;
-  const monPriceDisplay = '$12.48';
+  const monPriceDisplay = '$0.00';
   const validatorsCountDisplay = stakingData.validators.length
     ? stakingData.validators.length.toString().padStart(2, '0')
     : stakingData.isLoading.validators
@@ -400,8 +400,6 @@ function HomePageContent() {
           </CardHeader>
           <CardContent className="relative z-10 grid gap-6 lg:grid-cols-3">
             <div className="space-y-2">
-              <span className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Network endpoints</span>
-              <span className="font-mono text-xs text-primary">{resolved.rpcUrl}</span>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <p className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Chain ID</p>

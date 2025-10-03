@@ -14,7 +14,7 @@ interface ActionModalProps {
 export function ActionModal({ open, title, description, onClose, children, footer }: ActionModalProps) {
   return (
     <Dialog open={open} onOpenChange={(value) => (!value ? onClose() : undefined)}>
-      <DialogContent className="pixel-panel pixel-border max-w-lg border-2 border-border bg-secondary/50">
+      <DialogContent className="pixel-panel pixel-border w-full max-w-2xl border-2 border-border bg-secondary/50">
         <DialogHeader className="gap-3">
           <DialogTitle className="font-display text-xl uppercase tracking-[0.16em] text-primary">{title}</DialogTitle>
           {description ? (
