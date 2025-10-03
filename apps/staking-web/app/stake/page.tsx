@@ -20,6 +20,7 @@ import { useStakeActions } from '@/hooks/useStakeActions';
 import { useStakingData } from '@/hooks/useStakingData';
 import { useValidatorsQuery } from '@/lib/queries';
 import { formatMonFromWei, getNextAvailableWithdrawId } from '@/lib/utils';
+import { formatMonCompactFromNumber } from '@/lib/format';
 import { useGasEstimation } from '@/hooks/useGasEstimation';
 import { parseEther, formatEther } from 'viem';
 import type { ValidatorSummary } from '@/lib/api/models';
@@ -198,7 +199,7 @@ function StakeScreen() {
   const stats = [
     {
       label: 'Total staked',
-      value: `${statsFormatter.format(totals.staked)} MON`,
+      value: formatMonCompactFromNumber(totals.staked, 1),
       change: `+${statsFormatter.format(totals.rewards)} rewards`,
       trend: 'up' as const,
     },

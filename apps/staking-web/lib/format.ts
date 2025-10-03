@@ -36,6 +36,38 @@ export function formatMon(value: bigint, fractionDigits = 4): string {
   return `${formatBigIntWithDecimals(value, MON_DECIMALS, fractionDigits)} MON`;
 }
 
+export function formatMonCompact(value: bigint, fractionDigits = 1): string {
+  const decimal = Number(formatBigIntWithDecimals(value, MON_DECIMALS, 2));
+  
+  if (decimal >= 1_000_000_000) {
+    return `${(decimal / 1_000_000_000).toFixed(fractionDigits)}B MON`;
+  }
+  if (decimal >= 1_000_000) {
+    return `${(decimal / 1_000_000).toFixed(fractionDigits)}M MON`;
+  }
+  if (decimal >= 1_000) {
+    return `${(decimal / 1_000).toFixed(fractionDigits)}K MON`;
+  }
+  return `${decimal.toFixed(fractionDigits)} MON`;
+}
+
+/**
+ * Formats large MON amounts from number with compact notation (B, M, K)
+ * Useful for displaying large decimal numbers in limited space
+ */
+export function formatMonCompactFromNumber(value: number, fractionDigits = 1): string {
+  if (value >= 1_000_000_000) {
+    return `${(value / 1_000_000_000).toFixed(fractionDigits)}B MON`;
+  }
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(fractionDigits)}M MON`;
+  }
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(fractionDigits)}K MON`;
+  }
+  return `${value.toFixed(fractionDigits)} MON`;
+}
+
 export function formatCommission(commission: bigint): string {
   // commission is scaled by 1e18
   const scaled = (commission * 10000n) / ONE_MON; // basis points * 100

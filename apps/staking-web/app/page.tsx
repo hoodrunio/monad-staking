@@ -8,7 +8,7 @@ import { useAccount } from 'wagmi';
 import { MONAD_NETWORK_KEYS } from '@monad-staking/config';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';
-import { formatMon } from '@/lib/format';
+import { formatMon, formatMonCompact } from '@/lib/format';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { ClientOnly } from '@/app/components/client-only';
 import { useEpochQuery } from '@/lib/queries';
@@ -227,7 +227,7 @@ function HomePageContent() {
   );
   const totalStakedDisplay =
     stakingData.validators.length > 0
-      ? formatMon(networkStakeRaw, 2)
+      ? formatMonCompact(networkStakeRaw, 1)
       : stakingData.isLoading.validators
       ? 'Loading...'
       : '-- MON';
