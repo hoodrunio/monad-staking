@@ -51,18 +51,18 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b-2 border-border/80 bg-[#09041c]/95 backdrop-blur">
-      <div className="mx-auto hidden w-full max-w-6xl items-center justify-between px-4 py-5 lg:flex">
-        <div className="flex items-center gap-8">
-          <Link href="/" onClick={closeMobile} className="group flex items-center gap-3">
+      <div className="mx-auto hidden w-full max-w-7xl items-center justify-between gap-4 px-4 py-5 lg:flex">
+        <div className="flex min-w-0 flex-1 items-center gap-6">
+          <Link href="/" onClick={closeMobile} className="group flex shrink-0 items-center gap-3">
             <span className="flex h-12 w-12 items-center justify-center border-2 border-primary bg-secondary/60 shadow-[4px_4px_0_rgba(0,0,0,0.6)] transition-transform duration-150 group-hover:translate-x-[1px] group-hover:translate-y-[1px]">
               <SparklePixelIcon size={20} className="text-primary" />
             </span>
-            <span className="font-display text-lg tracking-[0.16em] text-primary">
+            <span className="hidden font-display text-lg tracking-[0.16em] text-primary xl:block">
               <span className="block text-xs text-muted-foreground">Monad</span>
               Staking HQ
             </span>
           </Link>
-          <nav className="flex items-center gap-3">
+          <nav className="flex items-center gap-2">
             {navigationLinks.map((link) => {
               const active = activeHref === link.href;
               const Icon = link.icon;
@@ -72,10 +72,10 @@ export function SiteHeader() {
                   asChild
                   variant={active ? 'accent' : 'outline'}
                   size="sm"
-                  className="group gap-3 px-5"
+                  className="group gap-2 px-4"
                 >
-                  <Link href={link.href} onClick={closeMobile} className="flex items-center gap-3">
-                    <Icon className={active ? 'text-primary-foreground' : 'text-primary'} size={18} />
+                  <Link href={link.href} onClick={closeMobile} className="flex items-center gap-2">
+                    <Icon className={active ? 'text-primary-foreground' : 'text-primary'} size={16} />
                     <span>{link.label}</span>
                     {link.badge ? <Badge variant="accent">{link.badge}</Badge> : null}
                   </Link>
@@ -85,17 +85,17 @@ export function SiteHeader() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
+        <div className="flex shrink-0 items-center gap-4">
           <ClientOnly
             fallback={
-              <div className="pixel-panel pixel-border px-4 py-3 text-xs text-muted-foreground">
-                Linking wallet...
+              <div className="px-4 py-2 text-xs text-muted-foreground">
+                Linking...
               </div>
             }
           >
             <WalletConnectButton />
           </ClientOnly>
+          <ThemeToggle />
         </div>
       </div>
 

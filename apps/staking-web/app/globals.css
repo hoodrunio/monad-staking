@@ -331,3 +331,81 @@ p {
     0 0 14px rgba(140, 246, 255, 0.18);
   border-radius: 0;
 }
+
+/* Rainbow Kit Modal Customization - Pixel Art Style */
+/* ONLY target elements INSIDE the modal to avoid affecting other components */
+
+/* Modal dialog container */
+div[data-rk] div[role="dialog"] {
+  border: 3px solid hsl(var(--border)) !important;
+  box-shadow: 
+    0 0 40px rgba(108, 246, 255, 0.3), 
+    inset 0 0 0 2px rgba(9, 5, 24, 0.95),
+    10px 10px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Wallet option buttons in connect modal */
+div[data-rk] button[data-testid^="rk-wallet-option"] {
+  border: 2px solid hsl(var(--border)) !important;
+  background: rgba(16, 10, 36, 0.7) !important;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6) !important;
+  font-family: var(--font-display) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  font-size: 10px !important;
+}
+
+div[data-rk] button[data-testid^="rk-wallet-option"]:hover {
+  border-color: hsl(var(--primary)) !important;
+  background: rgba(22, 13, 65, 0.85) !important;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.7) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Account modal - avatar image */
+div[data-rk] div[role="dialog"] img {
+  border: 3px solid hsl(var(--border)) !important;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5) !important;
+  image-rendering: pixelated !important;
+}
+
+/* Account modal - disconnect and copy buttons */
+div[data-rk] button[aria-label*="Disconnect"],
+div[data-rk] button[aria-label*="Copy"],
+div[data-rk] button[aria-label*="Kopyala"],
+div[data-rk] button[aria-label*="Kes"] {
+  border: 2px solid hsl(var(--border)) !important;
+  background: rgba(16, 10, 36, 0.85) !important;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6) !important;
+  font-family: var(--font-display) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  font-size: 9px !important;
+  padding: 12px 20px !important;
+}
+
+div[data-rk] button[aria-label*="Disconnect"]:hover,
+div[data-rk] button[aria-label*="Copy"]:hover,
+div[data-rk] button[aria-label*="Kopyala"]:hover,
+div[data-rk] button[aria-label*="Kes"]:hover {
+  border-color: hsl(var(--accent)) !important;
+  background: rgba(22, 13, 65, 0.95) !important;
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.7) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Close button */
+div[data-rk] button[aria-label*="Close"],
+div[data-rk] button[aria-label*="Kapat"] {
+  background: rgba(16, 10, 36, 0.9) !important;
+  border: 2px solid hsl(var(--border)) !important;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+div[data-rk] button[aria-label*="Close"]:hover,
+div[data-rk] button[aria-label*="Kapat"]:hover {
+  background: rgba(22, 13, 65, 0.95) !important;
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.6) !important;
+  transform: translateY(-1px) !important;
+}

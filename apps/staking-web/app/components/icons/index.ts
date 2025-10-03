@@ -30,6 +30,7 @@ export {
   ChestPixelIcon,
   CoinPixelIcon,
   HourglassPixelIcon,
+  NetworkPixelIcon,
   KnightPixelIcon,
   SparklePixelIcon,
 } from '@/app/components/icons/pixel-icons';

@@ -121,3 +121,27 @@ export function SparklePixelIcon({ className, size }: PixelIconProps) {
     </PixelIconBase>
   );
 }
+
+export function NetworkPixelIcon({ className, size }: PixelIconProps) {
+  return (
+    <PixelIconBase className={className} size={size}>
+      {/* Outer frame */}
+      <rect x="2" y="2" width="12" height="12" fill="#2c2e80" />
+      <rect x="3" y="3" width="10" height="10" fill="#361f6d" />
+      {/* Nodes */}
+      <rect x="4" y="4" width="2" height="2" fill="#6cf6ff" />
+      <rect x="10" y="4" width="2" height="2" fill="#6cf6ff" />
+      <rect x="4" y="10" width="2" height="2" fill="#6cf6ff" />
+      <rect x="10" y="10" width="2" height="2" fill="#6cf6ff" />
+      {/* Links */}
+      <rect x="6" y="5" width="4" height="1" fill="#ff5cf4" />
+      <rect x="5" y="6" width="1" height="4" fill="#ff5cf4" />
+      <rect x="10" y="6" width="1" height="4" fill="#ff5cf4" />
+      <rect x="6" y="10" width="4" height="1" fill="#ff5cf4" />
+      {/* Center hub */}
+      <rect x="7" y="7" width="2" height="2" fill="#fcca46" />
+      <rect x="6" y="8" width="1" height="1" fill="#ffd166" />
+      <rect x="9" y="8" width="1" height="1" fill="#ffd166" />
+    </PixelIconBase>
+  );
+}
