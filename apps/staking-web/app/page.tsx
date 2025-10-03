@@ -292,10 +292,8 @@ function HomePageContent() {
   const withdrawalDelayProgress = epochData ? Math.min(Number(epochData.withdrawalDelay ?? 0) / 8, 1) : 0.35;
   const activationCountdown = epochNumber !== null && nextActivationNumber !== null ? nextActivationNumber - epochNumber : null;
   const withdrawalCountdown = epochNumber !== null && withdrawableNumber !== null ? withdrawableNumber - epochNumber : null;
-  const safeWithdrawalCountdown = withdrawalCountdown !== null ? Math.max(withdrawalCountdown, 0) : null;
   const activationProgress = activationCountdown !== null ? Math.max(1 - activationCountdown / 3, 0.2) : 0.3;
   const withdrawalProgress = withdrawalCountdown !== null ? Math.max(1 - withdrawalCountdown / 6, 0.2) : 0.4;
-  const rewardsSparkProgress = epochNumber !== null && Number.isFinite(epochNumber) ? ((epochNumber % 4) + 1) / 4 : 0.6;
   const hudMetrics: HudMetricProps[] = [
     {
       icon: CoinPixelIcon,
@@ -592,22 +590,6 @@ function HomePageContent() {
                     <p className="text-[11px] tracking-[0.12em] text-muted-foreground/80">{tile.description}</p>
                   </div>
                 ))}
-                <div className="flex flex-col gap-2 border-2 border-border bg-secondary/80 px-4 py-4 shadow-[4px_4px_0_rgba(0,0,0,0.55)]">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <SparklePixelIcon size={16} className="animate-chest-sparkle text-accent" />
-                      <span className="font-display text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Claim Rewards cadence</span>
-                    </div>
-                    <span className="font-display text-sm tracking-[0.12em] text-primary">Every {safeWithdrawalCountdown !== null ? `${safeWithdrawalCountdown} epochs` : 'few epochs'}</span>
-                  </div>
-                  <div className="h-4 pixel-progress">
-                    <div
-                      className="pixel-progress-fill"
-                      style={{ width: `${Math.round(rewardsSparkProgress * 100)}%`, backgroundImage: 'repeating-linear-gradient(90deg, rgba(255, 92, 244, 0.9) 0, rgba(255, 92, 244, 0.9) 12px, rgba(255, 92, 244, 0.35) 12px, rgba(255, 92, 244, 0.35) 16px)' }}
-                    />
-                  </div>
-                  <p className="text-[11px] tracking-[0.12em] text-muted-foreground/80">Rewards sparkle faster when Validators share boosts.</p>
-                </div>
               </div>
             ) : (
               <LoadingSkeleton className="h-48 w-full" />
