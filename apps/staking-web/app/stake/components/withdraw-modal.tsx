@@ -4,8 +4,13 @@ import { useState } from 'react';
 import { ActionModal } from './action-modal';
 import { Button } from '@/app/components/ui/button';
 import type { WithdrawalSummary } from '@/lib/api/models';
-import Image from 'next/image';
-import { useTheme } from 'next-themes';
+import {
+  ChainBreakPixelIcon,
+  ChestPixelIcon,
+  CoinPixelIcon,
+  HourglassPixelIcon,
+} from '@/app/components/icons';
+import { usePixelSound } from '@/hooks/usePixelSound';
 
 interface WithdrawModalProps {
   readonly open: boolean;
@@ -25,8 +30,7 @@ export function WithdrawModal({
   busy,
 }: WithdrawModalProps) {
   const [selectedWithdrawals, setSelectedWithdrawals] = useState<Set<string>>(new Set());
-  const { resolvedTheme } = useTheme();
-  const monLogo = resolvedTheme === 'dark' ? '/mon-logo-light.svg' : '/mon-logo-dark.svg';
+  const playSound = usePixelSound();
 
   const handleWithdrawClick = async () => {
     if (selectedWithdrawals.size === 0) return;
@@ -35,6 +39,7 @@ export function WithdrawModal({
       selectedWithdrawals.has(`${w.validatorId}-${w.withdrawalId}`)
     );
     
+    playSound('chain');
     await onWithdrawSelected(selected);
     setSelectedWithdrawals(new Set());
   };
@@ -83,7 +88,7 @@ export function WithdrawModal({
         {readyWithdrawals.length > 0 ? (
           <>
             <div className="flex items-center justify-between border-b border-border pb-2">
-              <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground">
+              <label className="flex cursor-pointer items-center gap-2 font-display text-xs uppercase tracking-[0.12em] text-muted-foreground transition hover:text-primary">
                 <input
                   type="checkbox"
                   checked={selectedWithdrawals.size === readyWithdrawals.length && readyWithdrawals.length > 0}
@@ -91,10 +96,13 @@ export function WithdrawModal({
                   disabled={busy}
                   className="h-4 w-4 cursor-pointer rounded border-input bg-background text-emerald-600 focus:ring-emerald-500/40 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-500"
                 />
-                <span>Select all ({readyWithdrawals.length})</span>
+                <span className="inline-flex items-center gap-2">
+                  <ChainBreakPixelIcon size={12} className="text-primary" />
+                  Select all ({readyWithdrawals.length})
+                </span>
               </label>
               {selectedWithdrawals.size > 0 && (
-                <span className="text-xs font-medium text-emerald-800 dark:text-emerald-200">{selectedWithdrawals.size} selected</span>
+                <span className="font-display text-[10px] uppercase tracking-[0.12em] text-primary">{selectedWithdrawals.size} selected</span>
               )}
             </div>
             <div className="max-h-[400px] space-y-2 overflow-y-auto pr-2">
@@ -121,11 +129,11 @@ export function WithdrawModal({
                     />
                     <div className="flex-1 space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-foreground">Validator {withdrawal.validatorId}</p>
-                        <span className="text-xs text-foreground/80">Slot #{withdrawal.withdrawalId}</span>
+                        <p className="font-display text-sm uppercase tracking-[0.12em] text-primary">Validator {withdrawal.validatorId}</p>
+                        <span className="font-mono text-[11px] text-muted-foreground">Slot #{withdrawal.withdrawalId}</span>
                       </div>
-                      <p className="text-xs font-medium text-foreground inline-flex items-center gap-1">
-                        <Image src={monLogo} alt="MON" width={12} height={12} className="inline" />
+                      <p className="inline-flex items-center gap-1 font-mono text-xs text-primary">
+                        <CoinPixelIcon size={12} className="text-primary" />
                         {withdrawal.amount.formatted}
                       </p>
                     </div>
@@ -135,13 +143,20 @@ export function WithdrawModal({
             </div>
           </>
         ) : (
-          <div className="rounded-xl border border-border bg-muted/50 p-6 text-center text-sm text-muted-foreground">
+          <div className="border-2 border-border bg-secondary/40 p-6 text-center text-sm text-muted-foreground">
+            <div className="mb-2 flex justify-center">
+              <ChestPixelIcon size={18} className="animate-chest-sparkle text-accent" />
+            </div>
             No withdrawals are ready yet. Withdrawal requests need to clear the withdrawal delay period first.
           </div>
         )}
         {pendingWithdrawals.length > 0 && (
-          <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-            <span className="font-medium">Note:</span> You have {pendingWithdrawals.length} pending withdrawal
+          <div className="border-2 border-border bg-secondary/30 px-3 py-2 text-[11px] tracking-[0.12em] text-muted-foreground">
+            <span className="inline-flex items-center gap-2 font-display text-[10px] uppercase tracking-[0.14em] text-primary">
+              <HourglassPixelIcon size={12} className="text-primary" />
+              Note:
+            </span>{' '}
+            You have {pendingWithdrawals.length} pending withdrawal
             {pendingWithdrawals.length > 1 ? 's' : ''} still cooling down.
           </div>
         )}
@@ -152,7 +167,7 @@ export function WithdrawModal({
           <Button
             onClick={() => void handleWithdrawClick()}
             disabled={busy || selectedWithdrawals.size === 0}
-            className="bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-muted disabled:text-muted-foreground dark:bg-emerald-500 dark:text-slate-900 dark:hover:bg-emerald-400"
+            className="border-2 border-emerald-500 bg-emerald-400/80 text-slate-900 hover:bg-emerald-400"
           >
             {busy ? 'Processing...' : `Withdraw Selected (${selectedWithdrawals.size})`}
           </Button>

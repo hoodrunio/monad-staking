@@ -1,15 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { formatEther, parseEther } from 'viem';
 import { ActionModal } from './action-modal';
 import { ValidatorSelector } from '@/app/components/validator-selector';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
-import { formatEther, parseEther } from 'viem';
-import { HugeiconsIcon, AlertCircleIcon, Loading01Icon } from '@/app/components/icons';
-import Image from 'next/image';
-import { useTheme } from 'next-themes';
+import {
+  ChainBreakPixelIcon,
+  CoinPixelIcon,
+  HourglassPixelIcon,
+  KnightPixelIcon,
+  SparklePixelIcon,
+} from '@/app/components/icons';
+import { usePixelSound } from '@/hooks/usePixelSound';
 
 export type ValidatorOption = {
   value: string;
@@ -71,8 +76,7 @@ export function StakingModal({
   additionalInfo,
 }: StakingModalProps) {
   const [step, setStep] = useState<1 | 2>(1);
-  const { resolvedTheme } = useTheme();
-  const monLogo = resolvedTheme === 'dark' ? '/mon-logo-light.svg' : '/mon-logo-dark.svg';
+  const playSound = usePixelSound();
 
   // Reset to step 1 when modal closes
   useEffect(() => {
@@ -121,9 +125,10 @@ export function StakingModal({
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={() => {
                   if (selectedValidatorId) {
+                    playSound('coin');
                     setStep(2);
                     onCalculateMax();
                   }
@@ -140,9 +145,12 @@ export function StakingModal({
         {step === 2 && (
           <>
             {/* Show selected validator */}
-            <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
-              <div className="text-xs text-muted-foreground mb-1">Selected Validator</div>
-              <div className="font-medium">
+            <div className="border-2 border-border bg-secondary/40 p-4 shadow-[4px_4px_0_rgba(0,0,0,0.45)]">
+              <div className="mb-1 flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                <KnightPixelIcon size={12} className="text-primary" />
+                Selected Validator
+              </div>
+              <div className="font-display text-sm uppercase tracking-[0.12em] text-primary">
                 {validatorOptions.find(v => v.value === selectedValidatorId)?.title || `Validator ${selectedValidatorId}`}
               </div>
               <Button
@@ -159,11 +167,9 @@ export function StakingModal({
             {/* Amount Input */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="amount-input" className="text-sm text-muted-foreground flex items-center gap-1.5">
+                <Label htmlFor="amount-input" className="flex items-center gap-2 text-xs font-display uppercase tracking-[0.12em] text-muted-foreground">
                   {amountLabel}
-                  <span className="inline-flex items-center gap-1">
-                    (<Image src={monLogo} alt="MON" width={14} height={14} className="inline" />MON)
-                  </span>
+                  <CoinPixelIcon size={12} className="text-primary" />
                 </Label>
                 {maxAmount !== null && !isEstimating && (
                   <Button
@@ -210,8 +216,8 @@ export function StakingModal({
                 {maxAmount !== null && !isEstimating && (
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">Max (after gas fees):</span>
-                    <span className="font-mono text-amber-400 inline-flex items-center gap-1">
-                      <Image src={monLogo} alt="MON" width={12} height={12} className="inline" />
+                    <span className="inline-flex items-center gap-1 font-mono text-amber-300">
+                      <SparklePixelIcon size={12} className="text-amber-300" />
                       {formatEther(maxAmount)} MON
                     </span>
                   </div>
@@ -220,8 +226,8 @@ export function StakingModal({
                 {gasEstimate && (
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Estimated gas cost:</span>
-                    <span className="font-mono inline-flex items-center gap-1">
-                      <Image src={monLogo} alt="MON" width={12} height={12} className="inline" />
+                    <span className="inline-flex items-center gap-1 font-mono">
+                      <HourglassPixelIcon size={12} className="text-primary" />
                       ~{gasEstimate} MON
                     </span>
                   </div>
@@ -229,15 +235,15 @@ export function StakingModal({
 
                 {isEstimating && (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground animate-pulse">
-                    <HugeiconsIcon icon={Loading01Icon} size={12} className="animate-spin" />
+                    <SparklePixelIcon size={12} className="text-primary" />
                     <span>Calculating gas cost...</span>
                   </div>
                 )}
 
                 {/* Warning if amount exceeds max */}
                 {amount && maxAmount !== null && parseEther(sanitizeAmount(amount) || '0') > maxAmount && (
-                  <div className="flex items-center gap-2 rounded-md bg-amber-500/10 border border-amber-500/20 p-2 text-xs text-amber-400">
-                    <HugeiconsIcon icon={AlertCircleIcon} size={12} className="flex-shrink-0" />
+                  <div className="flex items-center gap-2 border-2 border-amber-400 bg-amber-400/10 p-2 text-xs text-amber-200">
+                    <ChainBreakPixelIcon size={12} className="text-amber-200" />
                     <span>Amount exceeds maximum stakeable (gas fees required)</span>
                   </div>
                 )}
@@ -251,8 +257,12 @@ export function StakingModal({
               <Button variant="outline" onClick={() => setStep(1)} disabled={disabled}>
                 Back
               </Button>
-              <Button 
-                onClick={onSubmit}
+              <Button
+                onClick={() => {
+                  if (!canSubmit) return;
+                  playSound(isStake ? 'coin' : 'chain');
+                  onSubmit();
+                }}
                 disabled={!canSubmit}
                 className={isStake ? '' : 'bg-amber-400 text-slate-900 hover:bg-amber-300'}
               >

@@ -9,11 +9,10 @@ import {
   CoinPixelIcon,
   HourglassPixelIcon,
   SparklePixelIcon,
-  InformationCircleIcon,
-  HugeiconsIcon,
 } from '@/app/components/icons';
 import { Badge } from '@/app/components/ui/badge';
 import { BalancePieChart } from './balance-pie-chart';
+import { usePixelSound } from '@/hooks/usePixelSound';
 
 interface QuickActionsProps {
   readonly stakedValue: string;
@@ -76,6 +75,27 @@ export function QuickActions({
   ].filter(item => item.value >= 0);
 
   const totalBalance = (availableAmount + stakedAmount).toFixed(2);
+  const playSound = usePixelSound();
+
+  const handleStake = () => {
+    playSound('coin');
+    onStake();
+  };
+
+  const handleUnstake = () => {
+    playSound('chain');
+    onUnstake();
+  };
+
+  const handleClaim = () => {
+    playSound('chest');
+    onClaim();
+  };
+
+  const handleWithdraw = () => {
+    playSound('chain');
+    onWithdraw();
+  };
 
   return (
     <Card className="h-full space-y-5 px-6 py-6">
@@ -97,7 +117,7 @@ export function QuickActions({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={onStake}
+                onClick={handleStake}
                 disabled={!canActuallyStake}
                 className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
               >
@@ -123,7 +143,7 @@ export function QuickActions({
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
-                onClick={onUnstake}
+                onClick={handleUnstake}
                 disabled={!canActuallyUnstake}
                 className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
               >
@@ -149,7 +169,7 @@ export function QuickActions({
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
-                onClick={onClaim}
+                onClick={handleClaim}
                 disabled={!canActuallyClaim}
                 className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
               >
@@ -175,7 +195,7 @@ export function QuickActions({
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
-                onClick={onWithdraw}
+                onClick={handleWithdraw}
                 disabled={!canActuallyWithdraw}
                 className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
               >
@@ -212,7 +232,7 @@ export function QuickActions({
       )}
 
       <div className="flex items-start gap-3 border-2 border-border bg-secondary/40 px-4 py-3 text-[11px] tracking-[0.12em] text-muted-foreground">
-        <HugeiconsIcon icon={InformationCircleIcon} className="mt-0.5 h-4 w-4 text-primary" />
+        <SparklePixelIcon size={12} className="mt-0.5 text-primary" />
         <span>
           {hasStakedTokens
             ? `Current APY ${displayApy} on staked MON. Claim rewards to empty sparkling chests.`

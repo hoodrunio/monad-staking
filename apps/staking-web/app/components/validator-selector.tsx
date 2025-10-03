@@ -1,9 +1,13 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CheckCircleIcon, MagnifyingGlassCircleIcon } from '@heroicons/react/24/outline';
-import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid';
 import { cn } from '@/lib/utils';
+import {
+  ChainBreakPixelIcon,
+  ChestPixelIcon,
+  CoinPixelIcon,
+  SparklePixelIcon,
+} from '@/app/components/icons';
 
 export interface ValidatorSelectorOption {
   value: string;
@@ -58,28 +62,28 @@ export function ValidatorSelector({
   return (
     <fieldset className="space-y-4" name={name}>
       <div className="relative">
-        <MagnifyingGlassCircleIcon className="pointer-events-none absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+        <SparklePixelIcon className="pointer-events-none absolute left-3 top-2.5 text-primary" size={14} />
         <input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={filterPlaceholder}
           disabled={disabled}
-          className="w-full rounded-xl pl-11 pr-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full border-2 border-border bg-secondary/40 pl-10 pr-3 py-2 font-display text-xs uppercase tracking-[0.12em] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
         />
       </div>
 
-      {toolbar ? <div className="flex items-center justify-between text-xs text-muted-foreground">{toolbar}</div> : null}
+      {toolbar ? <div className="flex items-center justify-between text-[11px] tracking-[0.12em] text-muted-foreground">{toolbar}</div> : null}
 
       <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-16 animate-pulse rounded-2xl bg-white/10" />
+              <div key={index} className="h-16 animate-pulse border-2 border-border bg-secondary/30" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl p-4 text-sm text-muted-foreground">
+          <div className="border-2 border-border bg-secondary/30 p-4 text-sm text-muted-foreground">
             {emptyMessage}
           </div>
         ) : (
@@ -92,21 +96,22 @@ export function ValidatorSelector({
                 onClick={() => onChange(option.value)}
                 disabled={disabled}
                 className={cn(
-                  'w-full rounded-2xl px-4 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-0',
+                  'w-full border-2 px-4 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-0',
                   selected
-                    ? 'bg-primary/10 text-foreground ring-1 ring-primary/40'
-                    : 'text-foreground hover:bg-primary/5',
+                    ? 'border-primary bg-secondary/50 text-foreground'
+                    : 'border-border bg-secondary/30 text-foreground hover:border-primary/70 hover:bg-secondary/40',
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
-                    <p className="text-sm font-semibold">{option.title}</p>
-                    {option.subtitle ? <p className="text-xs text-muted-foreground">{option.subtitle}</p> : null}
-                    {option.description ? <p className="text-xs text-muted-foreground">{option.description}</p> : null}
+                    <p className="font-display text-sm uppercase tracking-[0.12em] text-primary">{option.title}</p>
+                    {option.subtitle ? <p className="text-[11px] tracking-[0.08em] text-muted-foreground">{option.subtitle}</p> : null}
+                    {option.description ? <p className="text-[11px] tracking-[0.08em] text-muted-foreground">{option.description}</p> : null}
                     {option.stats && option.stats.length > 0 ? (
-                      <div className="flex flex-wrap gap-3 text-[10px] uppercase tracking-wide text-muted-foreground">
+                      <div className="flex flex-wrap gap-3 font-display text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
                         {option.stats.map((stat) => (
-                          <span key={stat.label} className="flex items-center gap-1">
+                          <span key={stat.label} className="inline-flex items-center gap-1">
+                            <CoinPixelIcon size={10} className="text-primary" />
                             <span>{stat.label}:</span>
                             <span className="font-mono text-foreground">{stat.value}</span>
                           </span>
@@ -114,13 +119,24 @@ export function ValidatorSelector({
                       </div>
                     ) : null}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-end gap-2">
                     {option.badge ? (
-                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-primary-foreground">
+                      <span className="inline-flex items-center gap-1 border-2 border-primary px-2 py-0.5 font-display text-[9px] uppercase tracking-[0.14em] text-primary">
+                        <ChestPixelIcon size={10} className="text-primary" />
                         {option.badge}
                       </span>
                     ) : null}
-                    {selected ? <CheckCircleSolid className="h-5 w-5 text-primary" /> : <CheckCircleIcon className="h-5 w-5 text-muted-foreground" />}
+                    {selected ? (
+                      <span className="inline-flex items-center gap-1 border-2 border-primary px-2 py-0.5 font-display text-[9px] uppercase tracking-[0.14em] text-primary">
+                        <SparklePixelIcon size={10} className="text-primary" />
+                        Selected
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 border-2 border-border px-2 py-0.5 font-display text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+                        <ChainBreakPixelIcon size={10} className="text-muted-foreground" />
+                        Choose
+                      </span>
+                    )}
                   </div>
                 </div>
               </button>
@@ -135,7 +151,7 @@ export function ValidatorSelector({
             type="button"
             onClick={onLoadMore}
             disabled={loadingMore || disabled}
-            className="w-full rounded-xl px-3 py-2 text-sm font-medium text-foreground transition hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full border-2 border-border px-3 py-2 font-display text-xs uppercase tracking-[0.12em] text-foreground transition hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loadingMore ? 'Loading...' : 'Load more validators'}
           </button>
