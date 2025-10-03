@@ -4,28 +4,27 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-150 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.97] active:transition-transform",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap border-2 border-border bg-secondary px-5 py-3 font-display text-xs uppercase tracking-[0.18em] text-foreground shadow-[6px_6px_0_rgba(0,0,0,0.55)] transition-transform duration-150 disabled:pointer-events-none disabled:opacity-60 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 focus-visible:border-ring focus-visible:ring-ring/40 focus-visible:ring-[3px] aria-invalid:border-destructive aria-invalid:shadow-[6px_6px_0_rgba(255,75,84,0.4)] active:translate-x-[2px] active:translate-y-[2px]",
   {
     variants: {
       variant: {
-        default:
-          'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 active:bg-primary/80',
+        default: 'border-primary bg-primary text-primary-foreground hover:shadow-[8px_8px_0_rgba(108,246,255,0.6)]',
         destructive:
-          'bg-destructive text-white shadow-xs hover:bg-destructive/90 active:bg-destructive/80 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
+          'border-destructive bg-destructive text-destructive-foreground hover:shadow-[8px_8px_0_rgba(255,107,107,0.6)]',
         outline:
-          'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground active:bg-accent/80 dark:bg-input/30 dark:border-input dark:hover:bg-input/50 dark:active:bg-input/60',
+          'border-border bg-transparent text-foreground shadow-[4px_4px_0_rgba(0,0,0,0.5)] hover:bg-secondary/40',
         secondary:
-          'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 active:bg-secondary/70',
+          'border-border bg-secondary text-secondary-foreground hover:shadow-[8px_8px_0_rgba(48,29,96,0.6)]',
         ghost:
-          'hover:bg-accent hover:text-accent-foreground active:bg-accent/80 dark:hover:bg-accent/50 dark:active:bg-accent/60',
-        link: 'text-primary underline-offset-4 hover:underline active:text-primary/80',
-        accent: 'bg-accent text-accent-foreground shadow-xs hover:bg-accent/90 active:bg-accent/80',
+          'border-transparent bg-transparent text-primary hover:text-accent hover:shadow-[6px_6px_0_rgba(255,92,244,0.45)]',
+        link: 'border-transparent bg-transparent text-primary underline underline-offset-4 hover:text-accent',
+        accent: 'border-accent bg-accent text-accent-foreground hover:shadow-[8px_8px_0_rgba(255,92,244,0.6)]',
       },
       size: {
-        default: 'h-9 px-4 py-2 has-[>svg]:px-3',
-        sm: 'h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5',
-        lg: 'h-10 rounded-md px-6 has-[>svg]:px-4',
-        icon: 'size-9',
+        default: 'min-h-[2.75rem] px-5',
+        sm: 'min-h-[2.25rem] gap-1 px-4 text-[10px]',
+        lg: 'min-h-[3.5rem] px-8 text-sm',
+        icon: 'h-12 w-12 p-0',
       },
     },
     defaultVariants: {

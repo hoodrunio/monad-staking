@@ -24,3 +24,12 @@ export {
   SunIcon,
   Wallet02Icon,
 } from '@hugeicons/core-free-icons';
+
+export {
+  ChainBreakPixelIcon,
+  ChestPixelIcon,
+  CoinPixelIcon,
+  HourglassPixelIcon,
+  KnightPixelIcon,
+  SparklePixelIcon,
+} from '@/app/components/icons/pixel-icons';

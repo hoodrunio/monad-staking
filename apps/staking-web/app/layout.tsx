@@ -1,22 +1,23 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
-import { Inter } from 'next/font/google';
-import { JetBrains_Mono } from 'next/font/google';
+import { Press_Start_2P, VT323 } from 'next/font/google';
 import { Providers } from './providers';
 import { SiteHeader } from '@/app/components/site-header';
 import { ThemeProvider } from '@/app/theme-provider';
 import { Shell, ShellMain, ShellSection } from '@/app/components/layout/shell';
 
-const inter = Inter({
+const pressStart = Press_Start_2P({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-press-start',
+  weight: '400',
   display: 'swap',
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const vt323 = VT323({
   subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
+  variable: '--font-vt323',
+  weight: '400',
   display: 'swap',
 });
 
@@ -32,7 +33,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`bg-background font-sans text-foreground antialiased ${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className={`bg-background font-sans text-foreground antialiased ${pressStart.variable} ${vt323.variable}`}>
         <ThemeProvider>
           <Providers>
             <Shell>

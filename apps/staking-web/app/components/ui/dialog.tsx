@@ -26,7 +26,7 @@ export function DialogOverlay({ className, ...props }: ComponentProps<typeof Dia
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        'fixed inset-0 z-50 bg-black/55 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+        'fixed inset-0 z-50 bg-[#020009]/90 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         className,
       )}
       {...props}
@@ -45,7 +45,7 @@ export function DialogContent({ className, children, showCloseButton = true, ...
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-2xl border border-white/10 bg-background/95 p-6 shadow-[0_45px_145px_-50px_rgba(131,110,249,0.55)] duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-2xl',
+          'pixel-panel pixel-border fixed left-1/2 top-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-6 px-8 py-8 shadow-[0_0_40px_rgba(108,246,255,0.35)] duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-2xl',
           className,
         )}
         {...props}
@@ -53,7 +53,7 @@ export function DialogContent({ className, children, showCloseButton = true, ...
         {children}
         {showCloseButton ? (
           <DialogPrimitive.Close
-            className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-muted-foreground transition-all duration-150 hover:border-accent hover:text-accent hover:bg-white/20 active:scale-95"
+            className="absolute right-5 top-5 inline-flex h-10 w-10 items-center justify-center border-2 border-border bg-secondary/60 text-primary shadow-[4px_4px_0_rgba(0,0,0,0.55)] transition-transform duration-150 hover:border-primary hover:text-accent active:translate-x-[1px] active:translate-y-[1px]"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={20} />
             <span className="sr-only">Close</span>
@@ -65,7 +65,13 @@ export function DialogContent({ className, children, showCloseButton = true, ...
 }
 
 export function DialogHeader({ className, ...props }: ComponentProps<'div'>) {
-  return <div data-slot="dialog-header" className={cn('flex flex-col gap-2 text-left', className)} {...props} />;
+  return (
+    <div
+      data-slot="dialog-header"
+      className={cn('flex flex-col gap-2 text-left font-display uppercase tracking-[0.12em]', className)}
+      {...props}
+    />
+  );
 }
 
 export function DialogFooter({ className, ...props }: ComponentProps<'div'>) {
@@ -73,9 +79,21 @@ export function DialogFooter({ className, ...props }: ComponentProps<'div'>) {
 }
 
 export function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {
-  return <DialogPrimitive.Title data-slot="dialog-title" className={cn('text-xl font-semibold', className)} {...props} />;
+  return (
+    <DialogPrimitive.Title
+      data-slot="dialog-title"
+      className={cn('font-display text-xl text-primary', className)}
+      {...props}
+    />
+  );
 }
 
 export function DialogDescription({ className, ...props }: ComponentProps<typeof DialogPrimitive.Description>) {
-  return <DialogPrimitive.Description data-slot="dialog-description" className={cn('text-sm text-muted-foreground', className)} {...props} />;
+  return (
+    <DialogPrimitive.Description
+      data-slot="dialog-description"
+      className={cn('text-sm tracking-[0.05em] text-muted-foreground', className)}
+      {...props}
+    />
+  );
 }

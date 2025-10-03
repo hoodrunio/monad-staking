@@ -4,20 +4,15 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden',
+  'inline-flex h-7 items-center justify-center gap-1 border-2 px-2.5 font-display text-[10px] uppercase tracking-[0.14em] text-foreground shadow-[4px_4px_0_rgba(0,0,0,0.45)] transition-transform duration-150 focus-visible:border-ring focus-visible:ring-ring/40 focus-visible:ring-[3px] aria-invalid:border-destructive aria-invalid:shadow-[4px_4px_0_rgba(255,75,84,0.35)] active:translate-y-[1px] [&>svg]:size-3 [&>svg]:shrink-0',
   {
     variants: {
       variant: {
-        default:
-          'border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90',
-        secondary:
-          'border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90',
-        destructive:
-          'border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
-        outline:
-          'text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
-        accent:
-          'bg-accent/10 text-accent border-accent/20',
+        default: 'border-primary bg-primary text-primary-foreground',
+        secondary: 'border-border bg-secondary text-secondary-foreground',
+        destructive: 'border-destructive bg-destructive text-destructive-foreground',
+        outline: 'border-border bg-transparent text-foreground shadow-none',
+        accent: 'border-accent bg-accent text-accent-foreground',
       },
     },
     defaultVariants: {
