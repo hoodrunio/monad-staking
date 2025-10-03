@@ -65,7 +65,7 @@ export function UserPortfolio({ staked, withdrawable, claimable, unstaked, child
       <header className="flex items-center justify-between">
         <div>
           <h2 className="font-display text-lg uppercase tracking-[0.14em] text-primary">My staking position</h2>
-          <p className="text-[11px] tracking-[0.12em] text-muted-foreground">Live wallet telemetry</p>
+          <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">Live wallet telemetry</p>
         </div>
       </header>
 

@@ -85,7 +85,7 @@ function ValidatorsPageContent() {
                   <CardTitle className="font-display text-2xl uppercase tracking-[0.14em] text-primary">
                     Validators
                   </CardTitle>
-                  <CardDescription className="text-[11px] tracking-[0.12em] text-muted-foreground">
+                  <CardDescription className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">
                     Browse validator performance on {resolved.label}. Toggle filters to focus on active operators.
                   </CardDescription>
                 </div>

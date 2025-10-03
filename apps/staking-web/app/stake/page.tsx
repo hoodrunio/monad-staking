@@ -355,7 +355,7 @@ function StakeScreen() {
               </span>
               <div className="flex flex-col gap-1">
                 <h1 className="font-display text-3xl uppercase tracking-[0.14em] text-primary">Stake HQ</h1>
-                <p className="text-[11px] tracking-[0.12em] text-muted-foreground">
+                <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">
                   Manage delegations, rewards, and withdrawals with the retro command console.
                 </p>
               </div>

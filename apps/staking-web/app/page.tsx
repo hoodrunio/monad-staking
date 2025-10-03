@@ -426,12 +426,12 @@ function HomePageContent() {
                   Explorer not configured
                 </span>
               )}
-              <p className="text-xs tracking-[0.08em] text-muted-foreground">Inspect Validators and Delegations directly in the chain archive.</p>
+              <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">Inspect Validators and Delegations directly in the chain archive.</p>
             </div>
             <div className="flex flex-col justify-between gap-4 border-2 border-border bg-secondary/40 px-4 py-4">
               <div className="space-y-2">
                 <span className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Stake command</span>
-                <p className="text-xs tracking-[0.08em] text-muted-foreground">
+                <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">
                   Jump into the stake console to delegate, manage rewards, and queue withdrawals.
                 </p>
               </div>
@@ -522,7 +522,7 @@ function HomePageContent() {
               <SparklePixelIcon size={18} className="text-primary" />
               <CardTitle className="font-display text-xl tracking-[0.12em] text-primary">My Staking Position</CardTitle>
             </div>
-            <CardDescription className="text-sm">
+            <CardDescription className="text-sm leading-relaxed sm:text-base">
               {walletConnected
                 ? isWalletDataLoading
                   ? 'Syncing wallet telemetry for Staked, Withdrawable, Claimable, and Unstaked gauges.'
@@ -551,7 +551,7 @@ function HomePageContent() {
                 </div>
               );
             })}
-            <p className="text-xs tracking-[0.08em] text-muted-foreground">
+            <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">
               {walletConnected
                 ? 'Claim Rewards to empty sparkling chests and watch Pending Withdraw fill as you unstake.'
                 : 'Link a wallet to see rewards sparkle and pending withdraw chains populate.'}
@@ -565,7 +565,7 @@ function HomePageContent() {
               <HourglassPixelIcon size={18} className="text-primary" />
               <CardTitle className="font-display text-xl tracking-[0.12em] text-primary">Activation windows</CardTitle>
             </div>
-            <CardDescription className="text-sm">
+            <CardDescription className="text-sm leading-relaxed sm:text-base">
               Observe how Delegations, Unstake flows, and Pending Withdraw progress through cooldowns.
             </CardDescription>
           </CardHeader>
@@ -590,7 +590,7 @@ function HomePageContent() {
                         style={{ width: `${Math.round(tile.progress * 100)}%` }}
                       />
                     </div>
-                    <p className="text-[11px] tracking-[0.12em] text-muted-foreground/80">{tile.description}</p>
+                    <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground/80">{tile.description}</p>
                   </div>
                 ))}
               </div>

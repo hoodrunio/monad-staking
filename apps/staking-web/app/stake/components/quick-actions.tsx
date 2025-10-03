@@ -106,7 +106,7 @@ export function QuickActions({
           </span>
           <div className="flex flex-col">
             <span className="font-display text-sm uppercase tracking-[0.14em] text-primary">Action console</span>
-            <p className="text-[11px] tracking-[0.12em] text-muted-foreground">Stake, unstake, claim, and withdraw in retro style</p>
+            <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">Stake, unstake, claim, and withdraw in retro style</p>
           </div>
         </div>
         <Badge variant="accent">APY {displayApy}</Badge>
@@ -231,8 +231,8 @@ export function QuickActions({
         />
       )}
 
-      <div className="flex items-start gap-3 border-2 border-border bg-secondary/40 px-4 py-3 text-[11px] tracking-[0.12em] text-muted-foreground">
-        <SparklePixelIcon size={12} className="mt-0.5 text-primary" />
+      <div className="flex items-start gap-3 border-2 border-border bg-secondary/40 px-4 py-3 text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">
+        <SparklePixelIcon size={14} className="mt-0.5 shrink-0 text-primary" />
         <span>
           {hasStakedTokens
             ? `Current APY ${displayApy} on staked MON. Claim rewards to empty sparkling chests.`

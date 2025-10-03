@@ -111,8 +111,8 @@ function AccountPageContent() {
           </div>
           <div className="flex items-center gap-2">
             <ChestPixelIcon size={14} className="animate-chest-sparkle text-accent" />
-            <span className="font-display text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Rewards</span>
-            <span className="font-mono text-sm text-accent">{totalRewards.toFixed(4)} MON</span>
+            <span className="font-display text-sm uppercase tracking-[0.12em] text-muted-foreground">Rewards</span>
+            <span className="font-mono text-base text-accent sm:text-lg">{totalRewards.toFixed(4)} MON</span>
           </div>
           <div className="flex items-center gap-2">
             <HourglassPixelIcon size={14} className="text-primary" />
@@ -168,7 +168,7 @@ function AccountPageContent() {
                       </div>
                       <span className="font-mono text-sm text-primary">{formatted.stake}</span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-4 text-[11px] tracking-[0.1em] text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-4 text-sm leading-relaxed tracking-[0.08em] text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
                         <ChestPixelIcon size={12} className="text-accent" />
                         Rewards <span className="font-mono text-accent">{formatted.unclaimedRewards}</span>
@@ -188,7 +188,7 @@ function AccountPageContent() {
             <div className="flex items-center justify-center border-2 border-dashed border-border bg-secondary/30 p-8 text-center">
               <div className="space-y-1">
                 <p className="font-display text-xs uppercase tracking-[0.12em] text-muted-foreground">No delegations</p>
-                <p className="text-[11px] tracking-[0.12em] text-muted-foreground/70">Stake MON to begin earning rewards</p>
+                <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground/70">Stake MON to begin earning rewards</p>
               </div>
             </div>
           )}

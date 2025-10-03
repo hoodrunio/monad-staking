@@ -140,7 +140,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
                 <h1 className="font-display text-3xl uppercase tracking-[0.12em] text-primary sm:text-4xl">
                   {displayName}
                 </h1>
-                <p className="text-[11px] tracking-[0.1em] text-muted-foreground">
+                <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground">
                   Operating on {resolved.label}
                 </p>
               </div>
@@ -199,7 +199,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
         <div className="space-y-5">
           <div>
             <h2 className="font-display text-lg uppercase tracking-[0.14em] text-primary">Identity</h2>
-            <p className="text-[11px] tracking-[0.12em] text-muted-foreground/80">
+            <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground/80">
               On-chain identification and metadata
             </p>
           </div>
@@ -263,7 +263,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
         <div className="space-y-5">
           <div>
             <h2 className="font-display text-lg uppercase tracking-[0.14em] text-primary">Keys</h2>
-            <p className="text-[11px] tracking-[0.12em] text-muted-foreground/80">
+            <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground/80">
               Public keys used for validation and signing
             </p>
           </div>
@@ -280,7 +280,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
                 </div>
               </div>
               <div className="border-2 border-border bg-background/40 p-3">
-                <div className="break-all font-mono text-xs leading-relaxed text-foreground/80">
+                <div className="break-all font-mono text-sm leading-relaxed text-foreground/80">
                   {validator.keys.secpPubkey}
                 </div>
               </div>
@@ -297,7 +297,7 @@ export function ValidatorDetailClient({ validatorId, networkParam }: ValidatorDe
                 </div>
               </div>
               <div className="border-2 border-border bg-background/40 p-3">
-                <div className="break-all font-mono text-xs leading-relaxed text-foreground/80">
+                <div className="break-all font-mono text-sm leading-relaxed text-foreground/80">
                   {validator.keys.blsPubkey}
                 </div>
               </div>
