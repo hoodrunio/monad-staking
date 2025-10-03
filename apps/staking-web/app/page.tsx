@@ -4,12 +4,15 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { useAccount } from 'wagmi';
+import { MONAD_NETWORK_KEYS } from '@monad-staking/config';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';
+import { formatMon } from '@/lib/format';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { ClientOnly } from '@/app/components/client-only';
-import { useEpochQuery, useValidatorsQuery } from '@/lib/queries';
-import { MONAD_NETWORK_KEYS } from '@monad-staking/config';
+import { useEpochQuery } from '@/lib/queries';
+import { useStakingData } from '@/hooks/useStakingData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { ShellSection } from '@/app/components/layout/shell';
 import { Button } from '@/app/components/ui/button';
@@ -117,12 +120,13 @@ function HomePageContent() {
   const selectedNetwork = getSelectedNetwork(searchParams.get('network'), enabledNetworks);
   const resolved = selectedNetwork ? tryResolveNetwork(configMap, selectedNetwork) : null;
 
+  const { address } = useAccount();
+  const walletConnected = Boolean(address);
+
   const { data: epochData, isLoading, error } = useEpochQuery(selectedNetwork || 'monad-mainnet', {
     enabled: Boolean(selectedNetwork && resolved),
   });
-  const { data: validatorsData } = useValidatorsQuery(selectedNetwork || 'monad-mainnet', '', 256, {
-    enabled: Boolean(selectedNetwork && resolved),
-  });
+  const stakingData = useStakingData(selectedNetwork, Boolean(selectedNetwork && resolved));
 
   if (enabledNetworks.length === 0) {
     return (
@@ -191,19 +195,96 @@ function HomePageContent() {
     ? (BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n) + BigInt(epochData.withdrawalDelay)).toString()
     : null;
   const monPriceDisplay = '$12.48';
-  const validatorsCountDisplay = validatorsData?.items?.length
-    ? validatorsData.items.length.toString().padStart(2, '0')
+  const validatorsCountDisplay = stakingData.validators.length
+    ? stakingData.validators.length.toString().padStart(2, '0')
+    : stakingData.isLoading.validators
+    ? '...'
     : '--';
-  const totalStakedValue = validatorsData
-    ? validatorsData.items.reduce((acc, validator) => {
-        const decimals = Number(validator.stake.decimal ?? '0');
-        return Number.isFinite(decimals) ? acc + decimals : acc;
-      }, 0)
-    : null;
+
+  const toBigInt = (value?: string | null) => {
+    if (!value) return 0n;
+    try {
+      return BigInt(value);
+    } catch {
+      return 0n;
+    }
+  };
+
+  const toDecimalNumber = (value?: string | null) => {
+    if (!value) return 0;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const clampProgress = (value: number) => {
+    if (!Number.isFinite(value) || value <= 0) return 0;
+    return Math.min(Math.max(value, 0), 1);
+  };
+
+  const networkStakeRaw = stakingData.validators.reduce(
+    (acc, validator) => acc + toBigInt(validator.stake.raw),
+    0n,
+  );
   const totalStakedDisplay =
-    totalStakedValue !== null && Number.isFinite(totalStakedValue)
-      ? `${totalStakedValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} MON`
+    stakingData.validators.length > 0
+      ? formatMon(networkStakeRaw, 2)
+      : stakingData.isLoading.validators
+      ? 'Loading...'
       : '-- MON';
+
+  const walletStakedRaw = toBigInt(stakingData.balance?.stakedRaw);
+  const walletClaimableRaw = stakingData.delegations.reduce(
+    (acc, item) => acc + toBigInt(item.unclaimedRewards.raw),
+    0n,
+  );
+  const walletWithdrawableRaw = stakingData.withdrawals.reduce(
+    (acc, item) => acc + toBigInt(item.amount.raw),
+    0n,
+  );
+
+  const walletStakedDecimal = toDecimalNumber(stakingData.balance?.stakedDecimal);
+  const walletAvailableDecimal = toDecimalNumber(stakingData.balance?.decimal);
+  const walletClaimableDecimal = stakingData.delegations.reduce(
+    (acc, item) => acc + toDecimalNumber(item.unclaimedRewards.decimal),
+    0,
+  );
+  const walletWithdrawableDecimal = stakingData.withdrawals.reduce(
+    (acc, item) => acc + toDecimalNumber(item.amount.decimal),
+    0,
+  );
+  const totalPortfolioDecimal =
+    walletStakedDecimal + walletAvailableDecimal + walletClaimableDecimal + walletWithdrawableDecimal;
+
+  const barProgress = (value: number) =>
+    totalPortfolioDecimal > 0 ? clampProgress(value / totalPortfolioDecimal) : 0;
+
+  const isWalletDataLoading =
+    walletConnected &&
+    (stakingData.isLoading.delegations ||
+      stakingData.isLoading.withdrawals ||
+      stakingData.isLoading.balance);
+
+  const walletStakedDisplay = isWalletDataLoading
+    ? 'Loading...'
+    : stakingData.balance?.stakedFormatted ?? '0 MON';
+  const walletAvailableDisplay = isWalletDataLoading
+    ? 'Loading...'
+    : stakingData.balance?.formatted ?? '0 MON';
+  const walletClaimableDisplay = isWalletDataLoading
+    ? 'Loading...'
+    : walletClaimableRaw > 0n
+    ? formatMon(walletClaimableRaw, 3)
+    : '0 MON';
+  const walletWithdrawableDisplay = isWalletDataLoading
+    ? 'Loading...'
+    : walletWithdrawableRaw > 0n
+    ? formatMon(walletWithdrawableRaw, 3)
+    : '0 MON';
+
+  const hasClaimableRewards = walletClaimableRaw > 0n;
+  const hasPendingWithdrawals = walletWithdrawableRaw > 0n;
+  const hasAnyStake = walletStakedRaw > 0n;
+
   const epochNumber = epochData ? Number(epochData.epoch) : null;
   const nextActivationNumber = nextActivationEpoch ? Number(nextActivationEpoch) : null;
   const withdrawableNumber = withdrawableEpoch ? Number(withdrawableEpoch) : null;
@@ -234,13 +315,15 @@ function HomePageContent() {
       icon: KnightPixelIcon,
       label: 'Validators',
       value: validatorsCountDisplay,
-      hint: 'Knights on duty',
+      hint: walletConnected
+        ? `${stakingData.delegations.length.toString().padStart(2, '0')} delegations ready`
+        : 'Knights on duty',
     },
     {
       icon: ChestPixelIcon,
       label: 'Total Staked',
       value: totalStakedDisplay,
-      hint: 'Treasure secured',
+      hint: walletConnected ? `Your chest: ${walletStakedDisplay}` : 'Treasure secured',
       animate: 'chest',
     },
   ];
@@ -254,57 +337,89 @@ function HomePageContent() {
     {
       href: '/stake',
       label: 'Stake MON',
-      description: 'Send MON to validators and level-up rewards.',
+      description: walletConnected
+        ? hasAnyStake
+          ? 'Add MON to reinforce your validator squad.'
+          : 'Launch your first delegation quest and earn rewards.'
+        : 'Connect your wallet to begin staking MON.',
       icon: CoinPixelIcon,
       animate: 'coin-drop',
     },
     {
       href: '/stake?mode=unstake',
       label: 'Unstake',
-      description: 'Issue an Undelegate order and watch the chain break.',
+      description: walletConnected
+        ? hasAnyStake
+          ? 'Issue an Undelegate order and watch the chain break.'
+          : 'Stake first to unlock unstake paths.'
+        : 'Connect wallet to manage delegations.',
       icon: ChainBreakPixelIcon,
       animate: 'chain',
     },
     {
       href: '/account#rewards',
       label: 'Claim Rewards',
-      description: 'Open the treasure chest when rewards overflow.',
+      description: walletConnected
+        ? hasClaimableRewards
+          ? `Sparkling chest holds ${walletClaimableDisplay}.`
+          : 'Chest sparkles once rewards accrue.'
+        : 'Open the treasure chest when rewards overflow.',
       icon: ChestPixelIcon,
       animate: 'chest',
     },
     {
       href: '/account#withdrawals',
       label: 'Pending Withdraw',
-      description: 'Track withdrawal cooldowns and prepare to collect.',
+      description: walletConnected
+        ? hasPendingWithdrawals
+          ? `Cooldown stash: ${walletWithdrawableDisplay}.`
+          : 'No pending withdraw queues yet.'
+        : 'Track withdrawal cooldowns and prepare to collect.',
       icon: HourglassPixelIcon,
     },
   ];
-  const stakingBars = [
+  const fallbackBars = [
     { label: 'Total Staked', value: '-- MON', progress: 0.15, tone: 'primary' as const },
     { label: 'Withdrawable', value: '-- MON', progress: 0.08, tone: 'accent' as const },
     { label: 'Claimable', value: '-- MON', progress: 0.05, tone: 'accent' as const },
     { label: 'Unstaked', value: '-- MON', progress: 0.1, tone: 'primary' as const },
   ];
+  const stakingBars = walletConnected
+    ? [
+        { label: 'Total Staked', value: walletStakedDisplay, progress: barProgress(walletStakedDecimal), tone: 'primary' as const },
+        { label: 'Withdrawable', value: walletWithdrawableDisplay, progress: barProgress(walletWithdrawableDecimal), tone: 'accent' as const },
+        { label: 'Claimable', value: walletClaimableDisplay, progress: barProgress(walletClaimableDecimal), tone: 'accent' as const },
+        { label: 'Unstaked', value: walletAvailableDisplay, progress: barProgress(walletAvailableDecimal), tone: 'primary' as const },
+      ]
+    : fallbackBars;
   const activationTiles = [
     {
       icon: HourglassPixelIcon,
       label: 'Delegations active',
       value: nextActivationEpoch ? `Epoch ${nextActivationEpoch}` : '--',
-      description: 'Delegations become active after this epoch rolls.',
+      description: walletConnected
+        ? hasAnyStake
+          ? 'Fresh delegations go live once this timer completes.'
+          : 'Stake MON to see activation timers in action.'
+        : 'Delegations become active after this epoch rolls.',
       progress: activationProgress,
     },
     {
       icon: ChainBreakPixelIcon,
       label: 'Undelegations inactive',
       value: nextActivationEpoch ? `Epoch ${nextActivationEpoch}` : '--',
-      description: 'Undelegate orders settle once the cooldown flips.',
+      description: hasAnyStake
+        ? 'Undelegate orders settle once the cooldown flips.'
+        : 'No undelegations queued yet.',
       progress: Math.max(activationProgress - 0.1, 0.2),
     },
     {
       icon: ChestPixelIcon,
       label: 'Withdrawals available',
       value: withdrawableEpoch ? `Epoch ${withdrawableEpoch}` : '--',
-      description: 'Pending Withdraw unlocks when this timer hits zero.',
+      description: hasPendingWithdrawals
+        ? `${walletWithdrawableDisplay} unlocks when the hourglass empties.`
+        : 'Pending Withdraw unlocks when this timer hits zero.',
       progress: withdrawalProgress,
     },
   ];
@@ -324,7 +439,9 @@ function HomePageContent() {
           <CardHeader className="relative z-10 flex flex-col gap-6 text-muted-foreground">
             <div className="flex items-center justify-between gap-4">
               <Badge variant="accent">Epoch command center</Badge>
-              <Badge variant="secondary">Retro link online</Badge>
+              <Badge variant={walletConnected ? 'secondary' : 'outline'}>
+                {walletConnected ? (isWalletDataLoading ? 'Wallet syncing' : 'Wallet linked') : 'Wallet idle'}
+              </Badge>
             </div>
             <CardTitle className="font-display text-3xl tracking-[0.12em] text-primary">
               {resolved.label}
@@ -375,11 +492,24 @@ function HomePageContent() {
             <div className="flex flex-col justify-between gap-3">
               <div>
                 <span className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Claim Rewards</span>
-                <p className="mt-2 text-xs tracking-[0.08em] text-muted-foreground">Chest sparkles when rewards are ready to claim.</p>
+                <p className="mt-2 text-xs tracking-[0.08em] text-muted-foreground">
+                  {walletConnected
+                    ? hasClaimableRewards
+                      ? `Chest is brimming with ${walletClaimableDisplay}.`
+                      : 'Chest sparkles when rewards are ready to claim.'
+                    : 'Link a wallet to light up the reward chest.'}
+                </p>
               </div>
               <Button asChild variant="accent" className="flex w-full items-center justify-between px-5 py-4">
-                <Link href="/account#rewards">
-                  <span>Claim Rewards</span>
+                <Link href="/account#rewards" className="flex w-full items-center justify-between gap-3">
+                  <span className="flex flex-col gap-1 text-left">
+                    <span>Claim Rewards</span>
+                    {walletConnected ? (
+                      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-primary-foreground/80">
+                        {isWalletDataLoading ? 'Syncing...' : walletClaimableDisplay}
+                      </span>
+                    ) : null}
+                  </span>
                   <ChestPixelIcon size={20} className="animate-chest-sparkle" />
                 </Link>
               </Button>
@@ -396,7 +526,7 @@ function HomePageContent() {
             variant="outline"
             className="flex h-full flex-col items-start gap-3 px-5 py-5 text-left"
           >
-            <Link href={action.href as any}>
+            <Link href={action.href as '/stake' | '/account'}>
               <div className="flex w-full items-center justify-between">
                 <span className="font-display text-sm tracking-[0.14em] text-primary">{action.label}</span>
                 <action.icon
@@ -492,7 +622,11 @@ function HomePageContent() {
               <CardTitle className="font-display text-xl tracking-[0.12em] text-primary">My Staking Position</CardTitle>
             </div>
             <CardDescription className="text-sm">
-              Connect your wallet to populate Staked, Withdrawable, Claimable, and Unstaked gauges.
+              {walletConnected
+                ? isWalletDataLoading
+                  ? 'Syncing wallet telemetry for Staked, Withdrawable, Claimable, and Unstaked gauges.'
+                  : 'Live gauges mirroring your staked, withdrawable, claimable, and unstaked MON balances.'
+                : 'Connect your wallet to populate Staked, Withdrawable, Claimable, and Unstaked gauges.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -517,7 +651,9 @@ function HomePageContent() {
               );
             })}
             <p className="text-xs tracking-[0.08em] text-muted-foreground">
-              Claim Rewards to empty sparkling chests and watch Pending Withdraw fill as you unstake.
+              {walletConnected
+                ? 'Claim Rewards to empty sparkling chests and watch Pending Withdraw fill as you unstake.'
+                : 'Link a wallet to see rewards sparkle and pending withdraw chains populate.'}
             </p>
           </CardContent>
         </Card>

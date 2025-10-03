@@ -3,7 +3,13 @@
 import { useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { useSearchParams } from 'next/navigation';
-import { HugeiconsIcon, Coins01Icon, ArrowUpIcon, Clock01Icon, Wallet02Icon } from '@/app/components/icons';
+import {
+  ChainBreakPixelIcon,
+  ChestPixelIcon,
+  CoinPixelIcon,
+  HourglassPixelIcon,
+  KnightPixelIcon,
+} from '@/app/components/icons';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { getSelectedNetwork } from '@/lib/page-utils';
 import { formatDelegationRow, formatWithdrawalRow } from '@/lib/account-utils';
@@ -13,6 +19,7 @@ import { useDelegationsQuery, useWithdrawalsQuery, useEpochQuery, useValidatorsQ
 import { formatMonFromWei } from '@/lib/utils';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { ShellSection } from '@/app/components/layout/shell';
+import { Badge } from '@/app/components/ui/badge';
 
 function AccountPageContent() {
   const searchParams = useSearchParams();
@@ -64,13 +71,14 @@ function AccountPageContent() {
     return (
       <ShellSection as="div" className="space-y-6" width="wide">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Account</h1>
-          <p className="mt-1 text-sm text-muted-foreground/80">Connect wallet to view positions</p>
+          <h1 className="font-display text-2xl uppercase tracking-[0.14em] text-primary">My Account</h1>
+          <p className="mt-1 text-[11px] tracking-[0.12em] text-muted-foreground/80">Connect wallet to view positions</p>
         </div>
-        <div className="flex items-center justify-center rounded-lg bg-muted/10 p-12">
-          <div className="flex flex-col items-center gap-3 text-center">
-            <HugeiconsIcon icon={Wallet02Icon} size={40} className="text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">Wallet required</p>
+        <div className="flex items-center justify-center border-2 border-border bg-secondary/40 p-12 text-center shadow-[6px_6px_0_rgba(0,0,0,0.5)]">
+          <div className="flex flex-col items-center gap-3">
+            <CoinPixelIcon size={28} className="animate-coin-drop text-primary" />
+            <p className="font-display text-sm uppercase tracking-[0.12em] text-muted-foreground">Wallet required</p>
+            <p className="text-[11px] tracking-[0.12em] text-muted-foreground/80">Connect to sync staking telemetry</p>
           </div>
         </div>
       </ShellSection>
@@ -84,52 +92,53 @@ function AccountPageContent() {
 
   return (
     <ShellSection as="div" className="space-y-6" width="wide">
-      {/* Compact Header */}
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Account</h1>
-          <div className="mt-1.5 flex items-center gap-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex h-12 w-12 items-center justify-center border-2 border-primary bg-[#12092f] shadow-[4px_4px_0_rgba(0,0,0,0.55)]">
+            <KnightPixelIcon size={20} className="text-primary" />
+          </span>
+          <div className="flex flex-col gap-1">
+            <h1 className="font-display text-2xl uppercase tracking-[0.14em] text-primary">My Account</h1>
             <span className="font-mono text-xs text-muted-foreground/70">{address}</span>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-sm">
-          <div className="flex items-center gap-1.5">
-            <HugeiconsIcon icon={Coins01Icon} size={14} className="text-muted-foreground/50" />
-            <span className="text-muted-foreground/70">Staked:</span>
-            <span className="font-mono font-semibold text-foreground">{totalStaked.toFixed(2)}</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <Badge variant="accent">{resolved.label}</Badge>
+          <div className="flex items-center gap-2">
+            <CoinPixelIcon size={14} className="text-primary" />
+            <span className="font-display text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Staked</span>
+            <span className="font-mono text-sm text-primary">{totalStaked.toFixed(2)} MON</span>
           </div>
-          <span className="text-muted-foreground/30">•</span>
-          <div className="flex items-center gap-1.5">
-            <HugeiconsIcon icon={ArrowUpIcon} size={14} className="text-accent/70" />
-            <span className="text-muted-foreground/70">Rewards:</span>
-            <span className="font-mono font-semibold text-accent">{totalRewards.toFixed(4)}</span>
+          <div className="flex items-center gap-2">
+            <ChestPixelIcon size={14} className="animate-chest-sparkle text-accent" />
+            <span className="font-display text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Rewards</span>
+            <span className="font-mono text-sm text-accent">{totalRewards.toFixed(4)} MON</span>
           </div>
-          <span className="text-muted-foreground/30">•</span>
-          <div className="flex items-center gap-1.5">
-            <HugeiconsIcon icon={Clock01Icon} size={14} className="text-muted-foreground/50" />
-            <span className="text-muted-foreground/70">Pending:</span>
-            <span className="font-mono font-semibold text-foreground">{withdrawals?.items.length || 0}</span>
+          <div className="flex items-center gap-2">
+            <HourglassPixelIcon size={14} className="text-primary" />
+            <span className="font-display text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Pending</span>
+            <span className="font-mono text-sm text-foreground">{withdrawals?.items.length || 0}</span>
           </div>
         </div>
       </div>
 
-      {/* Two Column Layout */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Delegations */}
         <div className="space-y-3">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-base font-semibold tracking-tight">Delegations</h2>
-            <span className="text-xs text-muted-foreground/70">{delegations?.items.length || 0} active</span>
+            <h2 className="font-display text-sm uppercase tracking-[0.14em] text-primary">Delegations</h2>
+            <span className="font-display text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              {delegations?.items.length || 0} active
+            </span>
           </div>
 
           {delegationsError ? (
-            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+            <div className="border-2 border-destructive/50 bg-destructive/10 p-4 font-display text-xs uppercase tracking-[0.12em] text-destructive">
               Failed to load delegations
             </div>
           ) : delegationsLoading ? (
             <div className="space-y-2">
               {Array.from({ length: 3 }).map((_, i) => (
-                <LoadingSkeleton key={i} className="h-20 w-full rounded-lg" />
+                <LoadingSkeleton key={i} className="h-20 w-full" />
               ))}
             </div>
           ) : delegations && delegations.items.length > 0 ? (
@@ -139,40 +148,35 @@ function AccountPageContent() {
                 const hasPending = formatted.pendingChanges.deltaStake !== '0' || formatted.pendingChanges.nextDeltaStake !== '0';
                 const validatorInfo = validatorMap.get(formatted.validatorId);
                 const displayName = validatorInfo?.name ?? `Validator ${formatted.validatorId}`;
-                
+
                 return (
                   <div
                     key={formatted.validatorId}
-                    className="rounded-lg border border-border/40 bg-muted/5 p-3 transition-colors hover:border-border/60 hover:bg-muted/10"
+                    className="border-2 border-border bg-secondary/40 p-4 shadow-[4px_4px_0_rgba(0,0,0,0.5)]"
                   >
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 items-center justify-center border-2 border-primary bg-[#12092f] shadow-[3px_3px_0_rgba(0,0,0,0.55)]">
+                          <KnightPixelIcon size={14} className="text-primary" />
+                        </span>
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-foreground">{displayName}</span>
-                          {validatorInfo?.name && (
-                            <span className="text-xs text-muted-foreground/70">#{formatted.validatorId}</span>
-                          )}
+                          <span className="font-display text-sm uppercase tracking-[0.12em] text-primary">{displayName}</span>
+                          <span className="font-mono text-[11px] text-muted-foreground">#{formatted.validatorId}</span>
                         </div>
-                        {hasPending && (
-                          <span className="rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-300">
-                            Pending
-                          </span>
-                        )}
+                        {hasPending ? <Badge variant="accent">Pending</Badge> : null}
                       </div>
-                      <span className="font-mono text-xs font-semibold text-primary">{formatted.stake}</span>
+                      <span className="font-mono text-sm text-primary">{formatted.stake}</span>
                     </div>
-                    <div className="flex items-center gap-4 text-xs">
-                      <div className="flex items-center gap-1">
-                        <span className="text-muted-foreground/70">Rewards:</span>
-                        <span className="font-mono text-accent">{formatted.unclaimedRewards}</span>
-                      </div>
+                    <div className="flex flex-wrap items-center gap-4 text-[11px] tracking-[0.1em] text-muted-foreground">
+                      <span className="inline-flex items-center gap-1">
+                        <ChestPixelIcon size={12} className="text-accent" />
+                        Rewards <span className="font-mono text-accent">{formatted.unclaimedRewards}</span>
+                      </span>
                       {formatted.pendingChanges.deltaStake !== '0' && (
-                        <div className="flex items-center gap-1">
-                          <span className="text-muted-foreground/70">Pending:</span>
-                          <span className="font-mono text-amber-400">
-                            {formatMonFromWei(formatted.pendingChanges.deltaStake)} (E{formatted.pendingChanges.deltaEpoch})
-                          </span>
-                        </div>
+                        <span className="inline-flex items-center gap-1 text-amber-300">
+                          <ChainBreakPixelIcon size={12} className="text-amber-300" />
+                          {formatMonFromWei(formatted.pendingChanges.deltaStake)} (E{formatted.pendingChanges.deltaEpoch})
+                        </span>
                       )}
                     </div>
                   </div>
@@ -180,32 +184,31 @@ function AccountPageContent() {
               })}
             </div>
           ) : (
-            <div className="flex items-center justify-center rounded-lg border border-dashed border-border/40 bg-muted/5 p-8 text-center">
+            <div className="flex items-center justify-center border-2 border-dashed border-border bg-secondary/30 p-8 text-center">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">No delegations</p>
-                <p className="text-xs text-muted-foreground/70">Start staking to earn rewards</p>
+                <p className="font-display text-xs uppercase tracking-[0.12em] text-muted-foreground">No delegations</p>
+                <p className="text-[11px] tracking-[0.12em] text-muted-foreground/70">Stake MON to begin earning rewards</p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Withdrawals */}
         <div className="space-y-3">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-base font-semibold tracking-tight">Withdrawals</h2>
-            <span className="text-xs text-muted-foreground/70">
+            <h2 className="font-display text-sm uppercase tracking-[0.14em] text-primary">Withdrawals</h2>
+            <span className="font-display text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
               {readyWithdrawals.length > 0 ? `${readyWithdrawals.length} ready` : 'None ready'}
             </span>
           </div>
 
           {withdrawalsError ? (
-            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+            <div className="border-2 border-destructive/50 bg-destructive/10 p-4 font-display text-xs uppercase tracking-[0.12em] text-destructive">
               Failed to load withdrawals
             </div>
           ) : withdrawalsLoading ? (
             <div className="space-y-2">
               {Array.from({ length: 2 }).map((_, i) => (
-                <LoadingSkeleton key={i} className="h-20 w-full rounded-lg" />
+                <LoadingSkeleton key={i} className="h-20 w-full" />
               ))}
             </div>
           ) : withdrawals && withdrawals.items.length > 0 ? (
@@ -219,42 +222,38 @@ function AccountPageContent() {
                 return (
                   <div
                     key={`${formatted.validatorId}-${formatted.withdrawalId}`}
-                    className="rounded-lg border border-border/40 bg-muted/5 p-3 transition-colors hover:border-border/60 hover:bg-muted/10"
+                    className="border-2 border-border bg-secondary/35 p-4 shadow-[4px_4px_0_rgba(0,0,0,0.5)]"
                   >
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 items-center justify-center border-2 border-primary bg-[#12092f] shadow-[3px_3px_0_rgba(0,0,0,0.55)]">
+                          <ChainBreakPixelIcon size={14} className="text-primary" />
+                        </span>
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-foreground">{displayName}</span>
-                          {validatorInfo?.name && (
-                            <span className="text-xs text-muted-foreground/70">#{formatted.validatorId}</span>
-                          )}
+                          <span className="font-display text-sm uppercase tracking-[0.12em] text-primary">{displayName}</span>
+                          <span className="font-mono text-[11px] text-muted-foreground">#{formatted.validatorId}</span>
                         </div>
                         {canWithdraw ? (
-                          <span className="flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-300">
-                            <div className="h-1 w-1 rounded-full bg-emerald-400" />
-                            Ready
-                          </span>
+                          <Badge variant="accent">Ready</Badge>
                         ) : (
-                          <span className="rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-300">
-                            Epoch {formatted.withdrawEpoch}
-                          </span>
+                          <Badge variant="outline">Epoch {formatted.withdrawEpoch}</Badge>
                         )}
                       </div>
-                      <span className="font-mono text-xs font-semibold text-foreground">{formatted.amount}</span>
+                      <span className="font-mono text-sm text-primary">{formatted.amount}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs">
-                      <span className="text-muted-foreground/70">Slot:</span>
-                      <span className="font-mono text-muted-foreground">{formatted.withdrawalId}</span>
+                    <div className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground">
+                      <HourglassPixelIcon size={12} className="text-primary" />
+                      Slot <span className="font-mono text-xs text-foreground">{formatted.withdrawalId}</span>
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div className="flex items-center justify-center rounded-lg border border-dashed border-border/40 bg-muted/5 p-8 text-center">
+            <div className="flex items-center justify-center border-2 border-dashed border-border bg-secondary/30 p-8 text-center">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">No withdrawals</p>
-                <p className="text-xs text-muted-foreground/70">Unstake to create withdrawal requests</p>
+                <p className="font-display text-xs uppercase tracking-[0.12em] text-muted-foreground">No withdrawals</p>
+                <p className="text-[11px] tracking-[0.12em] text-muted-foreground/70">Unstake to create withdrawal requests</p>
               </div>
             </div>
           )}

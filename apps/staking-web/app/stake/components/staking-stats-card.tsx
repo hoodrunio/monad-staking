@@ -1,7 +1,8 @@
 'use client';
 
-import { HugeiconsIcon, ArrowDownIcon, ArrowUpIcon } from '@/app/components/icons';
+import { ChainBreakPixelIcon, SparklePixelIcon } from '@/app/components/icons';
 import { Card } from '@/app/components/ui/card';
+import { Badge } from '@/app/components/ui/badge';
 
 interface StatItem {
   readonly label: string;
@@ -16,24 +17,22 @@ interface StakingStatsCardProps {
 
 export function StakingStatsCard({ stats }: StakingStatsCardProps) {
   return (
-    <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
       {stats.map((stat) => {
-        const trendIcon = stat.trend === 'down' ? ArrowDownIcon : ArrowUpIcon;
-        const trendColor = stat.trend === 'down' ? 'text-destructive' : 'text-accent';
+        const TrendIcon = stat.trend === 'down' ? ChainBreakPixelIcon : SparklePixelIcon;
+        const trendTone = stat.trend === 'down' ? 'text-destructive' : 'text-accent';
 
         return (
-          <Card key={stat.label} className="px-6">
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-              <div className="flex items-center justify-between">
-                <p className="text-balance text-2xl font-bold">{stat.value}</p>
-                {stat.change ? (
-                  <span className={`flex items-center gap-1 text-sm font-medium ${trendColor}`}>
-                    <HugeiconsIcon icon={trendIcon} size={16} />
-                    {stat.change}
-                  </span>
-                ) : null}
-              </div>
+          <Card key={stat.label} className="space-y-4 px-6 py-5">
+            <div className="flex items-center justify-between">
+              <span className="font-display text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                {stat.label}
+              </span>
+              {stat.change ? <Badge variant="outline">{stat.change}</Badge> : null}
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="font-display text-3xl tracking-[0.08em] text-primary">{stat.value}</p>
+              {stat.change ? <TrendIcon size={18} className={`${trendTone} ${stat.trend === 'down' ? 'animate-chain-break' : 'animate-chest-sparkle'}`} /> : null}
             </div>
           </Card>
         );

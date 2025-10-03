@@ -3,11 +3,17 @@
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/app/components/ui/tooltip';
-import { HugeiconsIcon, GiftIcon, InformationCircleIcon, ArrowDownIcon, ArrowUpIcon, Wallet02Icon, FlashIcon } from '@/app/components/icons';
+import {
+  ChainBreakPixelIcon,
+  ChestPixelIcon,
+  CoinPixelIcon,
+  HourglassPixelIcon,
+  SparklePixelIcon,
+  InformationCircleIcon,
+  HugeiconsIcon,
+} from '@/app/components/icons';
 import { Badge } from '@/app/components/ui/badge';
 import { BalancePieChart } from './balance-pie-chart';
-import Image from 'next/image';
-import { useTheme } from 'next-themes';
 
 interface QuickActionsProps {
   readonly stakedValue: string;
@@ -49,9 +55,6 @@ export function QuickActions({
   busyAction,
   isConnected,
 }: QuickActionsProps) {
-  const { resolvedTheme } = useTheme();
-  const monLogo = resolvedTheme === 'dark' ? '/mon-logo-light.svg' : '/mon-logo-dark.svg';
-
   const hasStakedTokens = parseAmount(stakedValue) > 0;
   const hasRewards = parseAmount(rewardsValue) > 0;
   const availableAmount = parseAmount(availableBalance);
@@ -68,37 +71,43 @@ export function QuickActions({
 
 
   const pieData = [
-    { name: 'Available', value: availableAmount, color: 'oklch(0.6 0.15 264)' },
-    { name: 'Staked', value: stakedAmount, color: 'oklch(0.8 0.18 142)' },
+    { name: 'Available', value: availableAmount, color: '#6cf6ff' },
+    { name: 'Staked', value: stakedAmount, color: '#ff5cf4' },
   ].filter(item => item.value >= 0);
 
   const totalBalance = (availableAmount + stakedAmount).toFixed(2);
 
   return (
-    <Card className="h-full space-y-4 p-4">
-      <header className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-semibold">
-          <HugeiconsIcon icon={FlashIcon} size={20} className="text-accent" />
-          Quick Actions
-        </h2>
+    <Card className="h-full space-y-5 px-6 py-6">
+      <header className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 items-center justify-center border-2 border-primary bg-[#12092f] shadow-[4px_4px_0_rgba(0,0,0,0.55)]">
+            <SparklePixelIcon size={18} className="animate-chest-sparkle text-accent" />
+          </span>
+          <div className="flex flex-col">
+            <span className="font-display text-sm uppercase tracking-[0.14em] text-primary">Action console</span>
+            <p className="text-[11px] tracking-[0.12em] text-muted-foreground">Stake, unstake, claim, and withdraw in retro style</p>
+          </div>
+        </div>
         <Badge variant="accent">APY {displayApy}</Badge>
       </header>
 
       <TooltipProvider>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 onClick={onStake}
                 disabled={!canActuallyStake}
-                className={`h-10 gap-2 bg-accent text-accent-foreground transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
+                className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
               >
-                <HugeiconsIcon icon={ArrowUpIcon} size={16} />
-                {busyAction === 'stake' ? 'Opening…' : (
-                  <span className="inline-flex items-center gap-1">
-                    Stake <Image src={monLogo} alt="MON" width={14} height={14} className="inline" />
-                  </span>
-                )}
+                <div className="flex w-full items-center justify-between">
+                  <span className="font-display text-xs uppercase tracking-[0.14em]">Stake MON</span>
+                  <CoinPixelIcon size={16} className="animate-coin-drop text-primary" />
+                </div>
+                <p className="text-[11px] tracking-[0.12em] text-muted-foreground">
+                  {busyAction === 'stake' ? 'Opening...' : 'Send MON to validators and boost rewards.'}
+                </p>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -116,10 +125,15 @@ export function QuickActions({
                 variant="outline"
                 onClick={onUnstake}
                 disabled={!canActuallyUnstake}
-                className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
+                className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
               >
-                <HugeiconsIcon icon={ArrowDownIcon} size={16} />
-                {busyAction === 'unstake' ? 'Processing…' : 'Unstake'}
+                <div className="flex w-full items-center justify-between">
+                  <span className="font-display text-xs uppercase tracking-[0.14em]">Unstake</span>
+                  <ChainBreakPixelIcon size={16} className="animate-chain-break text-primary" />
+                </div>
+                <p className="text-[11px] tracking-[0.12em] text-muted-foreground">
+                  {busyAction === 'unstake' ? 'Processing...' : 'Queue an undelegation and start cooldown.'}
+                </p>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -137,10 +151,15 @@ export function QuickActions({
                 variant="outline"
                 onClick={onClaim}
                 disabled={!canActuallyClaim}
-                className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
+                className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
               >
-                <HugeiconsIcon icon={GiftIcon} size={16} />
-                {busyAction === 'claim' ? 'Claiming…' : 'Claim Rewards'}
+                <div className="flex w-full items-center justify-between">
+                  <span className="font-display text-xs uppercase tracking-[0.14em]">Claim rewards</span>
+                  <ChestPixelIcon size={16} className="animate-chest-sparkle text-accent" />
+                </div>
+                <p className="text-[11px] tracking-[0.12em] text-muted-foreground">
+                  {busyAction === 'claim' ? 'Claiming...' : hasRewards ? `${rewardsValue} ready to collect.` : 'Chest sparkles once rewards accrue.'}
+                </p>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -158,10 +177,19 @@ export function QuickActions({
                 variant="outline"
                 onClick={onWithdraw}
                 disabled={!canActuallyWithdraw}
-                className={`h-10 gap-2 border-border/50 bg-transparent transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${disabledClass}`}
+                className={`h-auto flex-col items-start gap-2 px-4 py-4 ${disabledClass}`}
               >
-                <HugeiconsIcon icon={Wallet02Icon} size={16} />
-                {busyAction === 'withdraw' ? 'Withdrawing…' : 'Withdraw'}
+                <div className="flex w-full items-center justify-between">
+                  <span className="font-display text-xs uppercase tracking-[0.14em]">Withdraw</span>
+                  <HourglassPixelIcon size={16} className="text-primary" />
+                </div>
+                <p className="text-[11px] tracking-[0.12em] text-muted-foreground">
+                  {busyAction === 'withdraw'
+                    ? 'Withdrawing...'
+                    : canWithdraw
+                    ? 'Collect cooled-down MON from pending withdraws.'
+                    : 'Complete cooldown to unlock withdraws.'}
+                </p>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -179,23 +207,17 @@ export function QuickActions({
         <BalancePieChart
           data={pieData}
           title="Balance Distribution"
-          description={
-            <span className="inline-flex items-center gap-1">
-              Total: {totalBalance} <Image src={monLogo} alt="MON" width={12} height={12} className="inline" />
-            </span>
-          }
+          description={<span className="font-display text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Total balance: {totalBalance} MON</span>}
         />
       )}
 
-      <div className="rounded-lg border border-border/30 bg-muted/30 p-2 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <HugeiconsIcon icon={InformationCircleIcon} size={12} />
-          <span>
-            {hasStakedTokens
-              ? `You're currently earning ${displayApy} APY on your staked tokens`
-              : 'Start staking to earn rewards on your MON tokens'}
-          </span>
-        </div>
+      <div className="flex items-start gap-3 border-2 border-border bg-secondary/40 px-4 py-3 text-[11px] tracking-[0.12em] text-muted-foreground">
+        <HugeiconsIcon icon={InformationCircleIcon} className="mt-0.5 h-4 w-4 text-primary" />
+        <span>
+          {hasStakedTokens
+            ? `Current APY ${displayApy} on staked MON. Claim rewards to empty sparkling chests.`
+            : 'Stake MON to activate reward chests and begin earning APY.'}
+        </span>
       </div>
     </Card>
   );

@@ -24,6 +24,8 @@ import { useGasEstimation } from '@/hooks/useGasEstimation';
 import { parseEther, formatEther } from 'viem';
 import type { ValidatorSummary } from '@/lib/api/models';
 import { ShellSection } from '@/app/components/layout/shell';
+import { Badge } from '@/app/components/ui/badge';
+import { CoinPixelIcon } from '@/app/components/icons';
 
 export default function StakePage() {
   return (
@@ -342,10 +344,20 @@ function StakeScreen() {
   return (
     <>
       <ShellSection as="div" className="space-y-8" width="wide">
-        <div className="space-y-5">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">Stake</h1>
-            <p className="mt-1.5 text-sm text-muted-foreground/80">Manage your staking positions and rewards</p>
+        <div className="space-y-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <span className="flex h-12 w-12 items-center justify-center border-2 border-primary bg-[#12092f] shadow-[4px_4px_0_rgba(0,0,0,0.55)]">
+                <CoinPixelIcon size={20} className="animate-coin-drop text-primary" />
+              </span>
+              <div className="flex flex-col gap-1">
+                <h1 className="font-display text-3xl uppercase tracking-[0.14em] text-primary">Stake HQ</h1>
+                <p className="text-[11px] tracking-[0.12em] text-muted-foreground">
+                  Manage delegations, rewards, and withdrawals with the retro command console.
+                </p>
+              </div>
+            </div>
+            {resolved ? <Badge variant="accent">{resolved.label}</Badge> : null}
           </div>
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
