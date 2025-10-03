@@ -539,7 +539,7 @@ function HomePageContent() {
               return (
                 <div key={bar.label} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-display text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{bar.label}</span>
+                    <span className="font-display text-xs uppercase tracking-[0.14em] text-muted-foreground">{bar.label}</span>
                     <span className="font-mono text-sm text-primary">{bar.value}</span>
                   </div>
                   <div className="h-5 pixel-progress">
@@ -580,7 +580,7 @@ function HomePageContent() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <tile.icon size={16} className="text-primary" />
-                        <span className="font-display text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{tile.label}</span>
+                        <span className="font-display text-xs uppercase tracking-[0.14em] text-muted-foreground">{tile.label}</span>
                       </div>
                       <span className="font-display text-sm tracking-[0.12em] text-primary">{tile.value}</span>
                     </div>

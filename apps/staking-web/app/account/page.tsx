@@ -72,13 +72,13 @@ function AccountPageContent() {
       <ShellSection as="div" className="space-y-6" width="wide">
         <div>
           <h1 className="font-display text-2xl uppercase tracking-[0.14em] text-primary">My Account</h1>
-          <p className="mt-1 text-[11px] tracking-[0.12em] text-muted-foreground/80">Connect wallet to view positions</p>
+          <p className="mt-1 text-sm leading-relaxed tracking-[0.08em] text-muted-foreground/80">Connect wallet to view positions</p>
         </div>
         <div className="flex items-center justify-center border-2 border-border bg-secondary/40 p-12 text-center shadow-[6px_6px_0_rgba(0,0,0,0.5)]">
           <div className="flex flex-col items-center gap-3">
             <CoinPixelIcon size={28} className="animate-coin-drop text-primary" />
             <p className="font-display text-sm uppercase tracking-[0.12em] text-muted-foreground">Wallet required</p>
-            <p className="text-[11px] tracking-[0.12em] text-muted-foreground/80">Connect to sync staking telemetry</p>
+            <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground/80">Connect to sync staking telemetry</p>
           </div>
         </div>
       </ShellSection>

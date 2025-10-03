@@ -151,7 +151,7 @@ export function WithdrawModal({
           </div>
         )}
         {pendingWithdrawals.length > 0 && (
-          <div className="border-2 border-border bg-secondary/30 px-3 py-2 text-[11px] tracking-[0.12em] text-muted-foreground">
+          <div className="border-2 border-border bg-secondary/30 px-3 py-2 text-sm leading-relaxed tracking-[0.08em] text-muted-foreground">
             <span className="inline-flex items-center gap-2 font-display text-[10px] uppercase tracking-[0.14em] text-primary">
               <HourglassPixelIcon size={12} className="text-primary" />
               Note:

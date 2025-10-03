@@ -83,7 +83,7 @@ export function UserPortfolio({ staked, withdrawable, claimable, unstaked, child
                   <span className="flex h-8 w-8 items-center justify-center border-2 border-primary/70 bg-[#12092f] shadow-[3px_3px_0_rgba(0,0,0,0.55)]">
                     <bar.icon size={14} className={bar.tone === 'accent' ? 'text-accent' : 'text-primary'} />
                   </span>
-                  <span className="font-display text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{bar.label}</span>
+                  <span className="font-display text-xs uppercase tracking-[0.14em] text-muted-foreground">{bar.label}</span>
                 </div>
                 <span className="font-mono text-sm text-primary">{bar.value}</span>
               </div>

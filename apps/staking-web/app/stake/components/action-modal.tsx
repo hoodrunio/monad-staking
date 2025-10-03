@@ -18,7 +18,7 @@ export function ActionModal({ open, title, description, onClose, children, foote
         <DialogHeader className="gap-3">
           <DialogTitle className="font-display text-xl uppercase tracking-[0.16em] text-primary">{title}</DialogTitle>
           {description ? (
-            <DialogDescription className="text-[11px] tracking-[0.12em] text-muted-foreground">
+            <DialogDescription className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground">
               {description}
             </DialogDescription>
           ) : null}

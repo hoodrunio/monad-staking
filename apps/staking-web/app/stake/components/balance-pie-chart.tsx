@@ -90,7 +90,7 @@ export function BalancePieChart({
         <CardTitle className="font-display text-base uppercase tracking-[0.14em] text-primary">
           {title}
         </CardTitle>
-        <CardDescription className="text-[11px] tracking-[0.12em] text-muted-foreground">
+        <CardDescription className="text-sm tracking-[0.08em] text-muted-foreground">
           {description}
         </CardDescription>
       </CardHeader>

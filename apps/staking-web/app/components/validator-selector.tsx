@@ -73,7 +73,7 @@ export function ValidatorSelector({
         />
       </div>
 
-      {toolbar ? <div className="flex items-center justify-between text-[11px] tracking-[0.12em] text-muted-foreground">{toolbar}</div> : null}
+      {toolbar ? <div className="flex items-center justify-between text-sm tracking-[0.08em] text-muted-foreground">{toolbar}</div> : null}
 
       <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
         {loading ? (
@@ -105,8 +105,8 @@ export function ValidatorSelector({
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
                     <p className="font-display text-sm uppercase tracking-[0.12em] text-primary">{option.title}</p>
-                    {option.subtitle ? <p className="text-[11px] tracking-[0.08em] text-muted-foreground">{option.subtitle}</p> : null}
-                    {option.description ? <p className="text-[11px] tracking-[0.08em] text-muted-foreground">{option.description}</p> : null}
+                    {option.subtitle ? <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground">{option.subtitle}</p> : null}
+                    {option.description ? <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground">{option.description}</p> : null}
                     {option.stats && option.stats.length > 0 ? (
                       <div className="flex flex-wrap gap-3 font-display text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
                         {option.stats.map((stat) => (

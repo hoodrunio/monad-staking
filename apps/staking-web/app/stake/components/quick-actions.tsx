@@ -58,7 +58,7 @@ export function QuickActions({
   const hasRewards = parseAmount(rewardsValue) > 0;
   const availableAmount = parseAmount(availableBalance);
   const stakedAmount = parseAmount(stakedValue);
-  const displayApy = apyLabel === 'Coming soon' ? '24.8%' : apyLabel;
+  const displayApy = apyLabel === 'Coming soon' ? '0.14%' : apyLabel;
   
   // Enhanced validation
   const hasAvailableBalance = availableAmount > 0;
