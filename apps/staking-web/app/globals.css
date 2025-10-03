@@ -186,6 +186,7 @@ p {
 .pixel-border {
   position: relative;
   border-width: 0;
+  z-index: 1;
 }
 
 .pixel-border::before {
@@ -208,6 +209,7 @@ p {
     0 calc(100% - 8px)
   );
   pointer-events: none;
+  z-index: -1;
 }
 
 .pixel-glow {

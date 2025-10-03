@@ -2,7 +2,7 @@
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { HugeiconsIcon, Cancel01Icon } from '@/app/components/icons';
-import type { ComponentProps } from 'react';
+import { forwardRef, type ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
 export function Dialog(props: ComponentProps<typeof DialogPrimitive.Root>) {
@@ -21,9 +21,13 @@ export function DialogClose(props: ComponentProps<typeof DialogPrimitive.Close>)
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 }
 
-export function DialogOverlay({ className, ...props }: ComponentProps<typeof DialogPrimitive.Overlay>) {
+export const DialogOverlay = forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Overlay>,
+  ComponentProps<typeof DialogPrimitive.Overlay>
+>(({ className, ...props }, ref) => {
   return (
     <DialogPrimitive.Overlay
+      ref={ref}
       data-slot="dialog-overlay"
       className={cn(
         'fixed inset-0 z-50 bg-[#020009]/90 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
@@ -32,20 +36,25 @@ export function DialogOverlay({ className, ...props }: ComponentProps<typeof Dia
       {...props}
     />
   );
-}
+});
+DialogOverlay.displayName = 'DialogOverlay';
 
 interface DialogContentProps extends ComponentProps<typeof DialogPrimitive.Content> {
   readonly showCloseButton?: boolean;
 }
 
-export function DialogContent({ className, children, showCloseButton = true, ...props }: DialogContentProps) {
+export const DialogContent = forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  DialogContentProps
+>(({ className, children, showCloseButton = true, ...props }, ref) => {
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
+        ref={ref}
         data-slot="dialog-content"
         className={cn(
-          'pixel-panel pixel-border fixed left-1/2 top-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-6 px-8 py-8 shadow-[0_0_40px_rgba(108,246,255,0.35)] duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-2xl',
+          'pixel-panel pixel-border fixed left-1/2 top-1/2 z-[100] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] px-8 py-8 shadow-[0_0_40px_rgba(108,246,255,0.35)] duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-2xl',
           className,
         )}
         {...props}
@@ -53,7 +62,7 @@ export function DialogContent({ className, children, showCloseButton = true, ...
         {children}
         {showCloseButton ? (
           <DialogPrimitive.Close
-            className="absolute right-5 top-5 inline-flex h-10 w-10 items-center justify-center border-2 border-border bg-secondary/60 text-primary shadow-[4px_4px_0_rgba(0,0,0,0.55)] transition-transform duration-150 hover:border-primary hover:text-accent active:translate-x-[1px] active:translate-y-[1px]"
+            className="absolute right-5 top-5 z-[10] inline-flex h-10 w-10 items-center justify-center border-2 border-border bg-secondary/60 text-primary shadow-[4px_4px_0_rgba(0,0,0,0.55)] transition-transform duration-150 hover:border-primary hover:text-accent active:translate-x-[1px] active:translate-y-[1px]"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={20} />
             <span className="sr-only">Close</span>
@@ -62,7 +71,8 @@ export function DialogContent({ className, children, showCloseButton = true, ...
       </DialogPrimitive.Content>
     </DialogPortal>
   );
-}
+});
+DialogContent.displayName = 'DialogContent';
 
 export function DialogHeader({ className, ...props }: ComponentProps<'div'>) {
   return (

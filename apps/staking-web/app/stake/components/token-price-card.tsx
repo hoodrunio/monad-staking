@@ -12,7 +12,7 @@ interface TokenPriceCardProps {
 }
 
 export function TokenPriceCard({ tokenSymbol, priceUsd, priceChangeLabel, description }: TokenPriceCardProps) {
-  const formattedPrice = typeof priceUsd === 'number' ? `$${priceUsd.toFixed(2)}` : '$12.48';
+  const formattedPrice = typeof priceUsd === 'number' ? `$${priceUsd.toFixed(2)}` : '$0.00';
   const changeText = priceChangeLabel ?? '+7.2% TODAY';
   const summaryText =
     description ?? 'Participate in securing the Monad ecosystem, earn platform rewards and staking yields.';
