@@ -2,7 +2,6 @@
 
 import { ChainBreakPixelIcon, SparklePixelIcon } from '@/app/components/icons';
 import { Card } from '@/app/components/ui/card';
-import { Badge } from '@/app/components/ui/badge';
 
 interface StatItem {
   readonly label: string;
@@ -23,16 +22,22 @@ export function StakingStatsCard({ stats }: StakingStatsCardProps) {
         const trendTone = stat.trend === 'down' ? 'text-destructive' : 'text-accent';
 
         return (
-          <Card key={stat.label} className="space-y-4 px-6 py-5">
-            <div className="flex items-center justify-between">
-              <span className="font-display text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          <Card key={stat.label} className="!overflow-visible space-y-2 px-4 py-4">
+            <div className="flex items-center justify-between gap-1.5">
+              <span className="font-display text-[9px] uppercase leading-tight tracking-[0.12em] text-muted-foreground">
                 {stat.label}
               </span>
-              {stat.change ? <Badge variant="outline">{stat.change}</Badge> : null}
+              {stat.change ? <TrendIcon size={12} className={`shrink-0 ${trendTone} ${stat.trend === 'down' ? 'animate-chain-break' : 'animate-chest-sparkle'}`} /> : null}
             </div>
-            <div className="flex items-center justify-between">
-              <p className="font-display text-2xl tracking-[0.04em] text-primary">{stat.value}</p>
-              {stat.change ? <TrendIcon size={18} className={`${trendTone} ${stat.trend === 'down' ? 'animate-chain-break' : 'animate-chest-sparkle'}`} /> : null}
+            {stat.change ? (
+              <div className="flex items-center">
+                <span className="inline-block rounded border border-border/50 bg-transparent px-1.5 py-0.5 font-display text-[8px] uppercase leading-tight tracking-[0.1em] text-foreground/80">
+                  {stat.change}
+                </span>
+              </div>
+            ) : null}
+            <div className="flex items-baseline justify-between pt-1">
+              <p className="w-full break-all font-display text-base leading-tight tracking-[0.02em] text-primary sm:text-lg">{stat.value}</p>
             </div>
           </Card>
         );

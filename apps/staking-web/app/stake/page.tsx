@@ -194,7 +194,10 @@ function StakeScreen() {
   }, [delegations, readyWithdrawals, pendingWithdrawals, balance]);
 
   const activeValidators = validators.filter((validator) => validator.isActive).length;
-  const statsFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+  const statsFormatter = new Intl.NumberFormat('en-US', { 
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
+  });
   const stats = [
     {
       label: 'Total staked',
@@ -211,7 +214,7 @@ function StakeScreen() {
     {
       label: 'Delegations',
       value: delegations.length.toString(),
-      change: `${readyWithdrawals.length} ready withdrawals`,
+      change: `${readyWithdrawals.length} ready`,
       trend: readyWithdrawals.length > 0 ? ('up' as const) : ('down' as const),
     },
     {

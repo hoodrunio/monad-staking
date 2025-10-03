@@ -86,7 +86,7 @@ export function StakingModal({
   }, [open]);
 
   const isStake = mode === 'stake';
-  const title = isStake ? 'Delegate Stake' : 'Start Undelegation';
+  const title = isStake ? 'Start Staking' : 'Start Undelegation';
   const submitLabel = isStake ? 'Delegate' : 'Undelegate';
   const amountLabel = isStake ? 'Amount to stake' : 'Amount to unstake';
 
