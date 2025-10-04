@@ -23,10 +23,12 @@ interface QuickActionsProps {
   readonly onUnstake: () => void;
   readonly onWithdraw: () => void;
   readonly onClaim: () => void;
+  readonly onCompound: () => void;
   readonly canStake: boolean;
   readonly canUnstake: boolean;
   readonly canWithdraw: boolean;
   readonly canClaim: boolean;
+  readonly canCompound: boolean;
   readonly busyAction?: string | null;
   readonly isConnected: boolean;
 }
@@ -47,10 +49,12 @@ export function QuickActions({
   onUnstake,
   onWithdraw,
   onClaim,
+  onCompound,
   canStake,
   canUnstake,
   canWithdraw,
   canClaim,
+  canCompound,
   busyAction,
   isConnected,
 }: QuickActionsProps) {
@@ -66,8 +70,7 @@ export function QuickActions({
   const canActuallyUnstake = canUnstake && hasStakedTokens && isConnected;
   const canActuallyClaim = canClaim && hasRewards && isConnected;
   const canActuallyWithdraw = canWithdraw && isConnected;
-
-
+  const canActuallyCompound = canCompound && hasRewards && isConnected;
 
   const pieData = [
     { name: 'Available', value: availableAmount, color: '#6cf6ff' },
@@ -92,6 +95,11 @@ export function QuickActions({
     onClaim();
   };
 
+  const handleCompound = () => {
+    playSound('coin');
+    onCompound();
+  };
+
   const handleWithdraw = () => {
     playSound('chain');
     onWithdraw();
@@ -113,7 +121,7 @@ export function QuickActions({
       </header>
 
       <TooltipProvider>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -178,7 +186,11 @@ export function QuickActions({
                   <ChestPixelIcon size={16} className="animate-chest-sparkle text-accent" />
                 </div>
                 <p className="w-full break-words text-xs leading-snug tracking-[0.08em] text-muted-foreground">
-                  {busyAction === 'claim' ? 'Claiming...' : hasRewards ? `${rewardsValue} ready to collect.` : 'Chest sparkles once rewards accrue.'}
+                  {busyAction === 'claim' || busyAction === 'claim-all'
+                    ? 'Claiming...'
+                    : hasRewards
+                    ? `${rewardsValue} ready to collect.`
+                    : 'Chest sparkles once rewards accrue.'}
                 </p>
               </Button>
             </TooltipTrigger>
@@ -188,6 +200,36 @@ export function QuickActions({
                 : !hasRewards
                   ? 'No rewards available to claim'
                   : 'Claim your staking rewards'}
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                onClick={handleCompound}
+                disabled={!canActuallyCompound}
+                className={`h-auto min-h-[88px] w-full !flex-col !items-start !justify-start gap-2 overflow-visible whitespace-normal px-4 py-4 text-left ${disabledClass}`}
+              >
+                <div className="flex w-full items-center justify-between">
+                  <span className="font-display text-xs uppercase tracking-[0.14em]">Compound</span>
+                  <SparklePixelIcon size={16} className="text-primary" />
+                </div>
+                <p className="w-full break-words text-xs leading-snug tracking-[0.08em] text-muted-foreground">
+                  {busyAction === 'compound'
+                    ? 'Compounding...'
+                    : hasRewards
+                    ? 'Re-stake rewards back into your delegation.'
+                    : 'Stake rewards first, then compound to grow faster.'}
+                </p>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {!isConnected
+                ? 'Connect wallet to compound rewards'
+                : !canCompound || !hasRewards
+                  ? 'No rewards available to compound'
+                  : 'Compound rewards into your stake'}
             </TooltipContent>
           </Tooltip>
 

@@ -13,6 +13,8 @@ import { UserPortfolio } from '@/app/stake/components/user-portfolio';
 import { StakingChart } from '@/app/stake/components/staking-chart';
 import { QuickActions } from '@/app/stake/components/quick-actions';
 import { WithdrawModal } from '@/app/stake/components/withdraw-modal';
+import { CompoundModal } from '@/app/stake/components/compound-modal';
+import { ClaimModal } from '@/app/stake/components/claim-modal';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { parseNetworkKey } from '@/lib/validators';
 import { useStakingSdk } from '@/hooks/useStakingSdk';
@@ -57,7 +59,7 @@ function StakeScreen() {
   const data = useStakingData(selectedNetwork, !!selectedNetwork && !!resolved);
   const { calculateMaxStakeable, estimating } = useGasEstimation({ sdk, account });
 
-  const { state, delegate, undelegate, withdraw, claimAllRewards, resetState } =
+  const { state, delegate, undelegate, withdraw, compound, claimAllRewards, resetState } =
     useStakeActions({
       sdk,
       account,
@@ -87,6 +89,8 @@ function StakeScreen() {
   const [selectorItems, setSelectorItems] = useState<ValidatorSummary[]>([]);
   const [selectorHasMore, setSelectorHasMore] = useState(false);
   const [selectorNextCursor, setSelectorNextCursor] = useState<string | null>(null);
+  const [compoundModal, setCompoundModal] = useState<{ open: boolean; validatorId: string | null }>({ open: false, validatorId: null });
+  const [claimModalOpen, setClaimModalOpen] = useState(false);
 
   const { validators, delegations, withdrawals, epoch, balance } = data;
 
@@ -155,6 +159,21 @@ function StakeScreen() {
         badge: validator?.isActive ? 'Active' : undefined,
       };
     });
+  }, [delegations, validatorMap]);
+
+  const compoundCandidates = useMemo(() => {
+    return delegations
+      .filter((delegation) => Number(delegation.unclaimedRewards.decimal || 0) > 0)
+      .map((delegation) => {
+        const validator = validatorMap.get(delegation.validatorId);
+        return {
+          validatorId: delegation.validatorId,
+          title: validator?.meta?.name ?? `Validator ${delegation.validatorId}`,
+          rewards: delegation.unclaimedRewards.formatted,
+          stake: delegation.stake.formatted,
+          badge: validator?.isActive ? 'Active' : undefined,
+        };
+      });
   }, [delegations, validatorMap]);
 
   const withdrawalsByValidator = useMemo(() => {
@@ -327,6 +346,7 @@ function StakeScreen() {
   const canUnstake = Boolean(firstDelegation) && !!sdk && !!account && !state.busy;
   const canWithdraw = Boolean(firstReadyWithdrawal) && !!sdk && !!account && !state.busy;
   const canClaim = totals.rewards > 0 && !!account && !!sdk && !state.busy;
+  const canCompound = compoundCandidates.length > 0 && !!account && !!sdk && !state.busy;
 
   const handleStake = () => openDelegateModal(null);
   const handleUnstake = () => {
@@ -338,8 +358,31 @@ function StakeScreen() {
     setWithdrawModalOpen(true);
   };
   const handleClaim = () => {
+    if (!canClaim) return;
+    setClaimModalOpen(true);
+  };
+  const handleCompound = () => {
+    if (!canCompound) return;
+    setCompoundModal({ open: true, validatorId: compoundCandidates[0]?.validatorId ?? null });
+  };
+  const selectCompoundValidator = (validatorId: string) => {
+    setCompoundModal((prev) => ({ ...prev, validatorId }));
+  };
+  const confirmCompound = () => {
+    if (!compoundModal.validatorId || !sdk || !account) return;
+    setCompoundModal({ open: false, validatorId: null });
+    void compound(compoundModal.validatorId);
+  };
+  const closeCompoundModal = () => {
+    setCompoundModal({ open: false, validatorId: null });
+  };
+  const confirmClaim = () => {
     if (!sdk || !account) return;
+    setClaimModalOpen(false);
     void claimAllRewards();
+  };
+  const closeClaimModal = () => {
+    setClaimModalOpen(false);
   };
 
   return (
@@ -382,10 +425,12 @@ function StakeScreen() {
               onUnstake={handleUnstake}
               onWithdraw={handleWithdraw}
               onClaim={handleClaim}
+              onCompound={handleCompound}
               canStake={canStake}
               canUnstake={canUnstake}
               canWithdraw={canWithdraw}
               canClaim={canClaim}
+              canCompound={canCompound}
               busyAction={state.busyAction}
               isConnected={!!account}
             />
@@ -505,6 +550,25 @@ function StakeScreen() {
             </div>
           )
         }
+      />
+
+      <CompoundModal
+        open={compoundModal.open}
+        options={compoundCandidates}
+        selectedValidatorId={compoundModal.validatorId}
+        onSelectValidator={selectCompoundValidator}
+        onClose={closeCompoundModal}
+        onConfirm={confirmCompound}
+        busy={state.busy && state.busyAction === 'compound'}
+      />
+
+      <ClaimModal
+        open={claimModalOpen}
+        onClose={closeClaimModal}
+        onConfirm={confirmClaim}
+        totalRewards={formattedMon(totals.rewards)}
+        validatorCount={compoundCandidates.length}
+        busy={state.busy && (state.busyAction === 'claim' || state.busyAction === 'claim-all')}
       />
 
       <WithdrawModal
