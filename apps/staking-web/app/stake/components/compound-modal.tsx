@@ -43,11 +43,15 @@ export function CompoundModal({
       title="Compound Rewards"
       description="Re-delegate your unclaimed rewards back into a validator to grow your stake."
       footer={
-        <div className="flex w-full justify-between gap-3">
-          <Button variant="outline" onClick={onClose} disabled={busy}>
+        <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+          <Button variant="outline" onClick={onClose} disabled={busy} className="w-full sm:w-auto">
             Cancel
           </Button>
-          <Button onClick={onConfirm} disabled={!canConfirm} className="bg-primary text-background hover:bg-primary/90">
+          <Button
+            onClick={onConfirm}
+            disabled={!canConfirm}
+            className="w-full bg-primary text-background hover:bg-primary/90 sm:w-auto"
+          >
             {busy ? 'Compounding...' : 'Confirm compound'}
           </Button>
         </div>

@@ -55,11 +55,15 @@ export function ClaimModal({
       title="Claim Rewards"
       description="Choose how you would like to collect unclaimed rewards from your delegations."
       footer={
-        <div className="flex w-full justify-between gap-3">
-          <Button variant="outline" onClick={onClose} disabled={busy}>
+        <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+          <Button variant="outline" onClick={onClose} disabled={busy} className="w-full sm:w-auto">
             Cancel
           </Button>
-          <Button onClick={onConfirm} disabled={!canConfirm} className="bg-primary text-background hover:bg-primary/90">
+          <Button
+            onClick={onConfirm}
+            disabled={!canConfirm}
+            className="w-full bg-primary text-background hover:bg-primary/90 sm:w-auto"
+          >
             {busy ? 'Claiming...' : mode === 'all' ? 'Claim all rewards' : 'Claim selected'}
           </Button>
         </div>
@@ -166,7 +170,7 @@ function ModeButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex w-full items-center justify-center gap-2 rounded-full border-2 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto',
         active
           ? 'border-primary bg-primary/20 text-primary'
           : 'border-border bg-secondary/40 text-muted-foreground hover:border-primary/60 hover:text-primary',

@@ -121,8 +121,8 @@ export function StakingModal({
               disabled={disabled}
               toolbar={toolbar}
             />
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={onClose}>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button variant="outline" onClick={onClose} className="sm:w-auto">
                 Cancel
               </Button>
               <Button
@@ -134,6 +134,7 @@ export function StakingModal({
                   }
                 }}
                 disabled={!selectedValidatorId || disabled}
+                className="sm:w-auto"
               >
                 Next
               </Button>
@@ -166,11 +167,11 @@ export function StakingModal({
 
             {/* Amount Input */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="amount-input" className="flex items-center gap-2 text-xs font-display uppercase tracking-[0.12em] text-muted-foreground">
-                  {amountLabel}
-                  <CoinPixelIcon size={12} className="text-primary" />
-                </Label>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <Label htmlFor="amount-input" className="flex items-center gap-2 text-xs font-display uppercase tracking-[0.12em] text-muted-foreground">
+                {amountLabel}
+                <CoinPixelIcon size={12} className="text-primary" />
+              </Label>
                 {maxAmount !== null && !isEstimating && (
                   <Button
                     type="button"
@@ -253,8 +254,8 @@ export function StakingModal({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setStep(1)} disabled={disabled}>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button variant="outline" onClick={() => setStep(1)} disabled={disabled} className="sm:w-auto">
                 Back
               </Button>
               <Button
