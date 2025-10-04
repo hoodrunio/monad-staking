@@ -45,7 +45,7 @@ export function ClaimModal({
             Rewards summary
           </div>
           <p>
-            We will submit a few transactions that claims rewards from {validatorCount} delegation{validatorCount === 1 ? '' : 's'}. Your wallet will prompt for confirmations next.
+            We will submit the necessary transactions to claim rewards from {validatorCount} delegation{validatorCount === 1 ? '' : 's'}. Your wallet will prompt for confirmations next.
           </p>
         </div>
 
