@@ -59,7 +59,7 @@ function StakeScreen() {
   const data = useStakingData(selectedNetwork, !!selectedNetwork && !!resolved);
   const { calculateMaxStakeable, estimating } = useGasEstimation({ sdk, account });
 
-  const { state, delegate, undelegate, withdraw, compound, claimAllRewards, resetState } =
+  const { state, delegate, undelegate, withdraw, compound, claimRewards, claimAllRewards, resetState } =
     useStakeActions({
       sdk,
       account,
@@ -90,7 +90,13 @@ function StakeScreen() {
   const [selectorHasMore, setSelectorHasMore] = useState(false);
   const [selectorNextCursor, setSelectorNextCursor] = useState<string | null>(null);
   const [compoundModal, setCompoundModal] = useState<{ open: boolean; validatorId: string | null }>({ open: false, validatorId: null });
-  const [claimModalOpen, setClaimModalOpen] = useState(false);
+  const [claimModal, setClaimModal] = useState<{ open: boolean; mode: 'all' | 'custom'; selectedValidatorIds: string[] }>(
+    {
+      open: false,
+      mode: 'all',
+      selectedValidatorIds: [],
+    },
+  );
 
   const { validators, delegations, withdrawals, epoch, balance } = data;
 
@@ -161,7 +167,7 @@ function StakeScreen() {
     });
   }, [delegations, validatorMap]);
 
-  const compoundCandidates = useMemo(() => {
+  const rewardDelegations = useMemo(() => {
     return delegations
       .filter((delegation) => Number(delegation.unclaimedRewards.decimal || 0) > 0)
       .map((delegation) => {
@@ -169,12 +175,56 @@ function StakeScreen() {
         return {
           validatorId: delegation.validatorId,
           title: validator?.meta?.name ?? `Validator ${delegation.validatorId}`,
-          rewards: delegation.unclaimedRewards.formatted,
-          stake: delegation.stake.formatted,
+          rewardsFormatted: delegation.unclaimedRewards.formatted,
+          rewardsDecimal: Number(delegation.unclaimedRewards.decimal || 0),
+          stakeFormatted: delegation.stake.formatted,
           badge: validator?.isActive ? 'Active' : undefined,
         };
       });
   }, [delegations, validatorMap]);
+
+  const allRewardValidatorIds = useMemo(() => rewardDelegations.map((item) => item.validatorId), [rewardDelegations]);
+
+  const compoundCandidates = useMemo(
+    () =>
+      rewardDelegations.map((item) => ({
+        validatorId: item.validatorId,
+        title: item.title,
+        rewards: item.rewardsFormatted,
+        stake: item.stakeFormatted,
+        badge: item.badge,
+      })),
+    [rewardDelegations],
+  );
+
+  const claimOptions = useMemo(
+    () =>
+      rewardDelegations.map((item) => ({
+        validatorId: item.validatorId,
+        title: item.title,
+        rewardsFormatted: item.rewardsFormatted,
+        stakeFormatted: item.stakeFormatted,
+      })),
+    [rewardDelegations],
+  );
+
+  useEffect(() => {
+    if (!claimModal.open) return;
+    if (claimModal.mode === 'all') {
+      const sameLength = claimModal.selectedValidatorIds.length === allRewardValidatorIds.length;
+      const sameOrder = sameLength
+        ? claimModal.selectedValidatorIds.every((id, index) => id === allRewardValidatorIds[index])
+        : false;
+      if (!sameOrder) {
+        setClaimModal((prev) => ({ ...prev, selectedValidatorIds: allRewardValidatorIds }));
+      }
+    } else {
+      const filtered = claimModal.selectedValidatorIds.filter((id) => allRewardValidatorIds.includes(id));
+      if (filtered.length !== claimModal.selectedValidatorIds.length) {
+        setClaimModal((prev) => ({ ...prev, selectedValidatorIds: filtered }));
+      }
+    }
+  }, [claimModal.open, claimModal.mode, claimModal.selectedValidatorIds, allRewardValidatorIds]);
 
   const withdrawalsByValidator = useMemo(() => {
     const map = new Map<string, number[]>();
@@ -289,6 +339,8 @@ function StakeScreen() {
     setSelectorHasMore(false);
     setSelectorItems([]);
     setSelectorActiveOnly(true);
+    setCompoundModal({ open: false, validatorId: null });
+    setClaimModal({ open: false, mode: 'all', selectedValidatorIds: [] });
     if (reset) resetState();
   };
 
@@ -341,11 +393,18 @@ function StakeScreen() {
   }
 
   const formattedMon = (value: number) => `${statsFormatter.format(value)} MON`;
+  const totalRewardsFormatted = formattedMon(totals.rewards);
+  const selectedClaimRewardsDecimal = claimModal.mode === 'all'
+    ? totals.rewards
+    : rewardDelegations.reduce((sum, item) =>
+        (claimModal.selectedValidatorIds.includes(item.validatorId) ? sum + item.rewardsDecimal : sum),
+      0);
+  const selectedClaimRewardsFormatted = formattedMon(selectedClaimRewardsDecimal);
   const apyLabel = 'Coming soon';
   const canStake = !!sdk && !!account && !state.busy;
   const canUnstake = Boolean(firstDelegation) && !!sdk && !!account && !state.busy;
   const canWithdraw = Boolean(firstReadyWithdrawal) && !!sdk && !!account && !state.busy;
-  const canClaim = totals.rewards > 0 && !!account && !!sdk && !state.busy;
+  const canClaim = rewardDelegations.length > 0 && !!account && !!sdk && !state.busy;
   const canCompound = compoundCandidates.length > 0 && !!account && !!sdk && !state.busy;
 
   const handleStake = () => openDelegateModal(null);
@@ -359,7 +418,7 @@ function StakeScreen() {
   };
   const handleClaim = () => {
     if (!canClaim) return;
-    setClaimModalOpen(true);
+    setClaimModal({ open: true, mode: 'all', selectedValidatorIds: allRewardValidatorIds });
   };
   const handleCompound = () => {
     if (!canCompound) return;
@@ -376,13 +435,44 @@ function StakeScreen() {
   const closeCompoundModal = () => {
     setCompoundModal({ open: false, validatorId: null });
   };
-  const confirmClaim = () => {
+  const changeClaimMode = (mode: 'all' | 'custom') => {
+    setClaimModal((prev) => {
+      if (prev.mode === mode) return prev;
+      if (mode === 'all') {
+        return { ...prev, mode, selectedValidatorIds: allRewardValidatorIds };
+      }
+      const initialSelection = prev.selectedValidatorIds.length > 0
+        ? prev.selectedValidatorIds
+        : allRewardValidatorIds.slice(0, 1);
+      return { ...prev, mode, selectedValidatorIds: initialSelection };
+    });
+  };
+  const toggleClaimValidator = (validatorId: string) => {
+    setClaimModal((prev) => {
+      if (prev.mode !== 'custom') return prev;
+      const exists = prev.selectedValidatorIds.includes(validatorId);
+      const next = exists
+        ? prev.selectedValidatorIds.filter((id) => id !== validatorId)
+        : [...prev.selectedValidatorIds, validatorId];
+      return { ...prev, selectedValidatorIds: next };
+    });
+  };
+  const confirmClaim = async () => {
     if (!sdk || !account) return;
-    setClaimModalOpen(false);
-    void claimAllRewards();
+    const mode = claimModal.mode;
+    const selectedIds = mode === 'all' ? allRewardValidatorIds : claimModal.selectedValidatorIds;
+    if (selectedIds.length === 0) return;
+    setClaimModal({ open: false, mode: 'all', selectedValidatorIds: [] });
+    if (mode === 'all') {
+      await claimAllRewards();
+      return;
+    }
+    for (const validatorId of selectedIds) {
+      await claimRewards(validatorId);
+    }
   };
   const closeClaimModal = () => {
-    setClaimModalOpen(false);
+    setClaimModal({ open: false, mode: 'all', selectedValidatorIds: [] });
   };
 
   return (
@@ -563,11 +653,17 @@ function StakeScreen() {
       />
 
       <ClaimModal
-        open={claimModalOpen}
+        open={claimModal.open}
+        options={claimOptions}
+        selectedValidatorIds={claimModal.selectedValidatorIds}
+        mode={claimModal.mode}
+        onModeChange={changeClaimMode}
+        onToggleValidator={toggleClaimValidator}
+        totalRewards={totalRewardsFormatted}
+        selectedRewards={selectedClaimRewardsFormatted}
+        validatorCount={rewardDelegations.length}
         onClose={closeClaimModal}
         onConfirm={confirmClaim}
-        totalRewards={formattedMon(totals.rewards)}
-        validatorCount={compoundCandidates.length}
         busy={state.busy && (state.busyAction === 'claim' || state.busyAction === 'claim-all')}
       />
 
