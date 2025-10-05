@@ -318,6 +318,40 @@ p {
   animation: chain-break 2.2s steps(5, end) infinite;
 }
 
+/* Retro Farmer Tractor Animation - GPU Accelerated */
+@keyframes tractor-drive {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes tractor-smoke {
+  0% {
+    opacity: 0.6;
+    transform: translateY(0) scale(0.5);
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) scale(1.2);
+  }
+}
+
+.animate-tractor {
+  animation: tractor-drive 45s linear infinite;
+  will-change: transform;
+}
+
+.animate-smoke {
+  animation: tractor-smoke 3s ease-out infinite;
+  will-change: transform, opacity;
+}
+
 .pixel-panel {
   position: relative;
   background: linear-gradient(180deg, rgba(16, 10, 36, 0.96) 0%, rgba(27, 8, 40, 0.98) 100%);

@@ -504,39 +504,73 @@ function StakeScreen() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <div className="flex flex-col gap-5">
-            <QuickActions
-              stakedValue={formattedMon(totals.staked)}
-              rewardsValue={formattedMon(totals.rewards)}
-              availableBalance={formattedMon(totals.available)}
-              apyLabel={apyLabel}
-              onStake={handleStake}
-              onUnstake={handleUnstake}
-              onWithdraw={handleWithdraw}
-              onClaim={handleClaim}
-              onCompound={handleCompound}
-              canStake={canStake}
-              canUnstake={canUnstake}
-              canWithdraw={canWithdraw}
-              canClaim={canClaim}
-              canCompound={canCompound}
-              busyAction={state.busyAction}
-              isConnected={!!account}
-            />
+        {/* Floating ribbon just above Action console & My staking position */}
+        <div className="relative">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-10 left-0 right-0 mx-auto h-12 max-w-7xl opacity-40 dark:opacity-50"
+          >
+            {/* ribbon background */}
+            <div className="absolute inset-0 rounded-xl border-2 border-border/40 bg-secondary/30 backdrop-blur-[1px]" />
+            {/* tiny moving tractor */}
+            <div className="absolute inset-0">
+              <div
+                className="absolute bottom-1 left-0 right-0 h-8 animate-tractor"
+                style={{ zIndex: 1 }}
+              >
+                <div
+                  className="absolute inset-0 opacity-60"
+                  style={{
+                    backgroundImage: 'url(/retro-farm-tractor.svg)',
+                    backgroundPosition: 'center bottom',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: 'auto 18px',
+                    imageRendering: 'pixelated',
+                  }}
+                />
+                {/* subtle smoke */}
+                <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-[10px]">
+                  <div className="animate-smoke absolute h-1.5 w-1.5 rounded-full bg-gray-400/50 dark:bg-gray-300/40" style={{ animationDelay: '0s', filter: 'blur(1px)' }} />
+                  <div className="animate-smoke absolute h-1.5 w-1.5 rounded-full bg-gray-400/40 dark:bg-gray-300/30" style={{ animationDelay: '1s', filter: 'blur(1px)' }} />
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-5">
-            <UserPortfolio
-              staked={formattedMon(totals.staked)}
-              withdrawable={formattedMon(totals.readyWithdraw)}
-              claimable={formattedMon(totals.rewards)}
-              unstaked={formattedMon(totals.pendingWithdraw)}
-            >
-              <div className="flex-1">
-                <StakingChart />
-              </div>
-            </UserPortfolio>
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <div className="flex flex-col gap-5">
+              <QuickActions
+                stakedValue={formattedMon(totals.staked)}
+                rewardsValue={formattedMon(totals.rewards)}
+                availableBalance={formattedMon(totals.available)}
+                apyLabel={apyLabel}
+                onStake={handleStake}
+                onUnstake={handleUnstake}
+                onWithdraw={handleWithdraw}
+                onClaim={handleClaim}
+                onCompound={handleCompound}
+                canStake={canStake}
+                canUnstake={canUnstake}
+                canWithdraw={canWithdraw}
+                canClaim={canClaim}
+                canCompound={canCompound}
+                busyAction={state.busyAction}
+                isConnected={!!account}
+              />
+            </div>
+
+            <div className="flex flex-col gap-5">
+              <UserPortfolio
+                staked={formattedMon(totals.staked)}
+                withdrawable={formattedMon(totals.readyWithdraw)}
+                claimable={formattedMon(totals.rewards)}
+                unstaked={formattedMon(totals.pendingWithdraw)}
+              >
+                <div className="flex-1">
+                  <StakingChart />
+                </div>
+              </UserPortfolio>
+            </div>
           </div>
         </div>
       </ShellSection>
