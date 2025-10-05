@@ -61,15 +61,33 @@ export function UserPortfolio({ staked, withdrawable, claimable, unstaked, child
   ];
 
   return (
-    <Card className="h-full space-y-5 px-6 py-6">
-      <header className="flex items-center justify-between">
+    <Card 
+      className="h-full space-y-5 px-6 py-6 relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(180deg, rgba(16, 10, 36, 0.75) 0%, rgba(27, 8, 40, 0.85) 100%)',
+      }}
+    >
+      {/* Retro farmer tractor background */}
+      <div 
+        className="pointer-events-none absolute inset-0 opacity-[0.35] dark:opacity-[0.45]"
+        style={{
+          backgroundImage: 'url(/retro-farm-bg.svg)',
+          backgroundPosition: 'bottom right',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'auto 280px',
+          imageRendering: 'pixelated',
+          zIndex: 0,
+        }}
+      />
+      
+      <header className="relative z-10 flex items-center justify-between">
         <div>
           <h2 className="font-display text-lg uppercase tracking-[0.14em] text-primary">My staking position</h2>
           <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">Live wallet telemetry</p>
         </div>
       </header>
 
-      <div className="space-y-4">
+      <div className="relative z-10 space-y-4">
         {bars.map((bar) => {
           const backgroundImage =
             bar.tone === 'accent'
@@ -98,7 +116,7 @@ export function UserPortfolio({ staked, withdrawable, claimable, unstaked, child
         })}
       </div>
 
-      {children}
+      {children && <div className="relative z-10">{children}</div>}
     </Card>
   );
 }

@@ -34,7 +34,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`bg-background font-sans text-foreground antialiased ${pressStart.variable} ${vt323.variable}`}>
+      <body className={`font-sans text-foreground antialiased ${pressStart.variable} ${vt323.variable}`}>
         <ThemeProvider>
           <Providers>
             <Shell>
