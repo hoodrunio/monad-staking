@@ -1,6 +1,6 @@
 import { container } from './shared/container';
 import { logger } from './infrastructure';
-import { workerConfig } from './config/env';
+import { workerConfig, priceConfig } from './config/env';
 import type { Network } from './domain/types';
 import type { Epoch, EpochSample } from './domain/epoch';
 
@@ -14,6 +14,7 @@ const MAX_DELAY_MS = workerConfig.pollMaxMs;
 const MIN_DELAY_MS = workerConfig.pollMinMs;
 const INGEST_MAX_RETRIES = workerConfig.ingestMaxRetries;
 const AVERAGE_BLOCK_TIME_MS = 500;
+const priceRefreshEnabled = priceConfig.refreshIntervalMs > 0;
 
 async function pollNetwork(network: Network) {
   const networkConfig = container.getNetworkConfig(network);
@@ -109,6 +110,39 @@ async function runIngestWithRetry(network: Network, epoch: string) {
       await sleep(backoff);
     }
   }
+}
+
+async function refreshPrice(reason: 'startup' | 'interval'): Promise<void> {
+  try {
+    const result = await container.getPrice().execute({ forceRefresh: true });
+    logger.info('price.refresh.success', {
+      reason,
+      currency: result.currency,
+      fetchedAt: result.fetchedAt,
+    });
+  } catch (error) {
+    logger.warn('price.refresh.failed', {
+      reason,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+function startPriceRefreshLoop(): void {
+  if (!priceRefreshEnabled) {
+    logger.info('price.refresh.disabled');
+    return;
+  }
+
+  const timer = setInterval(() => {
+    void refreshPrice('interval');
+  }, priceConfig.refreshIntervalMs);
+
+  if (typeof timer.unref === 'function') {
+    timer.unref();
+  }
+
+  logger.info('price.refresh.loop_started', { intervalMs: priceConfig.refreshIntervalMs });
 }
 
 const MAX_EPOCH_SAMPLES = 12;
@@ -274,6 +308,9 @@ function computeAverage(values: number[]): number | null {
 async function main() {
   await container.initialize();
   logger.info('worker.container_initialized');
+
+  await refreshPrice('startup');
+  startPriceRefreshLoop();
 
   const networks: Network[] = ['monad-mainnet', 'monad-testnet-1', 'monad-testnet-2'];
   const activeNetworks = networks.filter((n) => container.getNetworkConfig(n) !== null);

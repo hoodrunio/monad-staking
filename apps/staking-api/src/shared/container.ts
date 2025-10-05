@@ -1,6 +1,6 @@
 import type { ResolvedMonadNetworkConfig } from '@monad-staking/config';
 import { loadMonadNetworkConfig, requireNetworkConfig, MONAD_NETWORK_KEYS } from '@monad-staking/config';
-import { validatorsCol, epochCol, ingestStateCol, logger } from '../infrastructure';
+import { validatorsCol, epochCol, ingestStateCol } from '../infrastructure';
 import { MongoValidatorRepository } from '../infrastructure/repositories/validator.repo';
 import { MongoEpochRepository } from '../infrastructure/repositories/epoch.repo';
 import { MongoIngestRepository } from '../infrastructure/repositories/ingest.repo';
@@ -49,7 +49,6 @@ class DIContainer implements Container {
   private priceCache!: HybridCacheService;
   private priceProvider!: CoingeckoPriceProvider;
   private priceUseCase!: GetPriceUseCase;
-  private priceRefreshTimer: NodeJS.Timeout | null = null;
   private networkConfigs: Map<Network, ResolvedMonadNetworkConfig> = new Map();
 
   public listValidators!: ListValidatorsUseCase;
@@ -90,25 +89,6 @@ class DIContainer implements Container {
       assetId: priceConfig.coinId,
       currency: priceConfig.vsCurrency,
     });
-
-    const schedulePriceRefresh = async () => {
-      try {
-        await this.priceUseCase.execute({ forceRefresh: true });
-      } catch (error) {
-        logger.warn('price.refresh_failed', {
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
-    };
-
-    await schedulePriceRefresh();
-
-    if (priceConfig.refreshIntervalMs > 0) {
-      this.priceRefreshTimer = setInterval(schedulePriceRefresh, priceConfig.refreshIntervalMs);
-      if (typeof this.priceRefreshTimer.unref === 'function') {
-        this.priceRefreshTimer.unref();
-      }
-    }
 
     this.listValidators = new ListValidatorsUseCase(this.validatorRepo, this.listValidatorsCache);
 
