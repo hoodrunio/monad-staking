@@ -134,7 +134,7 @@ export function QuickActions({
                   <CoinPixelIcon size={16} className="animate-coin-drop text-primary" />
                 </div>
                 <p className="w-full break-words text-xs leading-snug tracking-[0.08em] text-muted-foreground">
-                  {busyAction === 'stake' ? 'Opening...' : 'Send MON to validators and boost rewards.'}
+                  {busyAction === 'stake' ? 'Opening...' : 'Delegate MON to validators to earn rewards.'}
                 </p>
               </Button>
             </TooltipTrigger>
