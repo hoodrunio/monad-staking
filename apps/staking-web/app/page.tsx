@@ -410,19 +410,19 @@ function HomePageContent() {
               </div>
             </div>
             <div className="space-y-2">
-              <span className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Explorer</span>
+              <span className="block font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Explorer</span>
               {resolved.explorerBaseUrl ? (
                 <a
                   href={resolved.explorerBaseUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 border-2 border-border bg-secondary/60 px-3 py-2 font-display text-[10px] uppercase tracking-[0.14em] text-primary transition hover:border-primary hover:text-accent"
+                  className="flex items-center gap-2 border-2 border-border bg-secondary/60 px-3 py-2 font-display text-[10px] uppercase tracking-[0.14em] text-primary transition hover:border-primary hover:text-accent"
                 >
                   Visit explorer
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                 </a>
               ) : (
-                <span className="border-2 border-border bg-secondary/40 px-3 py-2 font-display text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                <span className="block border-2 border-border bg-secondary/40 px-3 py-2 font-display text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Explorer not configured
                 </span>
               )}
