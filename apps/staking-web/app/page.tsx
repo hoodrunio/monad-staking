@@ -74,8 +74,8 @@ interface MetricCardProps {
 }
 
 function MetricCard({ icon: Icon, label, value, description, progress, tone = 'primary', badge }: MetricCardProps) {
-  const normalized = typeof progress === 'number' ? progress : 0;
-  const clampedProgress = Math.min(Math.max(normalized, 0), 1);
+  const shouldRenderProgress = typeof progress === 'number';
+  const normalized = shouldRenderProgress ? Math.min(Math.max(progress as number, 0), 1) : null;
   const backgroundImage =
     tone === 'accent'
       ? 'repeating-linear-gradient(90deg, rgba(255, 92, 244, 0.9) 0, rgba(255, 92, 244, 0.9) 12px, rgba(255, 92, 244, 0.35) 12px, rgba(255, 92, 244, 0.35) 16px)'
@@ -97,12 +97,17 @@ function MetricCard({ icon: Icon, label, value, description, progress, tone = 'p
       </div>
       <CardContent className="pt-5">
         <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground/80">{description}</p>
-        <div className="mt-4 h-6 w-full overflow-hidden pixel-progress">
-          <div
-            className="pixel-progress-fill"
-            style={{ width: `${Math.round(clampedProgress * 100)}%`, ...(backgroundImage ? { backgroundImage } : {}) }}
-          />
-        </div>
+        {shouldRenderProgress ? (
+          <div className="mt-4 h-6 w-full overflow-hidden pixel-progress">
+            <div
+              className="pixel-progress-fill"
+              style={{
+                width: `${Math.round((normalized ?? 0) * 100)}%`,
+                ...(backgroundImage ? { backgroundImage } : {}),
+              }}
+            />
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );
@@ -213,11 +218,13 @@ function HomePageContent() {
   }
 
   const progress = epochData?.progress;
+  const activationWindow = progress?.activationWindow;
   const currentPhase = epochData?.inEpochDelayPeriod ? 'delay' : 'active';
   const status = epochData ? formatEpochStatus(progress, currentPhase) : null;
-  const nextActivationEpoch = epochData
-    ? (BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n)).toString()
-    : null;
+  const nextActivationEpoch = activationWindow?.targetEpoch
+    ?? (epochData
+      ? (BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n)).toString()
+      : null);
   const withdrawableEpoch = epochData
     ? (BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n) + BigInt(epochData.withdrawalDelay)).toString()
     : null;
@@ -311,16 +318,9 @@ function HomePageContent() {
   const hasPendingWithdrawals = walletWithdrawableRaw > 0n;
   const hasAnyStake = walletStakedRaw > 0n;
 
-  const epochNumber = epochData ? Number(epochData.epoch) : null;
-  const nextActivationNumber = nextActivationEpoch ? Number(nextActivationEpoch) : null;
-  const withdrawableNumber = withdrawableEpoch ? Number(withdrawableEpoch) : null;
-  const epochLoopProgress = typeof progress?.percent === 'number' ? progress.percent : null;
+  const activationProgress = typeof activationWindow?.percent === 'number' ? activationWindow.percent : undefined;
+  const epochLoopProgress = activationProgress ?? (typeof progress?.percent === 'number' ? progress.percent : undefined);
   const epochLengthProgress = 1;
-  const withdrawalDelayProgress = epochData ? Math.min(Number(epochData.withdrawalDelay ?? 0) / 8, 1) : 0.35;
-  const activationCountdown = epochNumber !== null && nextActivationNumber !== null ? nextActivationNumber - epochNumber : null;
-  const withdrawalCountdown = epochNumber !== null && withdrawableNumber !== null ? withdrawableNumber - epochNumber : null;
-  const activationProgress = activationCountdown !== null ? Math.max(1 - activationCountdown / 3, 0.2) : 0.3;
-  const withdrawalProgress = withdrawalCountdown !== null ? Math.max(1 - withdrawalCountdown / 6, 0.2) : 0.4;
   const hudMetrics: HudMetricProps[] = [
     {
       icon: CoinPixelIcon,
@@ -384,7 +384,10 @@ function HomePageContent() {
       description: hasAnyStake
         ? 'Undelegate orders settle once the cooldown flips.'
         : 'No undelegations queued yet.',
-      progress: Math.max(activationProgress - 0.1, 0.2),
+      progress:
+        typeof activationProgress === 'number'
+          ? Math.max(activationProgress - 0.1, 0)
+          : activationProgress,
     },
     {
       icon: ChestPixelIcon,
@@ -392,8 +395,8 @@ function HomePageContent() {
       value: withdrawableEpoch ? `Epoch ${withdrawableEpoch}` : '--',
       description: hasPendingWithdrawals
         ? `${walletWithdrawableDisplay} unlocks when the hourglass empties.`
-        : 'Pending Withdraw unlocks when this timer hits zero.',
-      progress: withdrawalProgress,
+        : 'Each pending withdrawal shows its own unlock timer below.',
+      progress: null,
     },
   ];
 
@@ -518,8 +521,7 @@ function HomePageContent() {
               icon={SparklePixelIcon}
               label="Epoch status"
               value={status?.label ?? 'Unknown'}
-              description="Signals when Delegations or Pending Withdraw are delayed."
-              progress={typeof progress?.phasePercent === 'number' ? progress.phasePercent : epochLoopProgress}
+              description="Signals when Delegations/Undelegations are ready."
               tone={status?.tone ?? 'primary'}
               badge={status?.badge}
             />
@@ -535,7 +537,6 @@ function HomePageContent() {
               label="Withdrawal delay"
               value={`${epochData.withdrawalDelay} epochs`}
               description="Cooldown before Pending Withdraw can be claimed."
-              progress={withdrawalDelayProgress}
               tone="accent"
             />
           </div>
@@ -611,12 +612,22 @@ function HomePageContent() {
                       </div>
                       <span className="font-display text-sm tracking-[0.12em] text-primary">{tile.value}</span>
                     </div>
-                    <div className="h-4 pixel-progress">
-                      <div
-                        className="pixel-progress-fill"
-                        style={{ width: `${Math.round(tile.progress * 100)}%` }}
-                      />
-                    </div>
+                    {tile.progress === null ? (
+                      <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground/70">
+                        Progress varies per withdrawal request.
+                      </p>
+                    ) : (() => {
+                      const progressValue = tile.progress ?? 0;
+                      const clamped = Math.min(Math.max(progressValue, 0), 1);
+                      return (
+                        <div className="h-4 pixel-progress">
+                          <div
+                            className="pixel-progress-fill"
+                            style={{ width: `${Math.round(clamped * 100)}%` }}
+                          />
+                        </div>
+                      );
+                    })()}
                     <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground/80">{tile.description}</p>
                   </div>
                 ))}

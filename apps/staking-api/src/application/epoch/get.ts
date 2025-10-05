@@ -36,6 +36,17 @@ export interface EpochProgressOutput {
   observedAt: string | null;
   calculatedAt: string;
   source: 'derived' | 'stale' | 'unavailable';
+  activationWindow: WindowProgress;
+}
+
+export interface WindowProgress {
+  phase: 'active' | 'delay';
+  targetEpoch: string;
+  percent: number | null;
+  countdownMs: number | null;
+  totalMs: number | null;
+  elapsedMs: number | null;
+  source: 'derived' | 'stale' | 'unavailable';
 }
 
 export interface GetEpochOutput {
@@ -109,11 +120,24 @@ export class GetEpochUseCase {
     const phase: EpochProgressOutput['phase'] = info.inEpochDelayPeriod ? 'delay' : 'active';
 
     if (!state) {
-      return this.emptyProgress(phase, now, 'unavailable');
+      return this.emptyProgress({
+        phase,
+        now,
+        source: 'unavailable',
+        info,
+        epochLength,
+      });
     }
 
     if (state.epoch !== info.epoch) {
-      return this.emptyProgress(phase, now, 'stale', state);
+      return this.emptyProgress({
+        phase,
+        now,
+        source: 'stale',
+        state,
+        info,
+        epochLength,
+      });
     }
 
     const epochStartBlock = state.epochStartBlock;
@@ -151,6 +175,18 @@ export class GetEpochUseCase {
 
     const source: EpochProgressOutput['source'] = blockDelta !== null ? 'derived' : 'unavailable';
 
+    const remainingEpochMs = this.computeRemaining(elapsedMs, estimatedEpochDurationMs);
+    const activationWindow = this.buildActivationWindow({
+      info,
+      percent,
+      phase,
+      estimatedEpochDurationMs,
+      estimatedDelayDurationMs,
+      elapsedMs,
+      remainingEpochMs,
+      source,
+    });
+
     return {
       phase,
       percent,
@@ -176,15 +212,33 @@ export class GetEpochUseCase {
       observedAt: (state.lastBlockUpdatedAt ?? state.updatedAt).toISOString(),
       calculatedAt: now.toISOString(),
       source,
+      activationWindow,
     };
   }
 
-  private emptyProgress(
-    phase: EpochProgressOutput['phase'],
-    now: Date,
-    source: EpochProgressOutput['source'],
-    state?: Epoch | null,
-  ): EpochProgressOutput {
+  private emptyProgress(args: {
+    phase: EpochProgressOutput['phase'];
+    now: Date;
+    source: EpochProgressOutput['source'];
+    state?: Epoch | null;
+    info?: { epoch: bigint; inEpochDelayPeriod: boolean };
+    epochLength: number;
+  }): EpochProgressOutput {
+    const { phase, now, source, state, info, epochLength } = args;
+    const targetEpochBase = info?.epoch ?? state?.epoch ?? 0n;
+    const activationOffset = info?.inEpochDelayPeriod ? 2n : 1n;
+    const activationTargetEpoch = (targetEpochBase + activationOffset).toString();
+
+    const activationWindow: WindowProgress = {
+      phase,
+      targetEpoch: activationTargetEpoch,
+      percent: null,
+      countdownMs: null,
+      totalMs: epochLength * AVERAGE_BLOCK_TIME_MS,
+      elapsedMs: null,
+      source,
+    };
+
     return {
       phase,
       percent: null,
@@ -209,6 +263,72 @@ export class GetEpochUseCase {
       })) ?? [],
       observedAt: (state?.lastBlockUpdatedAt ?? state?.updatedAt)?.toISOString() ?? null,
       calculatedAt: now.toISOString(),
+      source,
+      activationWindow,
+    };
+  }
+
+  private buildActivationWindow(args: {
+    info: { epoch: bigint; inEpochDelayPeriod: boolean };
+    percent: number | null;
+    phase: 'active' | 'delay';
+    estimatedEpochDurationMs: number | null;
+    estimatedDelayDurationMs: number | null;
+    elapsedMs: number | null;
+    remainingEpochMs: number | null;
+    source: EpochProgressOutput['source'];
+  }): WindowProgress {
+    const {
+      info,
+      percent,
+      phase,
+      estimatedEpochDurationMs,
+      estimatedDelayDurationMs,
+      elapsedMs,
+      remainingEpochMs,
+      source,
+    } = args;
+
+    const activationOffset = info.inEpochDelayPeriod ? 2n : 1n;
+    const targetEpoch = (info.epoch + activationOffset).toString();
+
+    if (estimatedEpochDurationMs === null || elapsedMs === null) {
+      return {
+        phase,
+        targetEpoch,
+        percent: null,
+        countdownMs: null,
+        totalMs: null,
+        elapsedMs: null,
+        source: 'unavailable',
+      };
+    }
+
+    const totalMs = info.inEpochDelayPeriod && estimatedDelayDurationMs !== null
+      ? estimatedEpochDurationMs + estimatedDelayDurationMs
+      : estimatedEpochDurationMs;
+
+    const countdownMs = (() => {
+      if (remainingEpochMs === null) return null;
+      if (info.inEpochDelayPeriod && estimatedDelayDurationMs !== null) {
+        return remainingEpochMs + estimatedEpochDurationMs;
+      }
+      return remainingEpochMs;
+    })();
+
+    const effectiveElapsedMs = countdownMs !== null && totalMs !== null
+      ? Math.max(totalMs - countdownMs, 0)
+      : null;
+
+    const windowPercent = this.computeRatio(effectiveElapsedMs, totalMs) ?? percent;
+
+    return {
+      phase,
+      targetEpoch,
+      percent: windowPercent,
+      countdownMs,
+      totalMs,
+      elapsedMs: effectiveElapsedMs,
       source,
     };
   }

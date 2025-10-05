@@ -109,6 +109,17 @@ export interface EpochProgressApiResponse {
   readonly observedAt: string | null;
   readonly calculatedAt: string;
   readonly source: EpochProgressSource;
+  readonly activationWindow: WindowProgressApiResponse;
+}
+
+export interface WindowProgressApiResponse {
+  readonly phase: 'active' | 'delay';
+  readonly targetEpoch: string;
+  readonly percent: number | null;
+  readonly countdownMs: number | null;
+  readonly totalMs: number | null;
+  readonly elapsedMs: number | null;
+  readonly source: EpochProgressSource;
 }
 
 export interface EpochApiResponse {
