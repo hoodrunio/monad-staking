@@ -1,5 +1,5 @@
 
-const DEFAULT_CORS = ['http://localhost:3000', 'https://staking.hoodscan.io', 'https://dev.staking.hoodscan.io'];
+const DEFAULT_CORS = ['http://localhost:3000', 'https://staking.hoodscan.io', 'https://dev.staking.hoodscan.io', 'https://www.staknads.xyz', 'https://staknads.xyz'];
 function toNumber(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
   const parsed = Number(value);
