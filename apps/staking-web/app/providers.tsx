@@ -102,7 +102,7 @@ export function Providers({
           modalSize="compact"
           theme={pixelTheme()}
           appInfo={{
-            appName: 'Monad StakeNad',
+            appName: 'StakNads',
             learnMoreUrl: 'https://monad.xyz',
           }}
         >

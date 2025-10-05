@@ -23,7 +23,7 @@ const vt323 = VT323({
 });
 
 export const metadata: Metadata = {
-  title: 'Monad Staking Dashboard',
+  title: 'StakNads',
   description: 'Monitor validator epochs, delegations, and rewards across Monad networks.',
 };
 
@@ -48,7 +48,7 @@ export default function RootLayout({
                   className="flex flex-col gap-3 text-center sm:flex-row sm:items-center sm:justify-between"
                 >
                   <span className="font-display text-[10px] uppercase tracking-[0.14em] text-primary">
-                    Monad Staking &copy; {new Date().getFullYear()}
+                    Monad StakNad &copy; {new Date().getFullYear()}
                   </span>
                   <span className="inline-flex items-center justify-center gap-2 font-display text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                     <SparklePixelIcon size={12} className="text-primary" />
