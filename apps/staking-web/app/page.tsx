@@ -81,17 +81,17 @@ function MetricCard({ icon: Icon, label, value, description, progress = 1, tone 
 
   return (
     <Card className="gap-0">
-      <div className="flex items-center justify-between px-6 pt-6">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-6 pt-6">
+        <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center border-2 border-primary/70 bg-[#12092f] shadow-[3px_3px_0_rgba(0,0,0,0.6)]">
             <Icon size={18} className={tone === 'accent' ? 'text-accent' : 'text-primary'} />
           </span>
-          <div className="flex flex-col">
+          <div className="flex min-w-0 flex-col">
             <span className="font-display text-xs tracking-[0.14em] text-muted-foreground">{label}</span>
             <span className="font-display text-2xl tracking-[0.08em] text-primary">{value}</span>
           </div>
         </div>
-        {badge ? <Badge variant="accent">{badge}</Badge> : null}
+        {badge ? <Badge variant="accent" className="shrink-0 whitespace-nowrap">{badge}</Badge> : null}
       </div>
       <CardContent className="pt-5">
         <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground/80">{description}</p>
@@ -108,8 +108,8 @@ function MetricCard({ icon: Icon, label, value, description, progress = 1, tone 
 
 function formatEpochStatus(inDelay: boolean): { label: string; tone: 'primary' | 'accent'; badge?: string } {
   return inDelay
-    ? { label: 'Delay period', tone: 'accent', badge: 'Epoch Cooldown' }
-    : { label: 'Active', tone: 'primary', badge: 'Validators Live' };
+    ? { label: 'Delay period', tone: 'accent', badge: 'Cooldown' }
+    : { label: 'Active', tone: 'primary', badge: 'Live' };
 }
 
 function HomePageContent() {
