@@ -20,7 +20,7 @@ import { parseNetworkKey } from '@/lib/validators';
 import { useStakingSdk } from '@/hooks/useStakingSdk';
 import { useStakeActions } from '@/hooks/useStakeActions';
 import { useStakingData } from '@/hooks/useStakingData';
-import { useValidatorsQuery } from '@/lib/queries';
+import { useValidatorsQuery, usePriceQuery } from '@/lib/queries';
 import { formatMonFromWei, getNextAvailableWithdrawId } from '@/lib/utils';
 import { formatMonCompactFromNumber } from '@/lib/format';
 import { useGasEstimation } from '@/hooks/useGasEstimation';
@@ -100,6 +100,20 @@ function StakeScreen() {
   );
 
   const { validators, delegations, withdrawals, epoch, balance } = data;
+  const {
+    data: priceData,
+    isLoading: priceLoading,
+  } = usePriceQuery('usd');
+  const tokenPriceUsd = typeof priceData?.price === 'number' ? priceData.price : null;
+  const priceDescription = priceLoading
+    ? 'Fetching market data…'
+    : priceData
+    ? priceData.source === 'live'
+      ? 'Live Coingecko feed'
+      : priceData.source === 'cache'
+      ? 'Cached Coingecko quote'
+      : 'Price unavailable'
+    : 'Price unavailable';
 
   const delegateModalOpen = delegateModal.validatorId !== null;
 
@@ -497,7 +511,12 @@ function StakeScreen() {
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <div className="lg:col-span-1">
-              <TokenPriceCard tokenSymbol="MON" priceUsd={null} priceChangeLabel={epoch ? `Epoch ${epoch.epoch}` : undefined} />
+              <TokenPriceCard
+                tokenSymbol="MON"
+                priceUsd={tokenPriceUsd}
+                priceChangeLabel={epoch ? `Epoch ${epoch.epoch}` : undefined}
+                description={priceDescription}
+              />
             </div>
             <div className="lg:col-span-2">
               <StakingStatsCard stats={stats} />

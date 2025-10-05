@@ -6,6 +6,7 @@ import { MongoEpochRepository } from '../infrastructure/repositories/epoch.repo'
 import { MongoIngestRepository } from '../infrastructure/repositories/ingest.repo';
 import { MonadSdkClient } from '../infrastructure/blockchain/sdk.client';
 import { MonadGithubClient } from '../infrastructure/external/github.client';
+import { CoingeckoPriceProvider } from '../infrastructure/external/coingecko.client';
 import { HybridCacheService, MemoryCacheService } from '../infrastructure/cache/cache.service';
 import { ListValidatorsUseCase } from '../application/validators/list';
 import { GetValidatorDetailUseCase } from '../application/validators/get-detail';
@@ -14,6 +15,8 @@ import { ListDelegationsUseCase } from '../application/delegations/list';
 import { ListWithdrawalsUseCase } from '../application/withdrawals/list';
 import { GetEpochUseCase } from '../application/epoch/get';
 import { GetBalanceUseCase } from '../application/balance/get';
+import { GetPriceUseCase } from '../application/price/get';
+import { priceConfig } from '../config/env';
 import type { Network } from '../domain/types';
 
 export interface Container {
@@ -24,6 +27,7 @@ export interface Container {
   listWithdrawals(network: Network): ListWithdrawalsUseCase;
   getEpoch(network: Network): GetEpochUseCase;
   getBalance(network: Network): GetBalanceUseCase;
+  getPrice(): GetPriceUseCase;
   epochRepo: MongoEpochRepository;
   getNetworkConfig(network: Network): ResolvedMonadNetworkConfig | null;
   getBlockchainClient(network: Network): MonadSdkClient | null;
@@ -42,6 +46,9 @@ class DIContainer implements Container {
   private withdrawalsCache!: MemoryCacheService;
   private epochCache!: HybridCacheService;
   private balanceCache!: HybridCacheService;
+  private priceCache!: HybridCacheService;
+  private priceProvider!: CoingeckoPriceProvider;
+  private priceUseCase!: GetPriceUseCase;
   private networkConfigs: Map<Network, ResolvedMonadNetworkConfig> = new Map();
 
   public listValidators!: ListValidatorsUseCase;
@@ -72,6 +79,16 @@ class DIContainer implements Container {
     this.withdrawalsCache = new MemoryCacheService(20_000);
     this.epochCache = new HybridCacheService('epoch', 10);
     this.balanceCache = new HybridCacheService('balance', 10);
+    this.priceCache = new HybridCacheService('price', priceConfig.cacheTtlSeconds);
+    this.priceProvider = new CoingeckoPriceProvider({
+      includeLastUpdated: priceConfig.includeLastUpdated,
+      apiKey: priceConfig.apiKey ?? null,
+      tier: priceConfig.apiTier,
+    });
+    this.priceUseCase = new GetPriceUseCase(this.priceProvider, this.priceCache, {
+      assetId: priceConfig.coinId,
+      currency: priceConfig.vsCurrency,
+    });
 
     this.listValidators = new ListValidatorsUseCase(this.validatorRepo, this.listValidatorsCache);
 
@@ -113,13 +130,17 @@ class DIContainer implements Container {
   getEpoch(network: Network): GetEpochUseCase {
     const client = this.getBlockchainClient(network);
     if (!client) throw new Error(`Network ${network} not configured`);
-    return new GetEpochUseCase(client, this.epochCache);
+    return new GetEpochUseCase(client, this.epochCache, this.epochRepo);
   }
 
   getBalance(network: Network): GetBalanceUseCase {
     const client = this.getBlockchainClient(network);
     if (!client) throw new Error(`Network ${network} not configured`);
     return new GetBalanceUseCase(client, this.balanceCache);
+  }
+
+  getPrice(): GetPriceUseCase {
+    return this.priceUseCase;
   }
 }
 

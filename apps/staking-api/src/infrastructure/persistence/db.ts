@@ -36,11 +36,31 @@ export interface ValidatorDoc {
   updatedAt: string; // ISO
 }
 
+export interface EpochProgressSampleDoc {
+  epoch: string;
+  totalDurationMs: number;
+  activeDurationMs?: number | null;
+  delayDurationMs?: number | null;
+  completedAt: string;
+}
+
 export interface EpochStateDoc {
   _id: string; // network
   epoch: string; // bigint string
   inEpochDelayPeriod: boolean;
   updatedAt: string; // ISO
+  epochStartedAt?: string | null;
+  delayStartedAt?: string | null;
+  epochStartBlock?: string | null;
+  lastBlockNumber?: string | null;
+  lastBlockUpdatedAt?: string | null;
+  lastEpochDurationMs?: number | null;
+  lastEpochActiveDurationMs?: number | null;
+  lastEpochDelayDurationMs?: number | null;
+  avgEpochDurationMs?: number | null;
+  avgActiveDurationMs?: number | null;
+  avgDelayDurationMs?: number | null;
+  samples?: EpochProgressSampleDoc[];
 }
 
 export interface IngestStateDoc {
@@ -93,4 +113,3 @@ export async function ingestStateCol(db?: Db): Promise<Collection<IngestStateDoc
   await col.createIndex({ updatedAt: 1 });
   return col;
 }
-

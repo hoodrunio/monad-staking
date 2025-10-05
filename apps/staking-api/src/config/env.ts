@@ -55,3 +55,12 @@ export const githubConfig = {
   token: process.env.GITHUB_TOKEN,
 };
 
+export const priceConfig = {
+  coinId: process.env.PRICE_COIN_ID ?? 'monad',
+  vsCurrency: process.env.PRICE_VS_CURRENCY ?? 'usd',
+  cacheTtlSeconds: toNumber(process.env.PRICE_CACHE_TTL_SECONDS, 60),
+  includeLastUpdated: process.env.PRICE_INCLUDE_LAST_UPDATED !== 'false',
+  apiKey: process.env.COINGECKO_API_KEY,
+  apiTier: (process.env.COINGECKO_API_TIER?.toLowerCase() === 'pro' ? 'pro' : 'public') as 'public' | 'pro',
+  refreshIntervalMs: toNumber(process.env.PRICE_REFRESH_INTERVAL_MS, 300_000),
+};

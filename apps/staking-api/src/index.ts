@@ -6,6 +6,7 @@ import { epochRoutes } from './api/routes/epoch';
 import { delegationsRoutes } from './api/routes/delegations';
 import { withdrawalsRoutes } from './api/routes/withdrawals';
 import { balanceRoutes } from './api/routes/balance';
+import { priceRoutes } from './api/routes/price';
 import { container } from './shared/container';
 import { logger } from './infrastructure';
 import { createRateLimitMiddleware } from './api/middleware/rate-limit';
@@ -116,6 +117,7 @@ app.route('/api/validators', validatorRoutes);
 app.route('/api/delegations', delegationsRoutes);
 app.route('/api/withdrawals', withdrawalsRoutes);
 app.route('/api/balance', balanceRoutes);
+app.route('/api/price', priceRoutes);
 
 const port = serverConfig.port;
 logger.info('staking-api starting', { port });
@@ -156,6 +158,7 @@ function canonicalRoute(path: string): string {
   if (path.startsWith('/api/withdrawals')) return '/api/withdrawals';
   if (path.startsWith('/api/epoch')) return '/api/epoch';
   if (path.startsWith('/api/balance')) return '/api/balance';
+  if (path.startsWith('/api/price')) return '/api/price';
   return path;
 }
 

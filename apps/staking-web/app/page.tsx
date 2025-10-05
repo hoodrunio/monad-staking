@@ -11,7 +11,8 @@ import { getSelectedNetwork } from '@/lib/page-utils';
 import { formatMon, formatMonCompact } from '@/lib/format';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { ClientOnly } from '@/app/components/client-only';
-import { useEpochQuery } from '@/lib/queries';
+import { useEpochQuery, usePriceQuery } from '@/lib/queries';
+import type { EpochProgressApiResponse } from '@/lib/api/types';
 import { useStakingData } from '@/hooks/useStakingData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { ShellSection } from '@/app/components/layout/shell';
@@ -67,13 +68,14 @@ interface MetricCardProps {
   readonly label: string;
   readonly value: string;
   readonly description: string;
-  readonly progress?: number;
+  readonly progress?: number | null;
   readonly tone?: 'primary' | 'accent';
   readonly badge?: string;
 }
 
-function MetricCard({ icon: Icon, label, value, description, progress = 1, tone = 'primary', badge }: MetricCardProps) {
-  const clampedProgress = Math.min(Math.max(progress, 0.08), 1);
+function MetricCard({ icon: Icon, label, value, description, progress, tone = 'primary', badge }: MetricCardProps) {
+  const shouldRenderProgress = typeof progress === 'number';
+  const normalized = shouldRenderProgress ? Math.min(Math.max(progress as number, 0), 1) : null;
   const backgroundImage =
     tone === 'accent'
       ? 'repeating-linear-gradient(90deg, rgba(255, 92, 244, 0.9) 0, rgba(255, 92, 244, 0.9) 12px, rgba(255, 92, 244, 0.35) 12px, rgba(255, 92, 244, 0.35) 16px)'
@@ -95,19 +97,47 @@ function MetricCard({ icon: Icon, label, value, description, progress = 1, tone 
       </div>
       <CardContent className="pt-5">
         <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground/80">{description}</p>
-        <div className="mt-4 h-6 w-full overflow-hidden pixel-progress">
-          <div
-            className="pixel-progress-fill"
-            style={{ width: `${Math.round(clampedProgress * 100)}%`, ...(backgroundImage ? { backgroundImage } : {}) }}
-          />
-        </div>
+        {shouldRenderProgress ? (
+          <div className="mt-4 h-6 w-full overflow-hidden pixel-progress">
+            <div
+              className="pixel-progress-fill"
+              style={{
+                width: `${Math.round((normalized ?? 0) * 100)}%`,
+                ...(backgroundImage ? { backgroundImage } : {}),
+              }}
+            />
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );
 }
 
-function formatEpochStatus(inDelay: boolean): { label: string; tone: 'primary' | 'accent'; badge?: string } {
-  return inDelay
+function formatEpochStatus(
+  progress: EpochProgressApiResponse | null | undefined,
+  fallbackPhase: 'active' | 'delay',
+): {
+  label: string;
+  tone: 'primary' | 'accent';
+  badge?: string;
+} {
+  if (!progress) {
+    return fallbackPhase === 'delay'
+      ? { label: 'Delay period', tone: 'accent', badge: 'Cooldown' }
+      : { label: 'Active', tone: 'primary', badge: 'Live' };
+  }
+
+  if (progress.source === 'unavailable') {
+    return { label: 'No telemetry', tone: 'accent', badge: 'Offline' };
+  }
+
+  if (progress.source === 'stale') {
+    return progress.phase === 'delay'
+      ? { label: 'Delay (stale)', tone: 'accent', badge: 'Awaiting update' }
+      : { label: 'Active (stale)', tone: 'accent', badge: 'Awaiting update' };
+  }
+
+  return progress.phase === 'delay'
     ? { label: 'Delay period', tone: 'accent', badge: 'Cooldown' }
     : { label: 'Active', tone: 'primary', badge: 'Live' };
 }
@@ -126,6 +156,11 @@ function HomePageContent() {
   const { data: epochData, isLoading, error } = useEpochQuery(selectedNetwork || 'monad-mainnet', {
     enabled: Boolean(selectedNetwork && resolved),
   });
+  const {
+    data: priceData,
+    isLoading: priceLoading,
+    isFetching: priceFetching,
+  } = usePriceQuery('usd');
   const stakingData = useStakingData(selectedNetwork, Boolean(selectedNetwork && resolved));
 
   if (enabledNetworks.length === 0) {
@@ -187,14 +222,51 @@ function HomePageContent() {
     );
   }
 
-  const status = epochData ? formatEpochStatus(epochData.inEpochDelayPeriod) : null;
-  const nextActivationEpoch = epochData
-    ? (BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n)).toString()
-    : null;
+  const progress = epochData?.progress;
+  const activationWindow = progress?.activationWindow;
+  const currentPhase = epochData?.inEpochDelayPeriod ? 'delay' : 'active';
+  const status = epochData ? formatEpochStatus(progress, currentPhase) : null;
+  const nextActivationEpoch = activationWindow?.targetEpoch
+    ?? (epochData
+      ? (BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n)).toString()
+      : null);
   const withdrawableEpoch = epochData
     ? (BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n) + BigInt(epochData.withdrawalDelay)).toString()
     : null;
-  const monPriceDisplay = '$0.00';
+  const priceCurrency = priceData?.currency ?? 'usd';
+  const formatPrice = (value: number, currency: string): string => {
+    const upperCurrency = currency.toUpperCase();
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: upperCurrency,
+        maximumFractionDigits: value < 1 ? 4 : 2,
+      }).format(value);
+    } catch {
+      const decimals = value < 1 ? 4 : 2;
+      return `${upperCurrency} ${value.toFixed(decimals)}`;
+    }
+  };
+
+  const monPriceDisplay = typeof priceData?.price === 'number'
+    ? formatPrice(priceData.price, priceCurrency)
+    : priceLoading
+    ? 'Loading...'
+    : '$0.00';
+
+  const priceHint = priceLoading
+    ? 'Fetching price...'
+    : priceData
+    ? priceFetching
+      ? 'Refreshing price...'
+      : priceData.source === 'unavailable'
+      ? 'Price unavailable'
+      : priceData.lastUpdatedAt
+      ? `Updated at ${new Date(priceData.lastUpdatedAt).toLocaleTimeString()}`
+      : priceData.source === 'live'
+      ? 'Live quote'
+      : 'Cached quote'
+    : 'Price unavailable';
   const validatorsCountDisplay = stakingData.validators.length
     ? stakingData.validators.length.toString().padStart(2, '0')
     : stakingData.isLoading.validators
@@ -284,22 +356,15 @@ function HomePageContent() {
   const hasPendingWithdrawals = walletWithdrawableRaw > 0n;
   const hasAnyStake = walletStakedRaw > 0n;
 
-  const epochNumber = epochData ? Number(epochData.epoch) : null;
-  const nextActivationNumber = nextActivationEpoch ? Number(nextActivationEpoch) : null;
-  const withdrawableNumber = withdrawableEpoch ? Number(withdrawableEpoch) : null;
-  const epochLoopProgress = epochNumber !== null && Number.isFinite(epochNumber) ? ((epochNumber % 64) + 1) / 64 : 0.4;
-  const epochLengthProgress = epochData ? Math.min(epochData.epochLength / 1600, 1) : 0.5;
-  const withdrawalDelayProgress = epochData ? Math.min(Number(epochData.withdrawalDelay ?? 0) / 8, 1) : 0.35;
-  const activationCountdown = epochNumber !== null && nextActivationNumber !== null ? nextActivationNumber - epochNumber : null;
-  const withdrawalCountdown = epochNumber !== null && withdrawableNumber !== null ? withdrawableNumber - epochNumber : null;
-  const activationProgress = activationCountdown !== null ? Math.max(1 - activationCountdown / 3, 0.2) : 0.3;
-  const withdrawalProgress = withdrawalCountdown !== null ? Math.max(1 - withdrawalCountdown / 6, 0.2) : 0.4;
+  const activationProgress = typeof activationWindow?.percent === 'number' ? activationWindow.percent : undefined;
+  const epochLoopProgress = activationProgress ?? (typeof progress?.percent === 'number' ? progress.percent : undefined);
+  const epochLengthProgress = 1;
   const hudMetrics: HudMetricProps[] = [
     {
       icon: CoinPixelIcon,
       label: 'MON price',
       value: monPriceDisplay,
-      hint: 'Retro oracle feed',
+      hint: priceHint,
       animate: 'coin-drop',
     },
     {
@@ -357,7 +422,10 @@ function HomePageContent() {
       description: hasAnyStake
         ? 'Undelegate orders settle once the cooldown flips.'
         : 'No undelegations queued yet.',
-      progress: Math.max(activationProgress - 0.1, 0.2),
+      progress:
+        typeof activationProgress === 'number'
+          ? Math.max(activationProgress - 0.1, 0)
+          : activationProgress,
     },
     {
       icon: ChestPixelIcon,
@@ -365,8 +433,8 @@ function HomePageContent() {
       value: withdrawableEpoch ? `Epoch ${withdrawableEpoch}` : '--',
       description: hasPendingWithdrawals
         ? `${walletWithdrawableDisplay} unlocks when the hourglass empties.`
-        : 'Pending Withdraw unlocks when this timer hits zero.',
-      progress: withdrawalProgress,
+        : 'Each pending withdrawal shows its own unlock timer below.',
+      progress: null,
     },
   ];
 
@@ -491,8 +559,7 @@ function HomePageContent() {
               icon={SparklePixelIcon}
               label="Epoch status"
               value={status?.label ?? 'Unknown'}
-              description="Signals when Delegations or Pending Withdraw are delayed."
-              progress={status?.tone === 'accent' ? 0.45 : 0.92}
+              description="Signals when Delegations/Undelegations are ready."
               tone={status?.tone ?? 'primary'}
               badge={status?.badge}
             />
@@ -508,7 +575,6 @@ function HomePageContent() {
               label="Withdrawal delay"
               value={`${epochData.withdrawalDelay} epochs`}
               description="Cooldown before Pending Withdraw can be claimed."
-              progress={withdrawalDelayProgress}
               tone="accent"
             />
           </div>
@@ -584,12 +650,22 @@ function HomePageContent() {
                       </div>
                       <span className="font-display text-sm tracking-[0.12em] text-primary">{tile.value}</span>
                     </div>
-                    <div className="h-4 pixel-progress">
-                      <div
-                        className="pixel-progress-fill"
-                        style={{ width: `${Math.round(tile.progress * 100)}%` }}
-                      />
-                    </div>
+                    {tile.progress === null ? (
+                      <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground/70">
+                        Progress varies per withdrawal request.
+                      </p>
+                    ) : (() => {
+                      const progressValue = tile.progress ?? 0;
+                      const clamped = Math.min(Math.max(progressValue, 0), 1);
+                      return (
+                        <div className="h-4 pixel-progress">
+                          <div
+                            className="pixel-progress-fill"
+                            style={{ width: `${Math.round(clamped * 100)}%` }}
+                          />
+                        </div>
+                      );
+                    })()}
                     <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground/80">{tile.description}</p>
                   </div>
                 ))}

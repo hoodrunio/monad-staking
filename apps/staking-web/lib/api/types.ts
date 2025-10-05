@@ -79,3 +79,63 @@ export interface BalanceApiResponse {
   readonly available: AmountField;
   readonly staked: AmountField;
 }
+
+export interface EpochProgressSampleApiResponse {
+  readonly epoch: string;
+  readonly totalDurationMs: number;
+  readonly activeDurationMs: number | null;
+  readonly delayDurationMs: number | null;
+  readonly completedAt: string;
+}
+
+export type EpochProgressSource = 'derived' | 'stale' | 'unavailable';
+
+export interface EpochProgressApiResponse {
+  readonly phase: 'active' | 'delay';
+  readonly percent: number | null;
+  readonly phasePercent: number | null;
+  readonly estimatedEpochDurationMs: number | null;
+  readonly estimatedPhaseDurationMs: number | null;
+  readonly elapsedMs: number | null;
+  readonly phaseElapsedMs: number | null;
+  readonly estimatedTimeToNextEpochMs: number | null;
+  readonly estimatedPhaseTimeRemainingMs: number | null;
+  readonly epochStartedAt: string | null;
+  readonly delayStartedAt: string | null;
+  readonly lastEpochDurationMs: number | null;
+  readonly lastEpochActiveDurationMs: number | null;
+  readonly lastEpochDelayDurationMs: number | null;
+  readonly samples: ReadonlyArray<EpochProgressSampleApiResponse>;
+  readonly observedAt: string | null;
+  readonly calculatedAt: string;
+  readonly source: EpochProgressSource;
+  readonly activationWindow: WindowProgressApiResponse;
+}
+
+export interface WindowProgressApiResponse {
+  readonly phase: 'active' | 'delay';
+  readonly targetEpoch: string;
+  readonly percent: number | null;
+  readonly countdownMs: number | null;
+  readonly totalMs: number | null;
+  readonly elapsedMs: number | null;
+  readonly source: EpochProgressSource;
+}
+
+export interface EpochApiResponse {
+  readonly epoch: string;
+  readonly inEpochDelayPeriod: boolean;
+  readonly epochLength: number;
+  readonly epochDelayPeriod: number;
+  readonly withdrawalDelay: number;
+  readonly progress: EpochProgressApiResponse;
+}
+
+export interface PriceApiResponse {
+  readonly assetId: string;
+  readonly currency: string;
+  readonly price: number | null;
+  readonly fetchedAt: string;
+  readonly lastUpdatedAt: string | null;
+  readonly source: 'live' | 'cache' | 'unavailable';
+}
