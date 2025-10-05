@@ -106,7 +106,7 @@ export function SiteHeader() {
           onClick={closeMobile}
         >
           <span className="flex h-11 w-11 items-center justify-center border-2 border-primary bg-secondary/70 shadow-[4px_4px_0_rgba(0,0,0,0.6)]">
-            <Image src="/icon.svg" alt="StakNad" width={18} height={18} priority />
+            <Image src="/logo-shield-pixel.svg" alt="StakNad" width={18} height={18} priority />
           </span>
           <span className="font-display text-sm tracking-[0.14em] text-primary">Monad StakNad</span>
         </button>

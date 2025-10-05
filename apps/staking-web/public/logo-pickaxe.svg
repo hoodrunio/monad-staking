@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" shape-rendering="crispEdges">
+  <rect width="64" height="64" fill="#080417" />
+  <!-- handle -->
+  <rect x="30" y="16" width="4" height="36" fill="#a26a3f" />
+  <rect x="30" y="20" width="4" height="28" fill="#c98b57" />
+  <!-- head -->
+  <rect x="18" y="18" width="28" height="4" fill="#6cf6ff" />
+  <rect x="20" y="22" width="24" height="4" fill="#8bf6ff" />
+  <!-- cap -->
+  <rect x="28" y="12" width="8" height="4" fill="#2a1750" />
+  <!-- base glow line -->
+  <rect x="6" y="56" width="52" height="2" fill="#3d1f5b" />
+</svg>
