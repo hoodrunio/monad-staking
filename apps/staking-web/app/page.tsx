@@ -12,6 +12,7 @@ import { formatMon, formatMonCompact } from '@/lib/format';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { ClientOnly } from '@/app/components/client-only';
 import { useEpochQuery } from '@/lib/queries';
+import type { EpochProgressApiResponse } from '@/lib/api/types';
 import { useStakingData } from '@/hooks/useStakingData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { ShellSection } from '@/app/components/layout/shell';
@@ -67,13 +68,14 @@ interface MetricCardProps {
   readonly label: string;
   readonly value: string;
   readonly description: string;
-  readonly progress?: number;
+  readonly progress?: number | null;
   readonly tone?: 'primary' | 'accent';
   readonly badge?: string;
 }
 
-function MetricCard({ icon: Icon, label, value, description, progress = 1, tone = 'primary', badge }: MetricCardProps) {
-  const clampedProgress = Math.min(Math.max(progress, 0.08), 1);
+function MetricCard({ icon: Icon, label, value, description, progress, tone = 'primary', badge }: MetricCardProps) {
+  const normalized = typeof progress === 'number' ? progress : 0;
+  const clampedProgress = Math.min(Math.max(normalized, 0), 1);
   const backgroundImage =
     tone === 'accent'
       ? 'repeating-linear-gradient(90deg, rgba(255, 92, 244, 0.9) 0, rgba(255, 92, 244, 0.9) 12px, rgba(255, 92, 244, 0.35) 12px, rgba(255, 92, 244, 0.35) 16px)'
@@ -106,8 +108,31 @@ function MetricCard({ icon: Icon, label, value, description, progress = 1, tone 
   );
 }
 
-function formatEpochStatus(inDelay: boolean): { label: string; tone: 'primary' | 'accent'; badge?: string } {
-  return inDelay
+function formatEpochStatus(
+  progress: EpochProgressApiResponse | null | undefined,
+  fallbackPhase: 'active' | 'delay',
+): {
+  label: string;
+  tone: 'primary' | 'accent';
+  badge?: string;
+} {
+  if (!progress) {
+    return fallbackPhase === 'delay'
+      ? { label: 'Delay period', tone: 'accent', badge: 'Cooldown' }
+      : { label: 'Active', tone: 'primary', badge: 'Live' };
+  }
+
+  if (progress.source === 'unavailable') {
+    return { label: 'No telemetry', tone: 'accent', badge: 'Offline' };
+  }
+
+  if (progress.source === 'stale') {
+    return progress.phase === 'delay'
+      ? { label: 'Delay (stale)', tone: 'accent', badge: 'Awaiting update' }
+      : { label: 'Active (stale)', tone: 'accent', badge: 'Awaiting update' };
+  }
+
+  return progress.phase === 'delay'
     ? { label: 'Delay period', tone: 'accent', badge: 'Cooldown' }
     : { label: 'Active', tone: 'primary', badge: 'Live' };
 }
@@ -187,7 +212,9 @@ function HomePageContent() {
     );
   }
 
-  const status = epochData ? formatEpochStatus(epochData.inEpochDelayPeriod) : null;
+  const progress = epochData?.progress;
+  const currentPhase = epochData?.inEpochDelayPeriod ? 'delay' : 'active';
+  const status = epochData ? formatEpochStatus(progress, currentPhase) : null;
   const nextActivationEpoch = epochData
     ? (BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n)).toString()
     : null;
@@ -287,8 +314,8 @@ function HomePageContent() {
   const epochNumber = epochData ? Number(epochData.epoch) : null;
   const nextActivationNumber = nextActivationEpoch ? Number(nextActivationEpoch) : null;
   const withdrawableNumber = withdrawableEpoch ? Number(withdrawableEpoch) : null;
-  const epochLoopProgress = epochNumber !== null && Number.isFinite(epochNumber) ? ((epochNumber % 64) + 1) / 64 : 0.4;
-  const epochLengthProgress = epochData ? Math.min(epochData.epochLength / 1600, 1) : 0.5;
+  const epochLoopProgress = typeof progress?.percent === 'number' ? progress.percent : null;
+  const epochLengthProgress = 1;
   const withdrawalDelayProgress = epochData ? Math.min(Number(epochData.withdrawalDelay ?? 0) / 8, 1) : 0.35;
   const activationCountdown = epochNumber !== null && nextActivationNumber !== null ? nextActivationNumber - epochNumber : null;
   const withdrawalCountdown = epochNumber !== null && withdrawableNumber !== null ? withdrawableNumber - epochNumber : null;
@@ -492,7 +519,7 @@ function HomePageContent() {
               label="Epoch status"
               value={status?.label ?? 'Unknown'}
               description="Signals when Delegations or Pending Withdraw are delayed."
-              progress={status?.tone === 'accent' ? 0.45 : 0.92}
+              progress={typeof progress?.phasePercent === 'number' ? progress.phasePercent : epochLoopProgress}
               tone={status?.tone ?? 'primary'}
               badge={status?.badge}
             />

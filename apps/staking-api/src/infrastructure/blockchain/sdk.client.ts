@@ -24,6 +24,7 @@ export interface BlockchainClient {
   getDelegator(validatorId: bigint, address: `0x${string}`): Promise<Delegation>;
   getWithdrawal(validatorId: bigint, address: `0x${string}`, withdrawalId: number): Promise<Withdrawal | null>;
   getBalance(address: `0x${string}`): Promise<bigint>;
+  getBlockNumber(): Promise<bigint>;
 }
 
 export class MonadSdkClient implements BlockchainClient {
@@ -112,5 +113,9 @@ export class MonadSdkClient implements BlockchainClient {
 
   async getBalance(address: `0x${string}`): Promise<bigint> {
     return await this.publicClient.getBalance({ address });
+  }
+
+  async getBlockNumber(): Promise<bigint> {
+    return await this.publicClient.getBlockNumber();
   }
 }

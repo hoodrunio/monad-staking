@@ -113,7 +113,7 @@ class DIContainer implements Container {
   getEpoch(network: Network): GetEpochUseCase {
     const client = this.getBlockchainClient(network);
     if (!client) throw new Error(`Network ${network} not configured`);
-    return new GetEpochUseCase(client, this.epochCache);
+    return new GetEpochUseCase(client, this.epochCache, this.epochRepo);
   }
 
   getBalance(network: Network): GetBalanceUseCase {

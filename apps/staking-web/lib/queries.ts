@@ -3,6 +3,7 @@ import type { MonadNetwork } from '@monad-staking/config';
 import { apiGet } from './api';
 import type {
   DelegationApiResponse,
+  EpochApiResponse,
   ValidatorDetailApiResponse,
   ValidatorListApiResponse,
   WithdrawalApiResponse,
@@ -48,13 +49,7 @@ export function useEpochQuery(network: MonadNetwork, options?: { enabled?: boole
   return useQuery({
     queryKey: queryKeys.epoch(network),
     queryFn: () =>
-      apiGet<{
-        epoch: string;
-        inEpochDelayPeriod: boolean;
-        epochLength: number;
-        epochDelayPeriod: number;
-        withdrawalDelay: number;
-      }>('/api/epoch', { network }),
+      apiGet<EpochApiResponse>('/api/epoch', { network }),
     staleTime: 10_000,
     refetchInterval: 30_000,
     enabled: options?.enabled,
