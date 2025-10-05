@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Base background -->
+  <rect width="32" height="32" fill="#080417" />
+
+  <!-- Outer frame -->
+  <rect x="2" y="2" width="28" height="28" fill="#24112f" />
+  <rect x="3" y="3" width="26" height="26" fill="#120a26" />
+
+  <!-- Pixel coin (top-left) -->
+  <rect x="6" y="6" width="10" height="10" fill="#fcca46" />
+  <rect x="7" y="7" width="8" height="8" fill="#ffe066" />
+  <rect x="8" y="8" width="6" height="6" fill="#fff3b0" />
+  <rect x="6" y="10" width="10" height="2" fill="#ffb55a" />
+
+  <!-- Spark highlight -->
+  <rect x="9" y="7" width="2" height="2" fill="#ffd166" />
+
+  <!-- SN monogram (StakNad) on right -->
+  <!-- S -->
+  <rect x="19" y="7" width="7" height="2" fill="#6cf6ff" />
+  <rect x="19" y="9" width="2" height="3" fill="#6cf6ff" />
+  <rect x="19" y="12" width="7" height="2" fill="#6cf6ff" />
+  <rect x="24" y="14" width="2" height="3" fill="#6cf6ff" />
+  <rect x="19" y="17" width="7" height="2" fill="#6cf6ff" />
+  <!-- N -->
+  <rect x="6" y="19" width="2" height="7" fill="#ff5cf4" />
+  <rect x="8" y="19" width="2" height="2" fill="#ff5cf4" />
+  <rect x="10" y="21" width="2" height="2" fill="#ff5cf4" />
+  <rect x="12" y="23" width="2" height="2" fill="#ff5cf4" />
+  <rect x="14" y="25" width="2" height="2" fill="#ff5cf4" />
+  <rect x="16" y="19" width="2" height="7" fill="#ff5cf4" />
+
+  <!-- Bottom glow line -->
+  <rect x="3" y="28" width="26" height="1" fill="#3d1f5b" />
+</svg>

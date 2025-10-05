@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { useMemo, useState } from 'react';
 import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import {
@@ -9,7 +10,6 @@ import {
   CoinPixelIcon,
   HourglassPixelIcon,
   KnightPixelIcon,
-  SparklePixelIcon,
   HugeiconsIcon,
   Menu01Icon,
   Cancel01Icon,
@@ -55,7 +55,7 @@ export function SiteHeader() {
         <div className="flex min-w-0 flex-1 items-center gap-6">
           <Link href="/" onClick={closeMobile} className="group flex shrink-0 items-center gap-3">
             <span className="flex h-12 w-12 items-center justify-center border-2 border-primary bg-secondary/60 shadow-[4px_4px_0_rgba(0,0,0,0.6)] transition-transform duration-150 group-hover:translate-x-[1px] group-hover:translate-y-[1px]">
-              <SparklePixelIcon size={20} className="text-primary" />
+              <Image src="/icon.svg" alt="StakNad" width={20} height={20} priority />
             </span>
             <span className="hidden font-display text-lg tracking-[0.16em] text-primary xl:block">
               <span className="block text-xs text-muted-foreground">Monad</span>
@@ -106,7 +106,7 @@ export function SiteHeader() {
           onClick={closeMobile}
         >
           <span className="flex h-11 w-11 items-center justify-center border-2 border-primary bg-secondary/70 shadow-[4px_4px_0_rgba(0,0,0,0.6)]">
-            <SparklePixelIcon size={18} className="text-primary" />
+            <Image src="/icon.svg" alt="StakNad" width={18} height={18} priority />
           </span>
           <span className="font-display text-sm tracking-[0.14em] text-primary">Monad StakNad</span>
         </button>
