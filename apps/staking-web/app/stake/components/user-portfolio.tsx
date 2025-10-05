@@ -88,10 +88,7 @@ export function UserPortfolio({ staked, withdrawable, claimable, unstaked, child
                 <span className="font-mono text-sm text-primary">{bar.value}</span>
               </div>
               <div className="h-5 pixel-progress">
-                <div
-                  className="pixel-progress-fill"
-                  style={{ width: `${Math.round(bar.progress * 100)}%`, ...(backgroundImage ? { backgroundImage } : {}) }}
-                />
+                <div className="pixel-progress-fill" style={{ width: `${Math.round(bar.progress * 100)}%`, ...(backgroundImage ? { backgroundImage } : {}) }} />
               </div>
             </div>
           );

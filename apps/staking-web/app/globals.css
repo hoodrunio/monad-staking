@@ -120,10 +120,6 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
-    background-image: radial-gradient(circle at 10% 20%, rgba(108, 246, 255, 0.12) 0, transparent 45%),
-      radial-gradient(circle at 85% 0%, rgba(255, 92, 244, 0.12) 0, transparent 50%),
-      linear-gradient(180deg, rgba(5, 3, 15, 0.95) 0%, rgba(5, 3, 15, 1) 100%);
-    background-attachment: fixed;
     image-rendering: pixelated;
     letter-spacing: 0.04em;
   }
@@ -320,6 +316,40 @@ p {
 
 .animate-chain-break {
   animation: chain-break 2.2s steps(5, end) infinite;
+}
+
+/* Retro Farmer Tractor Animation - GPU Accelerated */
+@keyframes tractor-drive {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes tractor-smoke {
+  0% {
+    opacity: 0.6;
+    transform: translateY(0) scale(0.5);
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) scale(1.2);
+  }
+}
+
+.animate-tractor {
+  animation: tractor-drive 45s linear infinite;
+  will-change: transform;
+}
+
+.animate-smoke {
+  animation: tractor-smoke 3s ease-out infinite;
+  will-change: transform, opacity;
 }
 
 .pixel-panel {

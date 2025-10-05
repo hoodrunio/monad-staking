@@ -29,6 +29,7 @@ import type { ValidatorSummary } from '@/lib/api/models';
 import { ShellSection } from '@/app/components/layout/shell';
 import { Badge } from '@/app/components/ui/badge';
 import { CoinPixelIcon } from '@/app/components/icons';
+import { FarmRibbon } from '@/app/components/farm-ribbon';
 
 export default function StakePage() {
   return (
@@ -485,7 +486,7 @@ function StakeScreen() {
                 <CoinPixelIcon size={20} className="animate-coin-drop text-primary" />
               </span>
               <div className="flex flex-col gap-1">
-                <h1 className="font-display text-3xl uppercase tracking-[0.14em] text-primary">YielNad</h1>
+                <h1 className="font-display text-3xl uppercase tracking-[0.14em] text-primary">StakeNad</h1>
                 <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">
                   Manage delegations, rewards, and withdrawals with the retro command console.
                 </p>
@@ -502,6 +503,11 @@ function StakeScreen() {
               <StakingStatsCard stats={stats} />
             </div>
           </div>
+        </div>
+
+        {/* Floating ribbon between sections */}
+        <div className="relative mt-6 mb-8 overflow-hidden">
+          <FarmRibbon height={48} backgroundHeight={48} tractorHeight={22} opacity={0.4} repeat withBackground showTractor />
         </div>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">

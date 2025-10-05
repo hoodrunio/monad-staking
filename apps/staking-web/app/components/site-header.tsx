@@ -59,7 +59,7 @@ export function SiteHeader() {
             </span>
             <span className="hidden font-display text-lg tracking-[0.16em] text-primary xl:block">
               <span className="block text-xs text-muted-foreground">Monad</span>
-              Staking HQ
+              StakeNad
             </span>
           </Link>
           <nav className="flex items-center gap-2">
@@ -108,7 +108,7 @@ export function SiteHeader() {
           <span className="flex h-11 w-11 items-center justify-center border-2 border-primary bg-secondary/70 shadow-[4px_4px_0_rgba(0,0,0,0.6)]">
             <SparklePixelIcon size={18} className="text-primary" />
           </span>
-          <span className="font-display text-sm tracking-[0.14em] text-primary">Monad Staking HQ</span>
+          <span className="font-display text-sm tracking-[0.14em] text-primary">Monad StakeNad</span>
         </button>
         <div className="flex items-center gap-2">
           <ThemeToggle />
