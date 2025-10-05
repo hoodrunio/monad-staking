@@ -27,9 +27,9 @@ export class CoingeckoPriceProvider implements PriceProvider {
 
   constructor(options: CoingeckoOptions = {}) {
     this.includeLastUpdated = options.includeLastUpdated !== false;
-    this.baseUrl = options.baseUrl ?? 'https://api.coingecko.com/api/v3';
+    this.tier = options.tier === 'pro' ? 'pro' : 'public';
+    this.baseUrl = options.baseUrl ?? (this.tier === 'pro' ? 'https://pro-api.coingecko.com/api/v3' : 'https://api.coingecko.com/api/v3');
     this.apiKey = options.apiKey ?? null;
-    this.tier = options.tier ?? 'public';
   }
 
   async getPrice(assetId: string, vsCurrency: string): Promise<PriceQuote> {
