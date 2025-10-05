@@ -29,6 +29,7 @@ import type { ValidatorSummary } from '@/lib/api/models';
 import { ShellSection } from '@/app/components/layout/shell';
 import { Badge } from '@/app/components/ui/badge';
 import { CoinPixelIcon } from '@/app/components/icons';
+import { FarmRibbon } from '@/app/components/farm-ribbon';
 
 export default function StakePage() {
   return (
@@ -485,7 +486,7 @@ function StakeScreen() {
                 <CoinPixelIcon size={20} className="animate-coin-drop text-primary" />
               </span>
               <div className="flex flex-col gap-1">
-                <h1 className="font-display text-3xl uppercase tracking-[0.14em] text-primary">YielNad</h1>
+                <h1 className="font-display text-3xl uppercase tracking-[0.14em] text-primary">StakeNad</h1>
                 <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">
                   Manage delegations, rewards, and withdrawals with the retro command console.
                 </p>
@@ -504,44 +505,9 @@ function StakeScreen() {
           </div>
         </div>
 
-        {/* Floating ribbon between upper and lower sections (in-flow, clipped) */}
-        <div className="relative mt-6 mb-8 h-12 overflow-hidden">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-50"
-          >
-            {/* ribbon background spanning the gap */}
-            <div className="absolute inset-0 rounded-xl border-2 border-border/40 bg-secondary/30 backdrop-blur-[1px]" />
-            <div
-              className="absolute inset-0"
-              style={{
-                backgroundImage: 'url(/retro-farm-background.svg)',
-                backgroundPosition: 'bottom left',
-                backgroundRepeat: 'repeat-x',
-                backgroundSize: 'auto 48px',
-                imageRendering: 'pixelated',
-                zIndex: 0,
-              }}
-            />
-            {/* tiny moving tractor above the background, clipped inside spacer */}
-            <div className="absolute bottom-0 left-0 right-0 h-9 animate-tractor" style={{ zIndex: 1 }}>
-              <div
-                className="absolute inset-0 opacity-70"
-                style={{
-                  backgroundImage: 'url(/retro-farm-tractor.svg)',
-                  backgroundPosition: 'center bottom',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: 'auto 22px',
-                  imageRendering: 'pixelated',
-                }}
-              />
-              {/* subtle smoke */}
-              <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-[12px]">
-                <div className="animate-smoke absolute h-1.5 w-1.5 rounded-full bg-gray-400/50 dark:bg-gray-300/40" style={{ animationDelay: '0s', filter: 'blur(1px)' }} />
-                <div className="animate-smoke absolute h-1.5 w-1.5 rounded-full bg-gray-400/40 dark:bg-gray-300/30" style={{ animationDelay: '1s', filter: 'blur(1px)' }} />
-              </div>
-            </div>
-          </div>
+        {/* Floating ribbon between sections */}
+        <div className="relative mt-6 mb-8 overflow-hidden">
+          <FarmRibbon height={48} backgroundHeight={48} tractorHeight={22} opacity={0.4} repeat withBackground showTractor />
         </div>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
