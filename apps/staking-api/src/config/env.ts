@@ -62,4 +62,5 @@ export const priceConfig = {
   includeLastUpdated: process.env.PRICE_INCLUDE_LAST_UPDATED !== 'false',
   apiKey: process.env.COINGECKO_API_KEY,
   apiTier: (process.env.COINGECKO_API_TIER?.toLowerCase() === 'pro' ? 'pro' : 'public') as 'public' | 'pro',
+  refreshIntervalMs: toNumber(process.env.PRICE_REFRESH_INTERVAL_MS, 300_000),
 };

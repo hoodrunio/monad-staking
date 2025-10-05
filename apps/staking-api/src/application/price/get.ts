@@ -4,6 +4,7 @@ import type { CacheService } from '../../infrastructure/cache/cache.service';
 export interface GetPriceInput {
   assetId?: string;
   vsCurrency?: string;
+  forceRefresh?: boolean;
 }
 
 export interface GetPriceOutput {
@@ -27,9 +28,11 @@ export class GetPriceUseCase {
     const currency = (input.vsCurrency ?? this.defaults.currency).toLowerCase();
     const cacheKey = this.cacheKey(assetId, currency);
 
-    const cached = await this.cache.get<GetPriceOutput>(cacheKey);
-    if (cached) {
-      return { ...cached, source: 'cache' };
+    if (!input.forceRefresh) {
+      const cached = await this.cache.get<GetPriceOutput>(cacheKey);
+      if (cached) {
+        return { ...cached, source: 'cache' };
+      }
     }
 
     const quote = await this.provider.getPrice(assetId, currency);
