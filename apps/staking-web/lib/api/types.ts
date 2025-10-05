@@ -134,8 +134,8 @@ export interface EpochApiResponse {
 export interface PriceApiResponse {
   readonly assetId: string;
   readonly currency: string;
-  readonly price: number;
+  readonly price: number | null;
   readonly fetchedAt: string;
   readonly lastUpdatedAt: string | null;
-  readonly source: 'live' | 'cache';
+  readonly source: 'live' | 'cache' | 'unavailable';
 }

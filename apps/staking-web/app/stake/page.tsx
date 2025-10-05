@@ -110,7 +110,9 @@ function StakeScreen() {
     : priceData
     ? priceData.source === 'live'
       ? 'Live Coingecko feed'
-      : 'Cached Coingecko quote'
+      : priceData.source === 'cache'
+      ? 'Cached Coingecko quote'
+      : 'Price unavailable'
     : 'Price unavailable';
 
   const delegateModalOpen = delegateModal.validatorId !== null;

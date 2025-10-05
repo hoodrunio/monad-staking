@@ -115,11 +115,18 @@ async function runIngestWithRetry(network: Network, epoch: string) {
 async function refreshPrice(reason: 'startup' | 'interval'): Promise<void> {
   try {
     const result = await container.getPrice().execute({ forceRefresh: true });
-    logger.info('price.refresh.success', {
-      reason,
-      currency: result.currency,
-      fetchedAt: result.fetchedAt,
-    });
+    if (result.source === 'unavailable') {
+      logger.warn('price.refresh.unavailable', {
+        reason,
+        currency: result.currency,
+      });
+    } else {
+      logger.info('price.refresh.success', {
+        reason,
+        currency: result.currency,
+        fetchedAt: result.fetchedAt,
+      });
+    }
   } catch (error) {
     logger.warn('price.refresh.failed', {
       reason,

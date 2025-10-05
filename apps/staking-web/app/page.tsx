@@ -259,6 +259,8 @@ function HomePageContent() {
     : priceData
     ? priceFetching
       ? 'Refreshing price...'
+      : priceData.source === 'unavailable'
+      ? 'Price unavailable'
       : priceData.lastUpdatedAt
       ? `Updated at ${new Date(priceData.lastUpdatedAt).toLocaleTimeString()}`
       : priceData.source === 'live'
