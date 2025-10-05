@@ -8,6 +8,7 @@ import type {
   ValidatorListApiResponse,
   WithdrawalApiResponse,
   BalanceApiResponse,
+  PriceApiResponse,
 } from './api/types';
 import type {
   DelegationPage,
@@ -35,6 +36,7 @@ type ValidatorFilters = {
 
 export const queryKeys = {
   epoch: (network: MonadNetwork) => ['epoch', network] as const,
+  price: (currency: string) => ['price', currency.toLowerCase()] as const,
   validators: (network: MonadNetwork, cursor: string, limit: number, filters?: ValidatorFilters) =>
     ['validators', network, cursor, limit, filters?.activeOnly ?? null] as const,
   validator: (network: MonadNetwork, id: string) => ['validator', network, id] as const,
@@ -53,6 +55,17 @@ export function useEpochQuery(network: MonadNetwork, options?: { enabled?: boole
     staleTime: 10_000,
     refetchInterval: 30_000,
     enabled: options?.enabled,
+  });
+}
+
+export function usePriceQuery(currency = 'usd', options?: { enabled?: boolean }) {
+  const normalized = currency.toLowerCase();
+  return useQuery({
+    queryKey: queryKeys.price(normalized),
+    queryFn: () => apiGet<PriceApiResponse>('/api/price', { vsCurrency: normalized }),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    enabled: options?.enabled !== false,
   });
 }
 

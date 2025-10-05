@@ -130,3 +130,12 @@ export interface EpochApiResponse {
   readonly withdrawalDelay: number;
   readonly progress: EpochProgressApiResponse;
 }
+
+export interface PriceApiResponse {
+  readonly assetId: string;
+  readonly currency: string;
+  readonly price: number;
+  readonly fetchedAt: string;
+  readonly lastUpdatedAt: string | null;
+  readonly source: 'live' | 'cache';
+}

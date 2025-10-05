@@ -12,8 +12,21 @@ interface TokenPriceCardProps {
 }
 
 export function TokenPriceCard({ tokenSymbol, priceUsd, priceChangeLabel, description }: TokenPriceCardProps) {
-  const formattedPrice = typeof priceUsd === 'number' ? `$${priceUsd.toFixed(2)}` : '$0.00';
-  const changeText = priceChangeLabel ?? '+7.2% TODAY';
+  const formattedPrice = (() => {
+    if (typeof priceUsd !== 'number') return '$0.00';
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: priceUsd < 1 ? 4 : 2,
+      }).format(priceUsd);
+    } catch {
+      const decimals = priceUsd < 1 ? 4 : 2;
+      return `$${priceUsd.toFixed(decimals)}`;
+    }
+  })();
+
+  const changeText = priceChangeLabel ?? (typeof priceUsd === 'number' ? 'Live market feed' : 'Price unavailable');
   const summaryText =
     description ?? 'Participate in securing the Monad ecosystem, earn platform rewards and staking yields.';
 

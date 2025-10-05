@@ -11,7 +11,7 @@ import { getSelectedNetwork } from '@/lib/page-utils';
 import { formatMon, formatMonCompact } from '@/lib/format';
 import { LoadingSkeleton } from '@/app/components/loading-skeleton';
 import { ClientOnly } from '@/app/components/client-only';
-import { useEpochQuery } from '@/lib/queries';
+import { useEpochQuery, usePriceQuery } from '@/lib/queries';
 import type { EpochProgressApiResponse } from '@/lib/api/types';
 import { useStakingData } from '@/hooks/useStakingData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
@@ -156,6 +156,11 @@ function HomePageContent() {
   const { data: epochData, isLoading, error } = useEpochQuery(selectedNetwork || 'monad-mainnet', {
     enabled: Boolean(selectedNetwork && resolved),
   });
+  const {
+    data: priceData,
+    isLoading: priceLoading,
+    isFetching: priceFetching,
+  } = usePriceQuery('usd');
   const stakingData = useStakingData(selectedNetwork, Boolean(selectedNetwork && resolved));
 
   if (enabledNetworks.length === 0) {
@@ -228,7 +233,38 @@ function HomePageContent() {
   const withdrawableEpoch = epochData
     ? (BigInt(epochData.epoch) + (epochData.inEpochDelayPeriod ? 2n : 1n) + BigInt(epochData.withdrawalDelay)).toString()
     : null;
-  const monPriceDisplay = '$0.00';
+  const priceCurrency = priceData?.currency ?? 'usd';
+  const formatPrice = (value: number, currency: string): string => {
+    const upperCurrency = currency.toUpperCase();
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: upperCurrency,
+        maximumFractionDigits: value < 1 ? 4 : 2,
+      }).format(value);
+    } catch {
+      const decimals = value < 1 ? 4 : 2;
+      return `${upperCurrency} ${value.toFixed(decimals)}`;
+    }
+  };
+
+  const monPriceDisplay = typeof priceData?.price === 'number'
+    ? formatPrice(priceData.price, priceCurrency)
+    : priceLoading
+    ? 'Loading...'
+    : '$0.00';
+
+  const priceHint = priceLoading
+    ? 'Fetching price...'
+    : priceData
+    ? priceFetching
+      ? 'Refreshing price...'
+      : priceData.lastUpdatedAt
+      ? `Updated at ${new Date(priceData.lastUpdatedAt).toLocaleTimeString()}`
+      : priceData.source === 'live'
+      ? 'Live quote'
+      : 'Cached quote'
+    : 'Price unavailable';
   const validatorsCountDisplay = stakingData.validators.length
     ? stakingData.validators.length.toString().padStart(2, '0')
     : stakingData.isLoading.validators
@@ -326,7 +362,7 @@ function HomePageContent() {
       icon: CoinPixelIcon,
       label: 'MON price',
       value: monPriceDisplay,
-      hint: 'Retro oracle feed',
+      hint: priceHint,
       animate: 'coin-drop',
     },
     {
