@@ -60,4 +60,6 @@ export const priceConfig = {
   vsCurrency: process.env.PRICE_VS_CURRENCY ?? 'usd',
   cacheTtlSeconds: toNumber(process.env.PRICE_CACHE_TTL_SECONDS, 60),
   includeLastUpdated: process.env.PRICE_INCLUDE_LAST_UPDATED !== 'false',
+  apiKey: process.env.COINGECKO_API_KEY,
+  apiTier: (process.env.COINGECKO_API_TIER?.toLowerCase() === 'pro' ? 'pro' : 'public') as 'public' | 'pro',
 };

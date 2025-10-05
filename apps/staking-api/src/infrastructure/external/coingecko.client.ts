@@ -12,10 +12,25 @@ const simplePriceSchema = z.record(
 
 type SimplePriceResponse = z.infer<typeof simplePriceSchema>;
 
-export class CoingeckoPriceProvider implements PriceProvider {
-  private readonly baseUrl = 'https://api.coingecko.com/api/v3';
+interface CoingeckoOptions {
+  includeLastUpdated?: boolean;
+  baseUrl?: string;
+  apiKey?: string | null;
+  tier?: 'public' | 'pro';
+}
 
-  constructor(private readonly options: { includeLastUpdated: boolean } = { includeLastUpdated: true }) {}
+export class CoingeckoPriceProvider implements PriceProvider {
+  private readonly baseUrl: string;
+  private readonly includeLastUpdated: boolean;
+  private readonly apiKey: string | null;
+  private readonly tier: 'public' | 'pro';
+
+  constructor(options: CoingeckoOptions = {}) {
+    this.includeLastUpdated = options.includeLastUpdated !== false;
+    this.baseUrl = options.baseUrl ?? 'https://api.coingecko.com/api/v3';
+    this.apiKey = options.apiKey ?? null;
+    this.tier = options.tier ?? 'public';
+  }
 
   async getPrice(assetId: string, vsCurrency: string): Promise<PriceQuote> {
     const params = new URLSearchParams({
@@ -23,14 +38,21 @@ export class CoingeckoPriceProvider implements PriceProvider {
       vs_currencies: vsCurrency,
     });
 
-    if (this.options.includeLastUpdated) {
+    if (this.includeLastUpdated) {
       params.set('include_last_updated_at', 'true');
     }
 
+    const headers: Record<string, string> = {
+      accept: 'application/json',
+    };
+
+    if (this.apiKey) {
+      const headerName = this.tier === 'pro' ? 'x-cg-pro-api-key' : 'x-cg-demo-api-key';
+      headers[headerName] = this.apiKey;
+    }
+
     const response = await fetch(`${this.baseUrl}/simple/price?${params.toString()}`, {
-      headers: {
-        accept: 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -49,7 +71,7 @@ export class CoingeckoPriceProvider implements PriceProvider {
       throw new Error(`Price for ${assetId}/${vsCurrency} missing in response`);
     }
 
-    const lastUpdatedAt = this.options.includeLastUpdated
+    const lastUpdatedAt = this.includeLastUpdated
       ? typeof assetEntry.last_updated_at === 'number'
         ? new Date(assetEntry.last_updated_at * 1000)
         : null

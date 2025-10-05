@@ -80,7 +80,15 @@ class DIContainer implements Container {
     this.epochCache = new HybridCacheService('epoch', 10);
     this.balanceCache = new HybridCacheService('balance', 10);
     this.priceCache = new HybridCacheService('price', priceConfig.cacheTtlSeconds);
-    this.priceProvider = new CoingeckoPriceProvider({ includeLastUpdated: priceConfig.includeLastUpdated });
+    const baseUrl = priceConfig.apiTier === 'pro'
+      ? 'https://pro-api.coingecko.com/api/v3'
+      : 'https://api.coingecko.com/api/v3';
+    this.priceProvider = new CoingeckoPriceProvider({
+      includeLastUpdated: priceConfig.includeLastUpdated,
+      baseUrl,
+      apiKey: priceConfig.apiKey ?? null,
+      tier: priceConfig.apiTier,
+    });
     this.priceUseCase = new GetPriceUseCase(this.priceProvider, this.priceCache, {
       assetId: priceConfig.coinId,
       currency: priceConfig.vsCurrency,
