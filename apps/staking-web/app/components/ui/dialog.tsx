@@ -2,7 +2,7 @@
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { HugeiconsIcon, Cancel01Icon } from '@/app/components/icons';
-import type { ComponentProps } from 'react';
+import { forwardRef, type ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
 export function Dialog(props: ComponentProps<typeof DialogPrimitive.Root>) {
@@ -21,31 +21,40 @@ export function DialogClose(props: ComponentProps<typeof DialogPrimitive.Close>)
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 }
 
-export function DialogOverlay({ className, ...props }: ComponentProps<typeof DialogPrimitive.Overlay>) {
+export const DialogOverlay = forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Overlay>,
+  ComponentProps<typeof DialogPrimitive.Overlay>
+>(({ className, ...props }, ref) => {
   return (
     <DialogPrimitive.Overlay
+      ref={ref}
       data-slot="dialog-overlay"
       className={cn(
-        'fixed inset-0 z-50 bg-black/55 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+        'fixed inset-0 z-50 bg-[#0b0320]/75 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         className,
       )}
       {...props}
     />
   );
-}
+});
+DialogOverlay.displayName = 'DialogOverlay';
 
 interface DialogContentProps extends ComponentProps<typeof DialogPrimitive.Content> {
   readonly showCloseButton?: boolean;
 }
 
-export function DialogContent({ className, children, showCloseButton = true, ...props }: DialogContentProps) {
+export const DialogContent = forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  DialogContentProps
+>(({ className, children, showCloseButton = true, ...props }, ref) => {
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
+        ref={ref}
         data-slot="dialog-content"
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-2xl border border-white/10 bg-background/95 p-6 shadow-[0_45px_145px_-50px_rgba(131,110,249,0.55)] duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-2xl',
+          'fixed left-1/2 top-1/2 z-[9999] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] border-2 border-border bg-[#24104a] px-8 py-8 text-foreground shadow-[0_0_45px_rgba(108,246,255,0.45)] duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-2xl',
           className,
         )}
         {...props}
@@ -53,7 +62,7 @@ export function DialogContent({ className, children, showCloseButton = true, ...
         {children}
         {showCloseButton ? (
           <DialogPrimitive.Close
-            className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-muted-foreground transition-all duration-150 hover:border-accent hover:text-accent hover:bg-white/20 active:scale-95"
+            className="absolute right-5 top-5 inline-flex h-10 w-10 items-center justify-center border-2 border-border bg-secondary/60 text-primary shadow-[4px_4px_0_rgba(0,0,0,0.55)] transition-transform duration-150 hover:border-primary hover:text-accent active:translate-x-[1px] active:translate-y-[1px]"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={20} />
             <span className="sr-only">Close</span>
@@ -62,10 +71,17 @@ export function DialogContent({ className, children, showCloseButton = true, ...
       </DialogPrimitive.Content>
     </DialogPortal>
   );
-}
+});
+DialogContent.displayName = 'DialogContent';
 
 export function DialogHeader({ className, ...props }: ComponentProps<'div'>) {
-  return <div data-slot="dialog-header" className={cn('flex flex-col gap-2 text-left', className)} {...props} />;
+  return (
+    <div
+      data-slot="dialog-header"
+      className={cn('flex flex-col gap-2 text-left font-display uppercase tracking-[0.12em]', className)}
+      {...props}
+    />
+  );
 }
 
 export function DialogFooter({ className, ...props }: ComponentProps<'div'>) {
@@ -73,9 +89,21 @@ export function DialogFooter({ className, ...props }: ComponentProps<'div'>) {
 }
 
 export function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {
-  return <DialogPrimitive.Title data-slot="dialog-title" className={cn('text-xl font-semibold', className)} {...props} />;
+  return (
+    <DialogPrimitive.Title
+      data-slot="dialog-title"
+      className={cn('font-display text-xl text-primary', className)}
+      {...props}
+    />
+  );
 }
 
 export function DialogDescription({ className, ...props }: ComponentProps<typeof DialogPrimitive.Description>) {
-  return <DialogPrimitive.Description data-slot="dialog-description" className={cn('text-sm text-muted-foreground', className)} {...props} />;
+  return (
+    <DialogPrimitive.Description
+      data-slot="dialog-description"
+      className={cn('text-sm tracking-[0.05em] text-muted-foreground', className)}
+      {...props}
+    />
+  );
 }

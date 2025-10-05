@@ -1,9 +1,14 @@
 'use client';
 
-import { CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import type { ResolvedMonadNetworkConfig } from '@monad-staking/config';
 import { ExplorerLink } from './explorer-link';
 import type { TransactionStage, TransactionContext } from '@/lib/stake-utils';
+import { useEffect } from 'react';
+import {
+  ChainBreakPixelIcon,
+  ChestPixelIcon,
+} from '@/app/components/icons';
+import { usePixelSound } from '@/hooks/usePixelSound';
 
 interface TransactionResultProps {
   txHash: string | null;
@@ -18,11 +23,24 @@ interface TransactionResultProps {
 }
 
 export function TransactionResult({ txHash, txError, networkConfig, open, onClose, stage, txCount, txContext, validatorName }: TransactionResultProps) {
-  if (!open) return null;
-  if (stage === 'idle' || stage === 'pending') return null;
+  const playSound = usePixelSound();
 
+  const shouldRender = open && stage !== 'idle' && stage !== 'pending';
   const isError = stage === 'error';
   const isConfirmed = stage === 'confirmed';
+
+  useEffect(() => {
+    if (!shouldRender) return;
+    if (isError) {
+      playSound('chain');
+    } else if (isConfirmed) {
+      playSound('chest');
+    } else {
+      playSound('coin');
+    }
+  }, [shouldRender, isError, isConfirmed, playSound]);
+
+  if (!shouldRender) return null;
 
   const actionLabel = txContext?.action ? txContext.action.charAt(0).toUpperCase() + txContext.action.slice(1) : 'Transaction';
   const title = isError ? `${actionLabel} failed` : isConfirmed ? `${actionLabel} confirmed` : `${actionLabel} submitted`;
@@ -36,23 +54,23 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur overflow-y-auto">
-      <div className="relative w-full max-w-md rounded-3xl bg-background/90 p-6 text-foreground shadow-[0_45px_80px_-45px_rgba(56,189,248,0.55)] my-8">
+      <div className="relative my-8 w-full max-w-md border-2 border-border bg-secondary/50 p-6 text-foreground shadow-[6px_6px_0_rgba(0,0,0,0.5)]">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all duration-150 hover:text-primary hover:bg-muted/50 active:scale-95"
+          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center border-2 border-border bg-secondary/60 text-muted-foreground transition-all duration-150 hover:border-primary hover:text-primary active:translate-x-[1px] active:translate-y-[1px]"
           aria-label="Close"
         >
-          <XMarkIcon className="h-5 w-5" />
+          <ChainBreakPixelIcon size={16} className="text-primary" />
         </button>
 
         <div className="space-y-5">
           <div className="flex items-start gap-3">
-            <div className={isError ? 'flex-shrink-0 rounded-full bg-red-400/15 p-2' : 'flex-shrink-0 rounded-full bg-primary/15 p-2'}>
-              {isError ? <ExclamationTriangleIcon className="h-6 w-6 text-red-300" /> : <CheckCircleIcon className="h-6 w-6 text-primary" />}
+            <div className={isError ? 'flex-shrink-0 border-2 border-red-400 bg-red-400/20 p-2' : 'flex-shrink-0 border-2 border-primary bg-primary/15 p-2'}>
+              {isError ? <ChainBreakPixelIcon size={18} className="text-red-300" /> : <ChestPixelIcon size={18} className="animate-chest-sparkle text-primary" />}
             </div>
             <div className="flex-1 space-y-2 min-w-0">
-              <h3 className="text-lg font-semibold break-words">{title}</h3>
+              <h3 className="font-display text-lg uppercase tracking-[0.14em] text-primary break-words">{title}</h3>
               <p className={isError ? 'text-sm text-red-200 break-words whitespace-pre-wrap' : 'text-sm text-muted-foreground break-words'}>{description}</p>
               {txCount > 1 ? (
                 <p className="text-xs text-muted-foreground/80 break-words">
@@ -89,8 +107,8 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
           ) : null}
 
           {txHash ? (
-            <div className={isError ? 'rounded-2xl bg-red-400/10 p-4 text-sm' : 'rounded-2xl bg-primary/15 p-4 text-sm'}>
-              <p className="mb-2 font-medium">Transaction hash</p>
+            <div className={isError ? 'border-2 border-red-400 bg-red-400/10 p-4 text-sm' : 'border-2 border-primary bg-primary/15 p-4 text-sm'}>
+              <p className="mb-2 font-display text-xs uppercase tracking-[0.14em] text-primary">Transaction hash</p>
               <div className="break-all">
                 <ExplorerLink
                   config={networkConfig}
@@ -104,15 +122,25 @@ export function TransactionResult({ txHash, txError, networkConfig, open, onClos
             </div>
           ) : null}
 
-          <button
-            type="button"
-            onClick={onClose}
-            className={isError ? 'w-full rounded-xl bg-red-400/20 px-4 py-2 text-sm font-semibold text-red-50 transition-all duration-150 hover:text-white hover:bg-red-400/30 active:scale-[0.98]' : 'w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition-all duration-150 hover:bg-primary/90 active:scale-[0.98]'}
-          >
-            {isError ? 'Dismiss' : 'Close'}
-          </button>
+          <ButtonRow onClose={onClose} isError={isError} />
         </div>
       </div>
     </div>
+  );
+}
+
+function ButtonRow({ onClose, isError }: { onClose: () => void; isError: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClose}
+      className={
+        isError
+          ? 'w-full border-2 border-red-400 bg-red-400/15 px-4 py-2 font-display text-xs uppercase tracking-[0.14em] text-red-200 transition hover:bg-red-400/25'
+          : 'w-full border-2 border-primary bg-primary px-4 py-2 font-display text-xs uppercase tracking-[0.14em] text-primary-foreground transition hover:bg-primary/90'
+      }
+    >
+      {isError ? 'Dismiss' : 'Close'}
+    </button>
   );
 }

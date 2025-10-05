@@ -1,8 +1,7 @@
 'use client';
-
-import Image from 'next/image';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Button } from '@/app/components/ui/button';
+import { NetworkPixelIcon } from '@/app/components/icons';
 
 export function WalletConnectButton() {
   return (
@@ -55,23 +54,29 @@ export function WalletConnectButton() {
         }
 
         return (
-          <div className="flex items-center gap-3">
-            <Button type="button" onClick={openChainModal} variant="outline" size="sm" className="gap-2">
-              {chain.hasIcon && chain.iconUrl ? (
-                <span className="inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-white/10">
-                  <Image
-                    src={chain.iconUrl}
-                    alt={chain.name ?? 'Chain icon'}
-                    width={20}
-                    height={20}
-                    className="h-5 w-5 object-cover"
-                  />
-                </span>
-              ) : null}
-              <span>{chain.name ?? 'Unknown network'}</span>
+          <div className="flex items-center gap-4">
+            <Button 
+              type="button" 
+              onClick={openChainModal} 
+              variant="outline" 
+              size="icon" 
+              className="hidden lg:inline-flex"
+              aria-label={chain.name ? `Switch network: ${chain.name}` : 'Switch network'}
+              title={chain.name ?? 'Switch network'}
+            >
+              <NetworkPixelIcon size={18} className="text-primary" />
             </Button>
-            <Button type="button" onClick={openAccountModal} variant="accent" size="sm" className="px-4">
-              {account.displayName}
+            <span className="hidden mx-2 h-6 w-px bg-border/60 lg:block" />
+            <Button 
+              type="button" 
+              onClick={openAccountModal} 
+              variant="accent" 
+              size="sm" 
+              className="shrink-0 px-3 sm:px-4"
+            >
+              <span className="block max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap sm:max-w-[140px]">
+                {account.displayName}
+              </span>
             </Button>
           </div>
         );

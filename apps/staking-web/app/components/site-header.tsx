@@ -1,10 +1,19 @@
 'use client';
 
-import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { useMemo, useState } from 'react';
 import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
-import { HugeiconsIcon, IconSvgElement, Activity02Icon, BarChartIcon, Coins01Icon, Menu01Icon, ShieldKeyIcon, Wallet02Icon, Cancel01Icon } from '@/app/components/icons';
+import {
+  ChestPixelIcon,
+  CoinPixelIcon,
+  HourglassPixelIcon,
+  KnightPixelIcon,
+  HugeiconsIcon,
+  Menu01Icon,
+  Cancel01Icon,
+} from '@/app/components/icons';
 import { WalletConnectButton } from '@/app/components/wallet-connect-button';
 import { ClientOnly } from '@/app/components/client-only';
 import { ThemeToggle } from '@/app/components/theme-toggle';
@@ -14,15 +23,15 @@ import { Badge } from '@/app/components/ui/badge';
 interface NavigationLink {
   href: Route;
   label: string;
-  icon: IconSvgElement;
+  icon: (props: { className?: string; size?: number }) => JSX.Element;
   badge?: string;
 }
 
 const navigationLinks: NavigationLink[] = [
-  { href: '/' as Route, label: 'Overview', icon: ShieldKeyIcon },
-  { href: '/stake' as Route, label: 'Stake', icon: Coins01Icon },
-  { href: '/validators' as Route, label: 'Validators', icon: BarChartIcon },
-  { href: '/account' as Route, label: 'Account', icon: Wallet02Icon },
+  { href: '/' as Route, label: 'Overview', icon: HourglassPixelIcon },
+  { href: '/stake' as Route, label: 'Stake', icon: CoinPixelIcon },
+  { href: '/validators' as Route, label: 'Validators', icon: KnightPixelIcon },
+  { href: '/account' as Route, label: 'Account', icon: ChestPixelIcon },
 ];
 
 export function SiteHeader() {
@@ -41,65 +50,71 @@ export function SiteHeader() {
   const closeMobile = () => setMobileOpen(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto hidden w-full max-w-6xl items-center justify-between px-4 py-5 sm:px-6 lg:flex lg:px-8">
-        <div className="flex items-center gap-8">
-          <Link href="/" onClick={closeMobile} className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-glow">
-              <HugeiconsIcon icon={Activity02Icon} size={20} />
+    <header className="sticky top-0 z-40 border-b-2 border-border/80 bg-[#09041c]/95 backdrop-blur">
+      <div className="mx-auto hidden w-full max-w-7xl items-center justify-between gap-4 px-4 py-5 lg:flex">
+        <div className="flex min-w-0 flex-1 items-center gap-6">
+          <Link href="/" onClick={closeMobile} className="group flex shrink-0 items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center border-2 border-primary bg-secondary/60 shadow-[4px_4px_0_rgba(0,0,0,0.6)] transition-transform duration-150 group-hover:translate-x-[1px] group-hover:translate-y-[1px]">
+              <Image src="/icon.svg" alt="StakNad" width={20} height={20} priority />
             </span>
-            <span className="text-xl font-semibold text-foreground">Monad Stake</span>
+            <span className="hidden font-display text-lg tracking-[0.16em] text-primary xl:block">
+              <span className="block text-xs text-muted-foreground">Monad</span>
+              StakNad
+            </span>
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-2">
             {navigationLinks.map((link) => {
               const active = activeHref === link.href;
+              const Icon = link.icon;
               return (
-                <Link key={link.href} href={link.href} onClick={closeMobile} className="relative">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`gap-2 text-sm ${active ? 'bg-accent/10 text-accent' : 'text-muted-foreground hover:text-foreground'}`}
-                  >
-                    <HugeiconsIcon icon={link.icon} size={16} />
-                    {link.label}
-                  </Button>
-                  {link.badge ? (
-                    <Badge variant="accent" className="absolute -right-2 -top-2">
-                      {link.badge}
-                    </Badge>
-                  ) : null}
-                </Link>
+                <Button
+                  key={link.href}
+                  asChild
+                  variant={active ? 'accent' : 'outline'}
+                  size="sm"
+                  className="group gap-2 px-4"
+                >
+                  <Link href={link.href} onClick={closeMobile} className="flex items-center gap-2">
+                    <Icon className={active ? 'text-primary-foreground' : 'text-primary'} size={16} />
+                    <span>{link.label}</span>
+                    {link.badge ? <Badge variant="accent">{link.badge}</Badge> : null}
+                  </Link>
+                </Button>
               );
             })}
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
+        <div className="flex shrink-0 items-center gap-4">
           <ClientOnly
             fallback={
-              <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-2 text-sm text-muted-foreground">
-                Loading...
+              <div className="px-4 py-2 text-xs text-muted-foreground">
+                Linking...
               </div>
             }
           >
             <WalletConnectButton />
           </ClientOnly>
+          <ThemeToggle />
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:hidden">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <HugeiconsIcon icon={Activity02Icon} size={20} />
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 lg:hidden">
+        <button
+          type="button"
+          className="flex items-center gap-3"
+          onClick={closeMobile}
+        >
+          <span className="flex h-11 w-11 items-center justify-center border-2 border-primary bg-secondary/70 shadow-[4px_4px_0_rgba(0,0,0,0.6)]">
+            <Image src="/logo-shield-pixel.svg" alt="StakNad" width={18} height={18} priority />
           </span>
-          <span className="text-lg font-semibold text-foreground">Monad Stake</span>
-        </div>
+          <span className="font-display text-sm tracking-[0.14em] text-primary">Monad StakNad</span>
+        </button>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="icon"
             aria-label="Toggle navigation"
             onClick={toggleMobile}
@@ -110,29 +125,32 @@ export function SiteHeader() {
       </div>
 
       {mobileOpen ? (
-        <div className="border-t border-border/40 bg-background/90 lg:hidden">
-          <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6 sm:px-6">
-            <nav className="flex flex-col gap-2">
+        <div className="border-t-2 border-border/70 bg-[#09041c]/95 lg:hidden">
+          <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6">
+            <nav className="flex flex-col gap-3">
               {navigationLinks.map((link) => {
                 const active = activeHref === link.href;
+                const Icon = link.icon;
                 return (
-                  <Link key={link.href} href={link.href} onClick={closeMobile} className="relative">
-                    <Button
-                      variant="ghost"
-                      className={`w-full justify-start gap-3 ${active ? 'bg-accent/10 text-accent' : 'text-muted-foreground hover:text-foreground'}`}
-                    >
-                      <HugeiconsIcon icon={link.icon} size={16} />
-                      {link.label}
-                    </Button>
-                    {link.badge ? <Badge variant="accent" className="absolute right-3 top-2">{link.badge}</Badge> : null}
-                  </Link>
+                  <Button
+                    key={link.href}
+                    asChild
+                    variant={active ? 'accent' : 'outline'}
+                    className="justify-start gap-3"
+                  >
+                    <Link href={link.href} onClick={closeMobile} className="flex items-center gap-3">
+                      <Icon className={active ? 'text-primary-foreground' : 'text-primary'} size={16} />
+                      <span>{link.label}</span>
+                      {link.badge ? <Badge variant="accent">{link.badge}</Badge> : null}
+                    </Link>
+                  </Button>
                 );
               })}
             </nav>
             <ClientOnly
               fallback={
-                <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-2 text-sm text-muted-foreground">
-                  Loading...
+                <div className="pixel-panel pixel-border px-4 py-3 text-xs text-muted-foreground">
+                  Linking wallet...
                 </div>
               }
             >

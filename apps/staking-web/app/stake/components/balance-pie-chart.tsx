@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Cell, Label, Pie, PieChart, ResponsiveContainer, Sector, Tooltip } from 'recharts';
 import { PieSectorDataItem } from 'recharts/types/polar/Pie';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 
 interface BalanceData {
   readonly name: string;
@@ -85,12 +85,16 @@ export function BalancePieChart({
   };
 
   return (
-    <Card className={`flex flex-col ${className}`}>
-      <CardHeader className="items-start pb-0">
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card className={`flex flex-col px-5 pb-5 pt-6 ${className}`}>
+      <CardHeader className="items-start pb-4">
+        <CardTitle className="font-display text-base uppercase tracking-[0.14em] text-primary">
+          {title}
+        </CardTitle>
+        <CardDescription className="text-sm tracking-[0.08em] text-muted-foreground">
+          {description}
+        </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-1 justify-center pb-4">
+      <CardContent className="flex flex-1 justify-center pb-6">
         <div className="mx-auto aspect-square w-full max-w-[250px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -150,21 +154,21 @@ export function BalancePieChart({
           </ResponsiveContainer>
         </div>
       </CardContent>
-      <CardContent className="flex flex-col gap-2 border-t pt-4">
+      <CardContent className="flex flex-col gap-2 border-t-2 border-border pt-4">
         {chartData.map((item, index) => (
           <button
             key={item.name}
             onClick={() => setActiveIndex(index)}
             onMouseEnter={() => setActiveIndex(index)}
-            className={`flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-accent ${
-              activeIndex === index ? 'bg-accent' : ''
+            className={`flex items-center justify-between border-2 border-border px-3 py-2 font-display text-[10px] uppercase tracking-[0.12em] transition hover:border-primary ${
+              activeIndex === index ? 'bg-secondary/40 text-primary' : 'text-muted-foreground'
             }`}
           >
             <div className="flex items-center gap-2">
               <span className="flex h-3 w-3 shrink-0 rounded-sm" style={{ backgroundColor: item.fill }} />
-              <span className="text-sm font-medium">{item.name}</span>
+              <span>{item.name}</span>
             </div>
-            <span className="text-sm text-muted-foreground">{item.value.toLocaleString()} MON</span>
+            <span className="font-mono text-xs">{item.value.toLocaleString()} MON</span>
           </button>
         ))}
       </CardContent>

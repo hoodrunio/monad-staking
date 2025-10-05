@@ -13,6 +13,8 @@ import { UserPortfolio } from '@/app/stake/components/user-portfolio';
 import { StakingChart } from '@/app/stake/components/staking-chart';
 import { QuickActions } from '@/app/stake/components/quick-actions';
 import { WithdrawModal } from '@/app/stake/components/withdraw-modal';
+import { CompoundModal } from '@/app/stake/components/compound-modal';
+import { ClaimModal } from '@/app/stake/components/claim-modal';
 import { getNetworkConfigMap, getEnabledNetworkConfigs, tryResolveNetwork } from '@/lib/networks';
 import { parseNetworkKey } from '@/lib/validators';
 import { useStakingSdk } from '@/hooks/useStakingSdk';
@@ -20,10 +22,14 @@ import { useStakeActions } from '@/hooks/useStakeActions';
 import { useStakingData } from '@/hooks/useStakingData';
 import { useValidatorsQuery } from '@/lib/queries';
 import { formatMonFromWei, getNextAvailableWithdrawId } from '@/lib/utils';
+import { formatMonCompactFromNumber } from '@/lib/format';
 import { useGasEstimation } from '@/hooks/useGasEstimation';
 import { parseEther, formatEther } from 'viem';
 import type { ValidatorSummary } from '@/lib/api/models';
 import { ShellSection } from '@/app/components/layout/shell';
+import { Badge } from '@/app/components/ui/badge';
+import { CoinPixelIcon } from '@/app/components/icons';
+import { FarmRibbon } from '@/app/components/farm-ribbon';
 
 export default function StakePage() {
   return (
@@ -54,7 +60,7 @@ function StakeScreen() {
   const data = useStakingData(selectedNetwork, !!selectedNetwork && !!resolved);
   const { calculateMaxStakeable, estimating } = useGasEstimation({ sdk, account });
 
-  const { state, delegate, undelegate, withdraw, claimAllRewards, resetState } =
+  const { state, delegate, undelegate, withdraw, compound, claimRewards, claimAllRewards, resetState } =
     useStakeActions({
       sdk,
       account,
@@ -84,6 +90,14 @@ function StakeScreen() {
   const [selectorItems, setSelectorItems] = useState<ValidatorSummary[]>([]);
   const [selectorHasMore, setSelectorHasMore] = useState(false);
   const [selectorNextCursor, setSelectorNextCursor] = useState<string | null>(null);
+  const [compoundModal, setCompoundModal] = useState<{ open: boolean; validatorId: string | null }>({ open: false, validatorId: null });
+  const [claimModal, setClaimModal] = useState<{ open: boolean; mode: 'all' | 'custom'; selectedValidatorIds: string[] }>(
+    {
+      open: false,
+      mode: 'all',
+      selectedValidatorIds: [],
+    },
+  );
 
   const { validators, delegations, withdrawals, epoch, balance } = data;
 
@@ -126,11 +140,8 @@ function StakeScreen() {
     return selectorItems.map((validator) => ({
       value: validator.validatorId,
       title: validator.meta?.name ?? `Validator ${validator.validatorId}`,
-      subtitle: `${validator.commission.formatted} commission • Stake ${validator.stake.formatted}`,
-      stats: [
-        { label: 'Rewards', value: validator.unclaimedRewards.formatted },
-        { label: 'Flags', value: validator.flagsRaw || 'None' },
-      ],
+      subtitle: `Total stake: ${validator.stake.formatted}`,
+      commission: validator.commission.formatted,
       badge: validator.isActive ? 'Active' : undefined,
     }));
   }, [selectorItems]);
@@ -156,6 +167,65 @@ function StakeScreen() {
       };
     });
   }, [delegations, validatorMap]);
+
+  const rewardDelegations = useMemo(() => {
+    return delegations
+      .filter((delegation) => Number(delegation.unclaimedRewards.decimal || 0) > 0)
+      .map((delegation) => {
+        const validator = validatorMap.get(delegation.validatorId);
+        return {
+          validatorId: delegation.validatorId,
+          title: validator?.meta?.name ?? `Validator ${delegation.validatorId}`,
+          rewardsFormatted: delegation.unclaimedRewards.formatted,
+          rewardsDecimal: Number(delegation.unclaimedRewards.decimal || 0),
+          stakeFormatted: delegation.stake.formatted,
+          badge: validator?.isActive ? 'Active' : undefined,
+        };
+      });
+  }, [delegations, validatorMap]);
+
+  const allRewardValidatorIds = useMemo(() => rewardDelegations.map((item) => item.validatorId), [rewardDelegations]);
+
+  const compoundCandidates = useMemo(
+    () =>
+      rewardDelegations.map((item) => ({
+        validatorId: item.validatorId,
+        title: item.title,
+        rewards: item.rewardsFormatted,
+        stake: item.stakeFormatted,
+        badge: item.badge,
+      })),
+    [rewardDelegations],
+  );
+
+  const claimOptions = useMemo(
+    () =>
+      rewardDelegations.map((item) => ({
+        validatorId: item.validatorId,
+        title: item.title,
+        rewardsFormatted: item.rewardsFormatted,
+        stakeFormatted: item.stakeFormatted,
+      })),
+    [rewardDelegations],
+  );
+
+  useEffect(() => {
+    if (!claimModal.open) return;
+    if (claimModal.mode === 'all') {
+      const sameLength = claimModal.selectedValidatorIds.length === allRewardValidatorIds.length;
+      const sameOrder = sameLength
+        ? claimModal.selectedValidatorIds.every((id, index) => id === allRewardValidatorIds[index])
+        : false;
+      if (!sameOrder) {
+        setClaimModal((prev) => ({ ...prev, selectedValidatorIds: allRewardValidatorIds }));
+      }
+    } else {
+      const filtered = claimModal.selectedValidatorIds.filter((id) => allRewardValidatorIds.includes(id));
+      if (filtered.length !== claimModal.selectedValidatorIds.length) {
+        setClaimModal((prev) => ({ ...prev, selectedValidatorIds: filtered }));
+      }
+    }
+  }, [claimModal.open, claimModal.mode, claimModal.selectedValidatorIds, allRewardValidatorIds]);
 
   const withdrawalsByValidator = useMemo(() => {
     const map = new Map<string, number[]>();
@@ -192,11 +262,14 @@ function StakeScreen() {
   }, [delegations, readyWithdrawals, pendingWithdrawals, balance]);
 
   const activeValidators = validators.filter((validator) => validator.isActive).length;
-  const statsFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+  const statsFormatter = new Intl.NumberFormat('en-US', { 
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
+  });
   const stats = [
     {
       label: 'Total staked',
-      value: `${statsFormatter.format(totals.staked)} MON`,
+      value: formatMonCompactFromNumber(totals.staked, 1),
       change: `+${statsFormatter.format(totals.rewards)} rewards`,
       trend: 'up' as const,
     },
@@ -209,7 +282,7 @@ function StakeScreen() {
     {
       label: 'Delegations',
       value: delegations.length.toString(),
-      change: `${readyWithdrawals.length} ready withdrawals`,
+      change: `${readyWithdrawals.length} ready`,
       trend: readyWithdrawals.length > 0 ? ('up' as const) : ('down' as const),
     },
     {
@@ -267,6 +340,8 @@ function StakeScreen() {
     setSelectorHasMore(false);
     setSelectorItems([]);
     setSelectorActiveOnly(true);
+    setCompoundModal({ open: false, validatorId: null });
+    setClaimModal({ open: false, mode: 'all', selectedValidatorIds: [] });
     if (reset) resetState();
   };
 
@@ -319,11 +394,19 @@ function StakeScreen() {
   }
 
   const formattedMon = (value: number) => `${statsFormatter.format(value)} MON`;
+  const totalRewardsFormatted = formattedMon(totals.rewards);
+  const selectedClaimRewardsDecimal = claimModal.mode === 'all'
+    ? totals.rewards
+    : rewardDelegations.reduce((sum, item) =>
+        (claimModal.selectedValidatorIds.includes(item.validatorId) ? sum + item.rewardsDecimal : sum),
+      0);
+  const selectedClaimRewardsFormatted = formattedMon(selectedClaimRewardsDecimal);
   const apyLabel = 'Coming soon';
   const canStake = !!sdk && !!account && !state.busy;
   const canUnstake = Boolean(firstDelegation) && !!sdk && !!account && !state.busy;
   const canWithdraw = Boolean(firstReadyWithdrawal) && !!sdk && !!account && !state.busy;
-  const canClaim = totals.rewards > 0 && !!account && !!sdk && !state.busy;
+  const canClaim = rewardDelegations.length > 0 && !!account && !!sdk && !state.busy;
+  const canCompound = compoundCandidates.length > 0 && !!account && !!sdk && !state.busy;
 
   const handleStake = () => openDelegateModal(null);
   const handleUnstake = () => {
@@ -335,17 +418,81 @@ function StakeScreen() {
     setWithdrawModalOpen(true);
   };
   const handleClaim = () => {
+    if (!canClaim) return;
+    setClaimModal({ open: true, mode: 'all', selectedValidatorIds: allRewardValidatorIds });
+  };
+  const handleCompound = () => {
+    if (!canCompound) return;
+    setCompoundModal({ open: true, validatorId: compoundCandidates[0]?.validatorId ?? null });
+  };
+  const selectCompoundValidator = (validatorId: string) => {
+    setCompoundModal((prev) => ({ ...prev, validatorId }));
+  };
+  const confirmCompound = () => {
+    if (!compoundModal.validatorId || !sdk || !account) return;
+    setCompoundModal({ open: false, validatorId: null });
+    void compound(compoundModal.validatorId);
+  };
+  const closeCompoundModal = () => {
+    setCompoundModal({ open: false, validatorId: null });
+  };
+  const changeClaimMode = (mode: 'all' | 'custom') => {
+    setClaimModal((prev) => {
+      if (prev.mode === mode) return prev;
+      if (mode === 'all') {
+        return { ...prev, mode, selectedValidatorIds: allRewardValidatorIds };
+      }
+      const initialSelection = prev.selectedValidatorIds.length > 0
+        ? prev.selectedValidatorIds
+        : allRewardValidatorIds.slice(0, 1);
+      return { ...prev, mode, selectedValidatorIds: initialSelection };
+    });
+  };
+  const toggleClaimValidator = (validatorId: string) => {
+    setClaimModal((prev) => {
+      if (prev.mode !== 'custom') return prev;
+      const exists = prev.selectedValidatorIds.includes(validatorId);
+      const next = exists
+        ? prev.selectedValidatorIds.filter((id) => id !== validatorId)
+        : [...prev.selectedValidatorIds, validatorId];
+      return { ...prev, selectedValidatorIds: next };
+    });
+  };
+  const confirmClaim = async () => {
     if (!sdk || !account) return;
-    void claimAllRewards();
+    const mode = claimModal.mode;
+    const selectedIds = mode === 'all' ? allRewardValidatorIds : claimModal.selectedValidatorIds;
+    if (selectedIds.length === 0) return;
+    setClaimModal({ open: false, mode: 'all', selectedValidatorIds: [] });
+    if (mode === 'all') {
+      await claimAllRewards();
+      return;
+    }
+    for (const validatorId of selectedIds) {
+      await claimRewards(validatorId);
+    }
+  };
+  const closeClaimModal = () => {
+    setClaimModal({ open: false, mode: 'all', selectedValidatorIds: [] });
   };
 
   return (
     <>
       <ShellSection as="div" className="space-y-8" width="wide">
-        <div className="space-y-5">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">Stake</h1>
-            <p className="mt-1.5 text-sm text-muted-foreground/80">Manage your staking positions and rewards</p>
+        <div className="space-y-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <span className="flex h-12 w-12 items-center justify-center border-2 border-primary bg-[#12092f] shadow-[4px_4px_0_rgba(0,0,0,0.55)]">
+                <CoinPixelIcon size={20} className="animate-coin-drop text-primary" />
+              </span>
+              <div className="flex flex-col gap-1">
+                <h1 className="font-display text-3xl uppercase tracking-[0.14em] text-primary">StakNad</h1>
+                <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">
+                  Manage delegations, rewards, and withdrawals with the retro command console.
+                </p>
+              </div>
+            </div>
+            {resolved ? <Badge variant="accent">{resolved.label}</Badge> : null}
           </div>
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
@@ -356,6 +503,11 @@ function StakeScreen() {
               <StakingStatsCard stats={stats} />
             </div>
           </div>
+        </div>
+
+        {/* Floating ribbon between sections */}
+        <div className="relative mt-6 mb-8 overflow-hidden">
+          <FarmRibbon height={48} backgroundHeight={48} tractorHeight={22} opacity={0.4} repeat withBackground showTractor />
         </div>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -369,10 +521,12 @@ function StakeScreen() {
               onUnstake={handleUnstake}
               onWithdraw={handleWithdraw}
               onClaim={handleClaim}
+              onCompound={handleCompound}
               canStake={canStake}
               canUnstake={canUnstake}
               canWithdraw={canWithdraw}
               canClaim={canClaim}
+              canCompound={canCompound}
               busyAction={state.busyAction}
               isConnected={!!account}
             />
@@ -492,6 +646,31 @@ function StakeScreen() {
             </div>
           )
         }
+      />
+
+      <CompoundModal
+        open={compoundModal.open}
+        options={compoundCandidates}
+        selectedValidatorId={compoundModal.validatorId}
+        onSelectValidator={selectCompoundValidator}
+        onClose={closeCompoundModal}
+        onConfirm={confirmCompound}
+        busy={state.busy && state.busyAction === 'compound'}
+      />
+
+      <ClaimModal
+        open={claimModal.open}
+        options={claimOptions}
+        selectedValidatorIds={claimModal.selectedValidatorIds}
+        mode={claimModal.mode}
+        onModeChange={changeClaimMode}
+        onToggleValidator={toggleClaimValidator}
+        totalRewards={totalRewardsFormatted}
+        selectedRewards={selectedClaimRewardsFormatted}
+        validatorCount={rewardDelegations.length}
+        onClose={closeClaimModal}
+        onConfirm={confirmClaim}
+        busy={state.busy && (state.busyAction === 'claim' || state.busyAction === 'claim-all')}
       />
 
       <WithdrawModal

@@ -1,6 +1,6 @@
 'use client';
 
-import { HugeiconsIcon, ArrowDownIcon, ArrowUpIcon } from '@/app/components/icons';
+import { ChainBreakPixelIcon, SparklePixelIcon } from '@/app/components/icons';
 import { Card } from '@/app/components/ui/card';
 
 interface StatItem {
@@ -16,24 +16,28 @@ interface StakingStatsCardProps {
 
 export function StakingStatsCard({ stats }: StakingStatsCardProps) {
   return (
-    <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
       {stats.map((stat) => {
-        const trendIcon = stat.trend === 'down' ? ArrowDownIcon : ArrowUpIcon;
-        const trendColor = stat.trend === 'down' ? 'text-destructive' : 'text-accent';
+        const TrendIcon = stat.trend === 'down' ? ChainBreakPixelIcon : SparklePixelIcon;
+        const trendTone = stat.trend === 'down' ? 'text-destructive' : 'text-accent';
 
         return (
-          <Card key={stat.label} className="px-6">
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-              <div className="flex items-center justify-between">
-                <p className="text-balance text-2xl font-bold">{stat.value}</p>
-                {stat.change ? (
-                  <span className={`flex items-center gap-1 text-sm font-medium ${trendColor}`}>
-                    <HugeiconsIcon icon={trendIcon} size={16} />
-                    {stat.change}
-                  </span>
-                ) : null}
+          <Card key={stat.label} className="!overflow-visible space-y-2 px-4 py-4">
+            <div className="flex items-center justify-between gap-1.5">
+              <span className="font-display text-[9px] uppercase leading-tight tracking-[0.12em] text-muted-foreground">
+                {stat.label}
+              </span>
+              {stat.change ? <TrendIcon size={12} className={`shrink-0 ${trendTone} ${stat.trend === 'down' ? 'animate-chain-break' : 'animate-chest-sparkle'}`} /> : null}
+            </div>
+            {stat.change ? (
+              <div className="flex items-center">
+                <span className="inline-block rounded border border-border/50 bg-transparent px-1.5 py-0.5 font-display text-[8px] uppercase leading-tight tracking-[0.1em] text-foreground/80">
+                  {stat.change}
+                </span>
               </div>
+            ) : null}
+            <div className="flex items-baseline justify-between pt-1">
+              <p className="w-full break-all font-display text-base leading-tight tracking-[0.02em] text-primary sm:text-lg">{stat.value}</p>
             </div>
           </Card>
         );

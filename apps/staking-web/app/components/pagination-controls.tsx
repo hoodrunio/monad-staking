@@ -3,6 +3,8 @@
 import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
+import { Button } from '@/app/components/ui/button';
+import { CoinPixelIcon, HourglassPixelIcon } from '@/app/components/icons';
 
 interface PaginationControlsProps {
   readonly prevCursor: string | null;
@@ -31,27 +33,34 @@ export function PaginationControls({ prevCursor, nextCursor }: PaginationControl
   };
 
   return (
-    <div className="flex flex-col gap-4 rounded-3xl p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-      <div className="font-mono text-xs">
+    <div className="flex flex-col gap-4 border-2 border-border bg-secondary/40 px-4 py-3 text-sm text-muted-foreground shadow-[4px_4px_0_rgba(0,0,0,0.45)] sm:flex-row sm:items-center sm:justify-between">
+      <div className="inline-flex items-center gap-2 font-display text-[10px] uppercase tracking-[0.12em]">
+        <CoinPixelIcon size={12} className="text-primary" />
         {prevCursor ? `Cursor ${prevCursor}` : 'Beginning of result set'}
       </div>
       <div className="flex items-center gap-3">
-        <button
+        <Button
           type="button"
-          className="rounded-xl px-4 py-2 font-medium text-foreground transition hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-40"
+          variant="outline"
+          size="sm"
           onClick={() => updateCursor(prevCursor)}
           disabled={prevCursor === null || isPending}
+          className="inline-flex items-center gap-2"
         >
+          <HourglassPixelIcon size={12} className="text-primary" />
           Previous
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="rounded-xl px-4 py-2 font-medium text-foreground transition hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-40"
+          variant="accent"
+          size="sm"
           onClick={() => updateCursor(nextCursor)}
           disabled={nextCursor === null || isPending}
+          className="inline-flex items-center gap-2"
         >
           Next
-        </button>
+          <CoinPixelIcon size={12} className="text-primary-foreground" />
+        </Button>
       </div>
     </div>
   );

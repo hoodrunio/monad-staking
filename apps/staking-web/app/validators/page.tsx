@@ -13,8 +13,10 @@ import { getSelectedNetwork } from '@/lib/page-utils';
 import { normalizeCursor } from '@/lib/validators-utils';
 import { formatCompactMonFromDecimal } from '@/lib/format';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { cn } from '@/lib/utils';
 import { ShellSection } from '@/app/components/layout/shell';
+import { Button } from '@/app/components/ui/button';
+import { Badge } from '@/app/components/ui/badge';
+import { ChainBreakPixelIcon, KnightPixelIcon, SparklePixelIcon } from '@/app/components/icons';
 
 function ValidatorsPageContent() {
   const searchParams = useSearchParams();
@@ -72,43 +74,45 @@ function ValidatorsPageContent() {
   return (
     <>
       <ShellSection width="wide">
-        <Card>
+        <Card className="px-6 py-6">
           <CardHeader className="gap-5">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <CardTitle className="text-3xl sm:text-4xl">Validators</CardTitle>
-                <CardDescription className="mt-1 text-sm">
-                  Browse validator performance on {resolved.label}. Toggle filters to focus on active operators.
-                </CardDescription>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center border-2 border-primary bg-[#12092f] shadow-[4px_4px_0_rgba(0,0,0,0.55)]">
+                  <KnightPixelIcon size={18} className="text-primary" />
+                </span>
+                <div className="flex flex-col gap-1">
+                  <CardTitle className="font-display text-2xl uppercase tracking-[0.14em] text-primary">
+                    Validators
+                  </CardTitle>
+                  <CardDescription className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground sm:text-base">
+                    Browse validator performance on {resolved.label}. Toggle filters to focus on active operators.
+                  </CardDescription>
+                </div>
               </div>
+              <Badge variant="accent">{resolved.label}</Badge>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex overflow-hidden rounded-lg border border-border bg-muted/30 p-1 text-xs font-medium">
-                <button
-                  type="button"
-                  className={cn(
-                    'rounded-md px-3 py-1.5 transition-all',
-                    showActiveOnly
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground',
-                  )}
-                  onClick={() => setShowActiveOnly(true)}
-                >
-                  Active only
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    'rounded-md px-3 py-1.5 transition-all',
-                    !showActiveOnly
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground',
-                  )}
-                  onClick={() => setShowActiveOnly(false)}
-                >
-                  All validators
-                </button>
-              </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={showActiveOnly ? 'accent' : 'outline'}
+                onClick={() => setShowActiveOnly(true)}
+              >
+                Active only
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={!showActiveOnly ? 'accent' : 'outline'}
+                onClick={() => setShowActiveOnly(false)}
+              >
+                All validators
+              </Button>
+              <span className="inline-flex items-center gap-1 font-display text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                <SparklePixelIcon size={14} className="text-primary" />
+                {pageData?.items.length ?? 0} entries
+              </span>
             </div>
           </CardHeader>
         </Card>
@@ -116,10 +120,13 @@ function ValidatorsPageContent() {
 
       <ShellSection as="section" className="space-y-7" width="wide">
         {error ? (
-          <Card className="text-destructive-foreground">
-            <CardHeader>
-              <CardTitle>Unable to load validators</CardTitle>
-              <CardDescription className="text-destructive-foreground/80">
+          <Card className="border-2 border-destructive bg-secondary/40 text-destructive shadow-[4px_4px_0_rgba(0,0,0,0.45)]">
+            <CardHeader className="gap-3">
+              <div className="flex items-center gap-3">
+                <ChainBreakPixelIcon size={16} className="text-destructive" />
+                <CardTitle className="font-display text-lg uppercase tracking-[0.14em] text-destructive">Unable to load validators</CardTitle>
+              </div>
+              <CardDescription className="text-sm tracking-[0.06em] text-destructive/80">
                 {error instanceof Error ? error.message : 'Unknown error occurred while fetching validators.'}
               </CardDescription>
             </CardHeader>

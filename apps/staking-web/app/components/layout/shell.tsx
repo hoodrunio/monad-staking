@@ -8,7 +8,11 @@ type ShellProps = {
 
 export function Shell({ children, className }: ShellProps) {
   return (
-    <div className={cn('gradient-bg flex min-h-screen flex-col', className)}>
+    <div className={cn('gradient-bg relative flex min-h-screen flex-col overflow-hidden text-foreground', className)}>
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-35">
+        <div className="hud-grid absolute inset-0" />
+      </div>
+      <div className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(circle_at_20%_20%,rgba(255,92,244,0.15),transparent_60%),radial-gradient(circle_at_80%_10%,rgba(108,246,255,0.18),transparent_55%)]" />
       {children}
     </div>
   );
@@ -23,7 +27,7 @@ type ShellMainProps<T extends ElementType = 'main'> = {
 export function ShellMain<T extends ElementType = 'main'>({ as, children, className, ...props }: ShellMainProps<T>) {
   const Component = (as ?? 'main') as ElementType;
   return (
-    <Component className={cn('flex flex-1 flex-col gap-10 py-10', className)} {...props}>
+    <Component className={cn('flex flex-1 flex-col gap-14 py-12', className)} {...props}>
       {children}
     </Component>
   );

@@ -101,7 +101,7 @@ export function createWagmiConfig() {
   }
   
   return getDefaultConfig({
-    appName: 'Monad Staking dApp',
+    appName: 'Monad StakNad',
     projectId,
     chains: ensureAtLeastOneChain(chains),
     transports,

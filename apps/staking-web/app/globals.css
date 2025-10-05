@@ -2,79 +2,80 @@
 @import "tw-animate-css";
 
 :root {
-  --background: oklch(0.98 0.005 264);
-  --foreground: oklch(0.15 0.02 264);
-  --card: oklch(0.99 0.003 264);
-  --card-foreground: oklch(0.15 0.02 264);
-  --popover: oklch(0.99 0.003 264);
-  --popover-foreground: oklch(0.15 0.02 264);
-  --primary: oklch(0.68 0.22 280);
-  --primary-foreground: oklch(0.98 0.005 264);
-  --secondary: oklch(0.94 0.01 264);
-  --secondary-foreground: oklch(0.25 0.02 264);
-  --muted: oklch(0.96 0.008 264);
-  --muted-foreground: oklch(0.55 0.015 264);
-  --accent: oklch(0.45 0.18 340);
-  --accent-foreground: oklch(0.98 0.005 264);
-  --destructive: oklch(0.62 0.22 25);
-  --destructive-foreground: oklch(0.98 0.005 264);
-  --border: oklch(0.92 0.008 264);
-  --input: oklch(0.94 0.01 264);
-  --ring: oklch(0.68 0.22 280);
-  --chart-1: oklch(0.68 0.22 280);
-  --chart-2: oklch(0.45 0.18 340);
-  --chart-3: oklch(0.25 0.15 280);
-  --chart-4: oklch(0.75 0.16 320);
-  --chart-5: oklch(0.6 0.14 45);
-  --radius: 0.75rem;
-  --sidebar: oklch(0.98 0.005 264);
-  --sidebar-foreground: oklch(0.15 0.02 264);
-  --sidebar-primary: oklch(0.68 0.22 280);
-  --sidebar-primary-foreground: oklch(0.98 0.005 264);
-  --sidebar-accent: oklch(0.94 0.01 264);
-  --sidebar-accent-foreground: oklch(0.25 0.02 264);
-  --sidebar-border: oklch(0.92 0.008 264);
-  --sidebar-ring: oklch(0.68 0.22 280);
+  --background: #05030f;
+  --foreground: #f9f7ff;
+  --card: #100a24;
+  --card-foreground: #f9f7ff;
+  --popover: #140d30;
+  --popover-foreground: #f9f7ff;
+  --primary: #6cf6ff;
+  --primary-foreground: #05030f;
+  --secondary: #301d60;
+  --secondary-foreground: #f9f7ff;
+  --muted: #1a1033;
+  --muted-foreground: #94a3ff;
+  --accent: #ff5cf4;
+  --accent-foreground: #05030f;
+  --destructive: #ff4b54;
+  --destructive-foreground: #05030f;
+  --border: #39208a;
+  --input: #1a1033;
+  --ring: #6cf6ff;
+  --chart-1: #6cf6ff;
+  --chart-2: #ff5cf4;
+  --chart-3: #fcca46;
+  --chart-4: #66ffa6;
+  --chart-5: #ff9f1c;
+  --radius: 0.25rem;
+  --sidebar: #05030f;
+  --sidebar-foreground: #f9f7ff;
+  --sidebar-primary: #6cf6ff;
+  --sidebar-primary-foreground: #05030f;
+  --sidebar-accent: #301d60;
+  --sidebar-accent-foreground: #f9f7ff;
+  --sidebar-border: #39208a;
+  --sidebar-ring: #6cf6ff;
 }
 
 :root.dark {
-  --background: oklch(0.02 0.002 264);
-  --foreground: oklch(0.95 0.005 264);
-  --card: oklch(0.03 0.003 264);
-  --card-foreground: oklch(0.95 0.005 264);
-  --popover: oklch(0.03 0.003 264);
-  --popover-foreground: oklch(0.95 0.005 264);
-  --primary: oklch(0.72 0.25 280);
-  --primary-foreground: oklch(0.06 0.008 264);
-  --secondary: oklch(0.05 0.005 264);
-  --secondary-foreground: oklch(0.85 0.008 264);
-  --muted: oklch(0.04 0.004 264);
-  --muted-foreground: oklch(0.65 0.012 264);
-  --accent: oklch(0.55 0.22 340);
-  --accent-foreground: oklch(0.06 0.008 264);
-  --destructive: oklch(0.65 0.25 25);
-  --destructive-foreground: oklch(0.95 0.005 264);
-  --border: oklch(0.08 0.006 264);
-  --input: oklch(0.05 0.005 264);
-  --ring: oklch(0.72 0.25 280);
-  --chart-1: oklch(0.72 0.25 280);
-  --chart-2: oklch(0.55 0.22 340);
-  --chart-3: oklch(0.35 0.18 280);
-  --chart-4: oklch(0.75 0.18 320);
-  --chart-5: oklch(0.65 0.16 45);
-  --sidebar: oklch(0.01 0.001 264);
-  --sidebar-foreground: oklch(0.95 0.005 264);
-  --sidebar-primary: oklch(0.72 0.25 280);
-  --sidebar-primary-foreground: oklch(0.06 0.008 264);
-  --sidebar-accent: oklch(0.04 0.004 264);
-  --sidebar-accent-foreground: oklch(0.85 0.008 264);
-  --sidebar-border: oklch(0.08 0.006 264);
-  --sidebar-ring: oklch(0.72 0.25 280);
+  --background: #020009;
+  --foreground: #fefbff;
+  --card: #0b051c;
+  --card-foreground: #fefbff;
+  --popover: #0f072a;
+  --popover-foreground: #fefbff;
+  --primary: #8bf6ff;
+  --primary-foreground: #020009;
+  --secondary: #221341;
+  --secondary-foreground: #fefbff;
+  --muted: #120826;
+  --muted-foreground: #8b96ff;
+  --accent: #ff7bff;
+  --accent-foreground: #020009;
+  --destructive: #ff6b6b;
+  --destructive-foreground: #020009;
+  --border: #332273;
+  --input: #120826;
+  --ring: #8bf6ff;
+  --chart-1: #8bf6ff;
+  --chart-2: #ff7bff;
+  --chart-3: #ffd166;
+  --chart-4: #7dffa6;
+  --chart-5: #ffad5a;
+  --sidebar: #020009;
+  --sidebar-foreground: #fefbff;
+  --sidebar-primary: #8bf6ff;
+  --sidebar-primary-foreground: #020009;
+  --sidebar-accent: #221341;
+  --sidebar-accent-foreground: #fefbff;
+  --sidebar-border: #332273;
+  --sidebar-ring: #8bf6ff;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-vt323);
+  --font-mono: var(--font-vt323);
+  --font-display: var(--font-press-start);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -119,33 +120,38 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    image-rendering: pixelated;
+    letter-spacing: 0.04em;
   }
-  
-  /* Typography improvements */
+
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+    font-family: var(--font-display);
+    @apply font-normal tracking-[0.08em];
   }
-  
+
   h1 {
     @apply text-3xl sm:text-4xl;
-    line-height: 1.1;
   }
-  
+
   h2 {
     @apply text-2xl sm:text-3xl;
-    line-height: 1.2;
   }
-  
+
   h3 {
     @apply text-xl sm:text-2xl;
-    line-height: 1.3;
   }
-  
-  /* Better spacing rhythm */
-  p {
-    line-height: 1.6;
-  }
+
+p {
+  line-height: 1.4;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 }
 
 ::-webkit-scrollbar {
@@ -166,14 +172,270 @@
 }
 
 .gradient-bg {
-  background: linear-gradient(
-    135deg,
-    var(--background) 0%,
-    oklch(from var(--primary) l c h / 0.1) 50%,
-    var(--card) 100%
-  );
+  background: linear-gradient(135deg, rgba(4, 1, 15, 0.95) 0%, rgba(48, 29, 96, 0.96) 50%, rgba(5, 3, 15, 0.98) 100%);
 }
 
 .card-gradient {
-  background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--primary) l c h / 0.05) 100%);
+  background: linear-gradient(135deg, rgba(16, 10, 36, 0.95) 0%, rgba(255, 92, 244, 0.12) 100%);
+}
+
+.pixel-border {
+  position: relative;
+  border-width: 0;
+  z-index: 1;
+}
+
+.pixel-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 3px solid var(--border);
+  clip-path: polygon(
+    0 8px,
+    8px 8px,
+    8px 0,
+    calc(100% - 8px) 0,
+    calc(100% - 8px) 8px,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    8px calc(100% - 8px),
+    0 calc(100% - 8px)
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+.pixel-glow {
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.04),
+    0 0 12px rgba(255, 92, 244, 0.45);
+}
+
+.hud-grid {
+  background-image: linear-gradient(rgba(105, 54, 190, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(105, 54, 190, 0.2) 1px, transparent 1px);
+  background-size: 16px 16px;
+  image-rendering: pixelated;
+}
+
+.pixel-progress {
+  position: relative;
+  background-color: rgba(25, 12, 48, 0.9);
+  border: 2px solid var(--border);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+
+.pixel-progress::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 1px solid rgba(140, 246, 255, 0.35);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.pixel-progress-fill {
+  height: 100%;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(108, 246, 255, 0.85) 0,
+    rgba(108, 246, 255, 0.85) 12px,
+    rgba(108, 246, 255, 0.35) 12px,
+    rgba(108, 246, 255, 0.35) 16px
+  );
+  box-shadow:
+    inset 0 0 0 2px rgba(5, 3, 15, 0.4),
+    0 0 12px rgba(108, 246, 255, 0.45);
+  animation: progress-sweep 1.4s steps(6, end) infinite;
+}
+
+@keyframes progress-sweep {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 64px 0;
+  }
+}
+
+@keyframes coin-drop {
+  0% {
+    transform: translateY(-16px) scale(0.85);
+    opacity: 0;
+  }
+  40% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(-6px) scale(1.05);
+  }
+  100% {
+    transform: translateY(-10px) scale(1);
+    opacity: 0.85;
+  }
+}
+
+.animate-coin-drop {
+  animation: coin-drop 2s steps(6, end) infinite;
+}
+
+@keyframes chest-sparkle {
+  0%,
+  80%,
+  100% {
+    filter: drop-shadow(0 0 0 rgba(255, 243, 176, 0));
+    opacity: 0.8;
+  }
+  40% {
+    filter: drop-shadow(0 0 10px rgba(255, 243, 176, 0.65));
+    opacity: 1;
+  }
+}
+
+.animate-chest-sparkle {
+  animation: chest-sparkle 2.8s ease-in-out infinite;
+}
+
+@keyframes chain-break {
+  0%,
+  50%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-6deg) scale(1.05);
+  }
+  75% {
+    transform: rotate(4deg) scale(1.05);
+  }
+}
+
+.animate-chain-break {
+  animation: chain-break 2.2s steps(5, end) infinite;
+}
+
+/* Retro Farmer Tractor Animation - GPU Accelerated */
+@keyframes tractor-drive {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes tractor-smoke {
+  0% {
+    opacity: 0.6;
+    transform: translateY(0) scale(0.5);
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) scale(1.2);
+  }
+}
+
+.animate-tractor {
+  animation: tractor-drive 45s linear infinite;
+  will-change: transform;
+}
+
+.animate-smoke {
+  animation: tractor-smoke 3s ease-out infinite;
+  will-change: transform, opacity;
+}
+
+.pixel-panel {
+  position: relative;
+  background: linear-gradient(180deg, rgba(16, 10, 36, 0.96) 0%, rgba(27, 8, 40, 0.98) 100%);
+  box-shadow:
+    inset 0 0 0 2px rgba(9, 5, 24, 0.95),
+    inset 0 0 0 4px rgba(57, 32, 138, 0.45),
+    0 0 14px rgba(140, 246, 255, 0.18);
+  border-radius: 0;
+}
+
+/* Rainbow Kit Modal Customization - Pixel Art Style */
+/* ONLY target elements INSIDE the modal to avoid affecting other components */
+
+/* Modal dialog container */
+div[data-rk] div[role="dialog"] {
+  border: 3px solid hsl(var(--border)) !important;
+  box-shadow: 
+    0 0 40px rgba(108, 246, 255, 0.3), 
+    inset 0 0 0 2px rgba(9, 5, 24, 0.95),
+    10px 10px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Wallet option buttons in connect modal */
+div[data-rk] button[data-testid^="rk-wallet-option"] {
+  border: 2px solid hsl(var(--border)) !important;
+  background: rgba(16, 10, 36, 0.7) !important;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6) !important;
+  font-family: var(--font-display) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  font-size: 10px !important;
+}
+
+div[data-rk] button[data-testid^="rk-wallet-option"]:hover {
+  border-color: hsl(var(--primary)) !important;
+  background: rgba(22, 13, 65, 0.85) !important;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.7) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Account modal - avatar image */
+div[data-rk] div[role="dialog"] img {
+  border: 3px solid hsl(var(--border)) !important;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5) !important;
+  image-rendering: pixelated !important;
+}
+
+/* Account modal - disconnect and copy buttons */
+div[data-rk] button[aria-label*="Disconnect"],
+div[data-rk] button[aria-label*="Copy"],
+div[data-rk] button[aria-label*="Kopyala"],
+div[data-rk] button[aria-label*="Kes"] {
+  border: 2px solid hsl(var(--border)) !important;
+  background: rgba(16, 10, 36, 0.85) !important;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6) !important;
+  font-family: var(--font-display) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  font-size: 9px !important;
+  padding: 12px 20px !important;
+}
+
+div[data-rk] button[aria-label*="Disconnect"]:hover,
+div[data-rk] button[aria-label*="Copy"]:hover,
+div[data-rk] button[aria-label*="Kopyala"]:hover,
+div[data-rk] button[aria-label*="Kes"]:hover {
+  border-color: hsl(var(--accent)) !important;
+  background: rgba(22, 13, 65, 0.95) !important;
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.7) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Close button */
+div[data-rk] button[aria-label*="Close"],
+div[data-rk] button[aria-label*="Kapat"] {
+  background: rgba(16, 10, 36, 0.9) !important;
+  border: 2px solid hsl(var(--border)) !important;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+div[data-rk] button[aria-label*="Close"]:hover,
+div[data-rk] button[aria-label*="Kapat"]:hover {
+  background: rgba(22, 13, 65, 0.95) !important;
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.6) !important;
+  transform: translateY(-1px) !important;
 }

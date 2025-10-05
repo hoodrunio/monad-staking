@@ -1,27 +1,29 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
-import { Inter } from 'next/font/google';
-import { JetBrains_Mono } from 'next/font/google';
+import { Press_Start_2P, VT323 } from 'next/font/google';
 import { Providers } from './providers';
 import { SiteHeader } from '@/app/components/site-header';
 import { ThemeProvider } from '@/app/theme-provider';
 import { Shell, ShellMain, ShellSection } from '@/app/components/layout/shell';
+import { SparklePixelIcon } from '@/app/components/icons';
 
-const inter = Inter({
+const pressStart = Press_Start_2P({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-press-start',
+  weight: '400',
   display: 'swap',
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const vt323 = VT323({
   subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
+  variable: '--font-vt323',
+  weight: '400',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'Monad Staking Dashboard',
+  title: 'StakNads',
   description: 'Monitor validator epochs, delegations, and rewards across Monad networks.',
 };
 
@@ -32,7 +34,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`bg-background font-sans text-foreground antialiased ${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className={`font-sans text-foreground antialiased ${pressStart.variable} ${vt323.variable}`}>
         <ThemeProvider>
           <Providers>
             <Shell>
@@ -40,14 +42,16 @@ export default function RootLayout({
               <ShellMain>
                 {children}
               </ShellMain>
-              <footer className="border-t border-border/60 py-6 text-xs text-muted-foreground">
+              <footer className="border-t-2 border-border bg-secondary/40 py-6 text-xs text-muted-foreground shadow-[0_-4px_0_rgba(0,0,0,0.35)]">
                 <ShellSection
                   as="div"
-                  className="flex items-center justify-between"
+                  className="flex flex-col gap-3 text-center sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <span>Monad Staking &copy; {new Date().getFullYear()}</span>
-                  <span className="hidden items-center gap-2 sm:inline-flex">
-                    <span className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-primary" />
+                  <span className="font-display text-[10px] uppercase tracking-[0.14em] text-primary">
+                    Monad StakNad &copy; {new Date().getFullYear()}
+                  </span>
+                  <span className="inline-flex items-center justify-center gap-2 font-display text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                    <SparklePixelIcon size={12} className="text-primary" />
                     Securing the network together
                   </span>
                 </ShellSection>

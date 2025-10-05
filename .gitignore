@@ -12,3 +12,4 @@ examples
 bun.lock
 pnpm-lock.yaml
 tsconfig.tsbuildinfo
+docs
